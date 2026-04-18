@@ -133,10 +133,23 @@ class BaseDB:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             title TEXT,
+            note TEXT,
+            is_pinned INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
         """)
+
+        # 🔥 Migration: Thêm cột note và is_pinned nếu chưa có
+        try:
+            self.cursor.execute("ALTER TABLE conversations ADD COLUMN note TEXT")
+        except:
+            pass
+            
+        try:
+            self.cursor.execute("ALTER TABLE conversations ADD COLUMN is_pinned INTEGER DEFAULT 0")
+        except:
+            pass
 
         ## Create messages table
         self.cursor.execute("""
@@ -470,6 +483,27 @@ class UserDB(BaseDB):
         self.conn.commit()
         return self.cursor.lastrowid
 
+    def update_conversation(self, conversation_id, title=None, note=None, is_pinned=None):
+        fields = []
+        params = []
+        if title is not None:
+            fields.append("title = ?")
+            params.append(title)
+        if note is not None:
+            fields.append("note = ?")
+            params.append(note)
+        if is_pinned is not None:
+            fields.append("is_pinned = ?")
+            params.append(1 if is_pinned else 0)
+        
+        if not fields:
+            return
+
+        params.append(conversation_id)
+        query = f"UPDATE conversations SET {', '.join(fields)} WHERE id = ?"
+        self.cursor.execute(query, tuple(params))
+        self.conn.commit()
+
 
  
    
@@ -484,7 +518,7 @@ class UserDB(BaseDB):
 
     def get_conversations(self, user_id):
         self.cursor.execute(
-            "SELECT * FROM conversations WHERE user_id=? ORDER BY created_at DESC",
+            "SELECT * FROM conversations WHERE user_id=? ORDER BY is_pinned DESC, created_at DESC",
             (user_id,)
         )
         return [dict(row) for row in self.cursor.fetchall()]
@@ -578,10 +612,13 @@ class UserDB(BaseDB):
         # 🔥 ADD VÀO VECTOR
         try:
             from ingestion.vectorize import add_to_vector_store
+            
+            import os
+            llm_name = self.get_setting("llm_name", os.environ.get("LLM_NAME", "openai"))
 
-            add_to_vector_store(question, answer)
+            add_to_vector_store(question, answer, llm_name=llm_name)
 
-            print("✅ ĐÃ ADD VECTOR")
+            print(f"✅ ĐÃ ADD VECTOR (Model: {llm_name})")
 
         except Exception as e:
             print("VECTOR ERROR:", e)

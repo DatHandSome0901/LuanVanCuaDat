@@ -17,9 +17,10 @@ from concurrent.futures import ThreadPoolExecutor
 
 class FilesChatAgent:
 
-    def __init__(self, llm_model, path_vector_store, allowed_files=["*"]) -> None:
+    def __init__(self, llm_model, path_vector_store, embedding_model_name=None, allowed_files=["*"]) -> None:
         self.allowed_files = allowed_files
         self.path_vector_store = path_vector_store
+        self.embedding_model_name = embedding_model_name or os.environ.get("EMBEDDING_MODEL_NAME", "openai")
 
         self.llm = llm_model
         self.document_grader = DocumentGrader(self.llm)
@@ -183,12 +184,13 @@ class FilesChatAgent:
 
         import os
 
-        path = f"{self.path_vector_store}/{os.getenv('LLM_NAME')}"
+        path = self.path_vector_store
 
         print("👉 ĐANG LOAD VECTOR:", path)
+        print(f"👉 USING EMBEDDING: {self.embedding_model_name}")
 
         retriever_main = Retriever(
-            embedding_model_name=os.environ["EMBEDDING_MODEL_NAME"]
+            embedding_model_name=self.embedding_model_name
         ).set_retriever(
             path_vector_store=path
         )
@@ -201,17 +203,24 @@ class FilesChatAgent:
         # ===== VECTOR HỌC THÊM =====
         docs_extra = []
 
-        if os.path.exists("output"):
-            retriever_extra = Retriever(
-                embedding_model_name=os.environ["EMBEDDING_MODEL_NAME"]
-            ).set_retriever(
-                path_vector_store="output"
-            )
+        # 🔥 Dynamic output path based on embedding model
+        target_extra_path = os.path.join("output", "openai" if self.embedding_model_name == "openai" else "vertex")
 
-            docs_extra = retriever_extra.get_documents(
-                query=question,
-                num_doc=10
-            )
+        if os.path.exists(target_extra_path):
+            try:
+                retriever_extra = Retriever(
+                    embedding_model_name=self.embedding_model_name
+                ).set_retriever(
+                    path_vector_store=target_extra_path
+                )
+
+                docs_extra = retriever_extra.get_documents(
+                    query=question,
+                    num_doc=10
+                )
+            except Exception as e:
+                print(f"⚠️ SKIP EXTRA INDEX (Mismatched dimension?): {e}")
+                docs_extra = []
 
         # ===== GỘP =====
         raw_docs = docs_main + docs_extra
@@ -270,10 +279,12 @@ class FilesChatAgent:
         question = state["question"]
         documents = state["documents"]
 
+        print(f"--- GRADING DOCUMENTS FOR QUESTION: '{question}' ---")
+
         def grade(doc):
 
-            # 🔥 FIX 1: lấy đúng content
-            document_text = doc.metadata.get("answer", doc.page_content)
+            # 🔥 FIX 1: lấy đúng content (kiểm tra cả 'text' trong metadata nếu cần)
+            document_text = doc.metadata.get("answer", doc.metadata.get("text", doc.page_content))
 
             response = self.document_grader.get_chain().invoke({
                 "question": question,
@@ -284,8 +295,14 @@ class FilesChatAgent:
 
             content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip().lower()
 
-            # 🔥 FIX 2: check YES mềm
-            if "yes" in content:
+            # 🔥 FIX 2: check linh hoạt hơn (hỗ trợ cả tiếng Việt nếu model tự trả lời tiếng Việt)
+            positive_keywords = ["yes", "có", "đúng", "relevant"]
+            is_relevant = any(word in content for word in positive_keywords)
+            
+            status = "✅ YES" if is_relevant else "❌ NO"
+            print(f"> {status} | Doc ID: {doc.metadata.get('id', 'N/A')} | Source: {doc.metadata.get('source', 'unknown')} | LLM said: '{content}'")
+
+            if is_relevant:
                 return doc
 
             return None

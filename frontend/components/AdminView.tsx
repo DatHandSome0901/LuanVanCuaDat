@@ -27,7 +27,7 @@ const AdminView: React.FC = () => {
     users: [], packages: [], history: [], payments: [], chatlogs: [], 
     rate: 1.0, logins: [], reports: [],
     site_title: '', seo_description: '', seo_keywords: '', seo_author: '', favicon_url: '',landing_bg: '',
-    no_answer_fallback: ''
+    no_answer_fallback: '', llm_name: 'openai'
   } as any);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChat, setSelectedChat] = useState<any | null>(null);
@@ -94,7 +94,8 @@ const AdminView: React.FC = () => {
           seo_keywords: res.seo_keywords,
           seo_author: res.seo_author,
           favicon_url: res.favicon_url,
-          no_answer_fallback: res.no_answer_fallback
+          no_answer_fallback: res.no_answer_fallback,
+          llm_name: res.llm_name
         }));
       } else if (activeTab === 'logins') {
         const res = await api.adminGetActiveUsers();
@@ -232,17 +233,17 @@ const AdminView: React.FC = () => {
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
     const settings = {
-        rate_per_1000: parseFloat(formData.get('rate') as string),
-        logo_url: formData.get('logo_url') as string,
+        rate_per_1000: data.rate,
+        logo_url: data.logo_url,
         landing_bg: data.landing_bg,
-        favicon_url: formData.get('favicon_url') as string,
-        site_title: formData.get('site_title') as string,
-        seo_description: formData.get('seo_description') as string,
-        seo_keywords: formData.get('seo_keywords') as string,
-        seo_author: formData.get('seo_author') as string,
-        no_answer_fallback: formData.get('no_answer_fallback') as string
+        favicon_url: data.favicon_url,
+        site_title: data.site_title,
+        seo_description: data.seo_description,
+        seo_keywords: data.seo_keywords,
+        seo_author: data.seo_author,
+        no_answer_fallback: data.no_answer_fallback,
+        llm_name: data.llm_name
     };
 
     try {

@@ -86,6 +86,12 @@ async def get_messages(conversation_id: int):
     return messages
 
 
+class UpdateConversationRequest(BaseModel):
+    title: str | None = None
+    note: str | None = None
+    is_pinned: bool | None = None
+
+
 # ===============================
 # DELETE CHAT
 # ===============================
@@ -100,6 +106,31 @@ async def delete_chat(conversation_id: int):
     db.close()
 
     return {"status": "deleted"}
+
+
+# ===============================
+# UPDATE CHAT (TITLE / NOTE / PIN)
+# ===============================
+
+@router.put("/conversation/{conversation_id}")
+async def update_conversation(
+    conversation_id: int,
+    request: UpdateConversationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+
+    db = UserDB()
+
+    db.update_conversation(
+        conversation_id,
+        title=request.title,
+        note=request.note,
+        is_pinned=request.is_pinned
+    )
+
+    db.close()
+
+    return {"status": "updated"}
 
 
 # ===============================
@@ -123,16 +154,32 @@ async def chat_with_router(
         if not user or user.get("token_balance", 0) <= 0:
             raise HTTPException(status_code=402, detail="Số dư token không đủ.")
 
-        llm_name = os.environ.get("LLM_NAME", "openai")
+        db = UserDB()
+        llm_name = db.get_setting("llm_name", os.environ.get("LLM_NAME", "openai"))
+        db.close() # Nhớ đóng DB
 
-        path_vector_store = os.environ.get("PATH_VECTOR_STORE")
-
+        # DYNAMIC VECTOR PATH logic
+        base_vector_path = os.environ.get("PATH_VECTOR_STORE")
+        path_vector_store = base_vector_path
+        if base_vector_path:
+            model_specific_path = os.path.join(base_vector_path, llm_name)
+            if os.path.exists(model_specific_path):
+                path_vector_store = model_specific_path
+        
         # llm = LLM().get_llm(llm_name)
-        llm = LLM().get_llm()   # ✅
+        llm = LLM().get_llm(llm_name)   # ✅
+
+        # DYNAMIC EMBEDDING logic
+        embedding_model_name = os.environ.get("EMBEDDING_MODEL_NAME", "openai")
+        if llm_name == "openai":
+            embedding_model_name = "openai"
+        elif llm_name in ["vertex", "gemini"]:
+            embedding_model_name = "vertex"
 
         agent = FilesChatAgent(
             llm_model=llm,
             path_vector_store=path_vector_store,
+            embedding_model_name=embedding_model_name,
             allowed_files=["*"]
         )
 
@@ -297,16 +344,31 @@ def stream_answer(agent, question):
 @router.post("/chat_stream")
 async def chat_stream(request: ChatRequest):
 
-    llm_name = os.environ.get("LLM_NAME", "openai")
+    db = UserDB()
+    llm_name = db.get_setting("llm_name", os.environ.get("LLM_NAME", "openai"))
+    db.close()
 
-    path_vector_store = os.environ.get("PATH_VECTOR_STORE")
+    base_vector_path = os.environ.get("PATH_VECTOR_STORE")
+    path_vector_store = base_vector_path
+    if base_vector_path:
+        model_specific_path = os.path.join(base_vector_path, llm_name)
+        if os.path.exists(model_specific_path):
+            path_vector_store = model_specific_path
 
     # llm = LLM().get_llm(llm_name)
-    llm = LLM().get_llm()   # ✅
+    llm = LLM().get_llm(llm_name)   # ✅
+
+    # DYNAMIC EMBEDDING logic
+    embedding_model_name = os.environ.get("EMBEDDING_MODEL_NAME", "openai")
+    if llm_name == "openai":
+        embedding_model_name = "openai"
+    elif llm_name in ["vertex", "gemini"]:
+        embedding_model_name = "vertex"
 
     agent = FilesChatAgent(
         llm_model=llm,
         path_vector_store=path_vector_store,
+        embedding_model_name=embedding_model_name,
         allowed_files=["*"]
     )
 

@@ -40,7 +40,7 @@ class SettingsUpdate(BaseModel):
     seo_author: Optional[str] = None
     favicon_url: Optional[str] = None
     no_answer_fallback: Optional[str] = None
-
+    llm_name: Optional[str] = None 
     landing_bg: Optional[str] = None
 
 def update_index_html_seo(site_title: str, description: str, keywords: str, author: str, favicon_url: str, logo_url: str):
@@ -323,16 +323,16 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
     
     rate = db.get_setting("rate_per_1000", "1.0")
     logo_url = db.get_setting("logo_url", "")
-
     landing_bg = db.get_setting("landing_bg", "")
     
     # Use HTML values as default if DB doesn't have them
-    site_title = db.get_setting("site_title", html_seo.get('site_title', "Chatbot Phật Giáo"))
+    site_title = db.get_setting("site_title", html_seo.get('site_title', "Chatbot Historical"))
     seo_description = db.get_setting("seo_description", html_seo.get('seo_description', ""))
     seo_keywords = db.get_setting("seo_keywords", html_seo.get('seo_keywords', ""))
-    seo_author = db.get_setting("seo_author", html_seo.get('seo_author', "Chatbot Phật Giáo Team"))
-    favicon_url = db.get_setting("favicon_url", html_seo.get('favicon_url', "/favicon.svg"))
-    no_answer_fallback = db.get_setting("no_answer_fallback", "Nam mô A Di Đà Phật. Cáo lỗi cùng Phật tử, trí tuệ của bần tăng hiện tại chưa tìm thấy lời giải đáp chính xác cho vấn đề này trong tàng kinh các. Xin Phật tử hãy thử đặt câu hỏi khác hoặc diễn đạt lại ý tứ để bần tăng có thể trợ duyên tốt hơn.")
+    seo_author = db.get_setting("seo_author", html_seo.get('seo_author', "Chatbot Team"))
+    favicon_url = db.get_setting("favicon_url", html_seo.get('favicon_url', ""))
+    no_answer_fallback = db.get_setting("no_answer_fallback", "Xin lỗi, hiện tại tôi chưa tìm thấy câu trả lời chính xác cho vấn đề này.")
+    llm_name = db.get_setting("llm_name", "openai")
     
     db.close()
     return {
@@ -344,6 +344,7 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
         "seo_keywords": seo_keywords,
         "seo_author": seo_author,
         "favicon_url": favicon_url,
+        "llm_name": llm_name,
         "no_answer_fallback": no_answer_fallback
     }
 
@@ -366,6 +367,7 @@ async def update_settings(
         ("seo_keywords", data.seo_keywords),
         ("seo_author", data.seo_author),
         ("favicon_url", data.favicon_url),
+        ("llm_name", data.llm_name),
         ("no_answer_fallback", data.no_answer_fallback)
     ]
 

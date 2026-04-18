@@ -265,7 +265,8 @@ async getPublicSettings() {
     seo_author: string,
     favicon_url: string,
     no_answer_fallback: string,
-    rate_per_1000: number
+    rate_per_1000: number,
+    llm_name: string
   }> {
     const response = await fetch(`${BASE_URL}/admin/settings`, {
       headers: getHeaders(),
@@ -291,7 +292,8 @@ async getPublicSettings() {
     seo_description?: string,
     seo_keywords?: string,
     seo_author?: string,
-    no_answer_fallback?: string
+    no_answer_fallback?: string,
+    llm_name?: string
   }): Promise<any> {
     const response = await fetch(`${BASE_URL}/admin/settings`, {
       method: 'POST',
@@ -445,6 +447,21 @@ export const deleteConversation = async (id: number) => {
   return res.json();
 
   
+};
+
+
+export const updateConversation = async (id: number, data: {title?: string, note?: string, is_pinned?: boolean}) => {
+
+  const res = await fetch(`${API_ROOT}/api/v1/conversation/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`
+    },
+    body: JSON.stringify(data)
+  });
+
+  return res.json();
 };
 
 

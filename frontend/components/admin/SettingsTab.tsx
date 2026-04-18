@@ -264,6 +264,22 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
 
           <div className="pt-4 border-t border-stone-100">
+              <label className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-2 block">Model LLM (Trí Tuệ Nhân Tạo)</label>
+              <select
+                  name="llm_name"
+                  value={data.llm_name || 'openai'}
+                  onChange={onChange as any}
+                  className="w-full bg-stone-50 border border-stone-100 p-4 rounded-xl focus:outline-none focus:border-red-800 font-bold text-stone-800"
+              >
+                  <option value="openai">OpenAI (GPT-4o/GPT-4o-mini)</option>
+                  <option value="gemini">Gemini API (Google AI Studio)</option>
+                  <option value="vertex">Google Vertex AI (Enterprise)</option>
+                  <option value="local">Local (Ollama / Vllm / Llama.cpp)</option>
+              </select>
+              <p className="text-[10px] text-stone-400 mt-2 italic">Lưu ý: Bạn cần cấu hình các Key API tương ứng trong file .env của backend.</p>
+          </div>
+
+          <div className="pt-4 border-t border-stone-100">
               <label className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-2 block">Câu trả lời mặc định (Khi không tìm thấy đáp án)</label>
               <textarea 
                   name="no_answer_fallback"

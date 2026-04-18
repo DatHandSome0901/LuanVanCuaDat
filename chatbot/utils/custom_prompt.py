@@ -5,18 +5,15 @@ class CustomPrompt:
     # 1. CHECK DOCUMENT RELEVANCE
     # ==============================
     GRADE_DOCUMENT_PROMPT = """
-Bạn là người đánh giá mức độ liên quan của một tài liệu đối với câu hỏi của người dùng.
+You are an expert in Vietnamese history. Your task is to evaluate if the provided document is relevant to the user's question.
 
-Hướng dẫn:
+Criteria:
+1. If the document contains any information that can help answer the question (even partially) -> respond with "yes".
+2. If the document is completely unrelated to the question -> respond with "no".
 
-1. Đọc câu hỏi của người dùng.
-2. Đọc nội dung tài liệu.
-3. So sánh:
-- Nếu tài liệu chứa thông tin liên quan đến lịch sử Việt Nam (sự kiện, thời gian, nhân vật, địa điểm) → "yes"
-- Nếu không liên quan → "no"
-
-4. Chỉ trả về duy nhất một từ: "yes" hoặc "no".
-5. Không được giải thích thêm.
+STRICT RULES:
+- Respond ONLY with the word "yes" or "no".
+- No explanations, no extra characters.
 """
 
     # ==============================

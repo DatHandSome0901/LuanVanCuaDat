@@ -84,8 +84,9 @@ class LLM:
     #         return self.local_ai()
 
     #     raise ValueError(f"LLM not supported: {llm_name}")
-    def get_llm(self):
-        llm_name = os.getenv("LLM_NAME")
+    def get_llm(self, llm_name: str = None):
+        if not llm_name:
+            llm_name = os.getenv("LLM_NAME", "openai")
 
         if llm_name == "openai":
             return self.open_ai()

@@ -1,0 +1,7 @@
+{
+  "name": "Buddhist Wisdom Chatbot",
+  "description": "A serene and powerful RAG-based AI chatbot providing Buddhist teachings and guidance, featuring integrated payment for tokens and secure authentication.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

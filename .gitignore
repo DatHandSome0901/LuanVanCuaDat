@@ -1,0 +1,64 @@
+# ================= PYTHON =================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment (QUAN TRỌNG NHẤT)
+venv/
+.env
+.env.*
+
+# ================= BUILD =================
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# ================= LOG =================
+*.log
+*.coverage
+.coverage.*
+.cache
+pytest_cache/
+.tox/
+
+# ================= NOTEBOOK =================
+.ipynb_checkpoints/
+
+# ================= TYPE CHECK =================
+.mypy_cache/
+.pyre/
+.pytype/
+
+# ================= IDE =================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ================= OS =================
+.DS_Store
+Thumbs.db
+
+# ================= DATABASE =================
+*.sqlite3
+*.db
+
+# ================= NODE (nếu có frontend React) =================
+node_modules/
+.next/
+out/
+
+# ================= DOCKER =================
+*.pid
+
+# ================= CUSTOM =================
+/download/
+/docker/
+
+# ❌ KHÔNG dùng cái này (dễ mất code)
+# /utils*
+utils/data_vector_new/
+*.faiss
+*.pkl

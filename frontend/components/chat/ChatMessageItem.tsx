@@ -15,15 +15,18 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
   const avatar = msg.role === 'user' ? userAvatar : botAvatar;
   const username = msg.role === 'user' ? 'Gia chủ' : 'Thiền sư AI';
 
+  // Detection
+  const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
+
   return (
-    <div className={`flex items-end gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+    <div className={`flex items-end gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-3 duration-500`}>
       {/* Avatar */}
-      <div className="flex-shrink-0 mb-1">
+      <div className="flex-shrink-0 mb-0.5">
         {avatar && !imgError ? (
           <img 
             src={avatar} 
             alt={username} 
-            className="w-8 h-8 rounded-full border border-stone-100 shadow-sm object-cover" 
+            className={`w-8 h-8 rounded-full border shadow-sm object-cover ${isNative ? 'border-red-100' : 'border-stone-100'}`} 
             onError={() => setImgError(true)}
           />
         ) : (
@@ -33,10 +36,10 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
         )}
       </div>
 
-      <div className={`group relative max-w-[85%] md:max-w-[70%] rounded-2xl p-4 shadow-sm ${
-        msg.role === 'user' 
-          ? 'bg-amber-600 text-white rounded-br-none' 
-          : 'bg-white border border-stone-100 text-stone-800 rounded-bl-none'
+      <div className={`group relative max-w-[85%] md:max-w-[70%] p-4 ${
+        isNative 
+          ? `rounded-3xl shadow-md ${msg.role === 'user' ? 'bg-amber-600 text-white rounded-br-none' : 'bg-white border border-stone-100 text-stone-800 rounded-bl-none'}`
+          : `rounded-2xl shadow-sm ${msg.role === 'user' ? 'bg-amber-600 text-white rounded-br-none' : 'bg-white border border-stone-100 text-stone-800 rounded-bl-none'}`
       }`}>
         {/* Copy Button - Hidden on mobile, shown on group hover for desktop */}
         <button 

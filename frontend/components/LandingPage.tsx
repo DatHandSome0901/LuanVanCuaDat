@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { API_ROOT } from "../api";
+import { motion } from "framer-motion";
 
 type Props = {
   siteConfig: any;
@@ -11,7 +12,7 @@ const texts = [
   "Hỏi về chiến tranh Việt Nam...",
   "Tìm hiểu các triều đại...",
   "Khám phá nhân vật lịch sử...",
-];
+].map(s => s.normalize('NFC'));
 
 const heroes = [
   "👑 Gia Long",
@@ -29,7 +30,7 @@ const heroes = [
   "🧠 Hồ Chí Minh",
   "📚 Nguyễn Trãi",
   "🎖️ Võ Nguyên Giáp",
-];
+].map(s => s.normalize('NFC'));
 
 const LandingPage: React.FC<Props> = ({ siteConfig, onStart }) => {
   const [displayText, setDisplayText] = useState("");
@@ -46,9 +47,9 @@ const LandingPage: React.FC<Props> = ({ siteConfig, onStart }) => {
     const current = texts[index];
 
     const typing = setInterval(() => {
-      setDisplayText(current.slice(0, i));
+      setDisplayText(Array.from(current).slice(0, i).join(''));
       i++;
-      if (i > current.length) {
+      if (i > Array.from(current).length) {
         clearInterval(typing);
         setTimeout(() => {
           setIndex((prev) => (prev + 1) % texts.length);
@@ -240,33 +241,63 @@ const LandingPage: React.FC<Props> = ({ siteConfig, onStart }) => {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[4px]" />
 
       {/* CARD */}
-      <div className="relative z-10 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 md:p-14 shadow-[0_0_60px_rgba(0,0,0,0.6)] text-center max-w-2xl w-full transition duration-500 hover:scale-[1.02]">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 bg-white/5 backdrop-blur-[40px] border border-white/20 rounded-[40px] p-8 md:p-20 shadow-[0_20px_80px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] text-center max-w-xl md:max-w-2xl w-[92%] transition-all duration-700 active:scale-[0.98]"
+      >
+        {/* Subtle Gold Glow */}
+        <div className="absolute -inset-0.5 bg-gradient-to-tr from-amber-500/10 via-transparent to-red-500/10 rounded-[40px] blur-2xl -z-10 opacity-50" />
 
-        <img
-          src={logoUrl || "/default.jpg"}
-          className="w-20 mx-auto mb-6 rounded-2xl shadow-xl border border-white/10 float"
-        />
+        <div className="relative mb-8">
+           <motion.img
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ repeat: Infinity, duration: 4, repeatType: "reverse" }}
+            src={logoUrl || "/default.jpg"}
+            className="w-24 h-24 mx-auto rounded-3xl shadow-2xl border border-white/20 object-cover"
+          />
+          <div className="absolute -bottom-2 -right-2 bg-red-800 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg uppercase tracking-tighter">AI Core</div>
+        </div>
 
-        <h1 className="text-5xl md:text-6xl font-extrabold mb-3 text-gradient">
-          {siteConfig?.site_title || "Chatbot Historical"}
+        <h1 className="text-4xl md:text-6xl font-historical-premium mb-4 leading-tight tracking-tight text-white drop-shadow-2xl">
+          {siteConfig?.site_title || "Sử Việt Chatbot"}
         </h1>
 
-        <p className="text-red-300 text-lg mb-6 h-6 font-medium tracking-wide">
-          {displayText}
-          <span className="ml-1 blink">|</span>
+        <div className="h-12 flex items-center justify-center mb-6">
+          <p className="text-amber-400 font-historical-premium italic text-xl md:text-2xl drop-shadow-md">
+            {displayText}
+            <motion.span 
+              animate={{ opacity: [1, 0] }}
+              transition={{ repeat: Infinity, duration: 0.8 }}
+              className="ml-1 inline-block w-1 h-6 bg-red-400 align-middle"
+            />
+          </p>
+        </div>
+
+        <p className="text-white/60 text-sm md:text-base mb-10 leading-relaxed max-w-xs mx-auto font-medium">
+          Hỏi đáp và khám phá kho tàng lịch sử Việt Nam bằng Trí Tuệ Nhân Tạo
         </p>
 
-        <p className="text-white/70 text-base mb-8">
-          Hỏi đáp lịch sử Việt Nam bằng AI thông minh
-        </p>
-
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(185, 28, 28, 0.4)" }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleStart}
-          className="relative px-10 py-4 rounded-2xl text-lg font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-orange-500 shadow-lg hover:scale-105 transition"
+          className="group relative w-full md:w-auto px-12 py-5 rounded-2xl text-lg font-black text-white bg-gradient-to-br from-red-700 via-red-800 to-amber-900 shadow-2xl transition-all overflow-hidden"
         >
-          {loading ? "Đang vào..." : "🚀 Bắt đầu trò chuyện"}
-        </button>
-      </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          <span className="relative flex items-center justify-center gap-3">
+            {loading ? (
+               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                🚀 Bắt đầu ngay
+              </>
+            )}
+          </span>
+        </motion.button>
+      </motion.div>
 
       {/* EFFECT */}
       {effects.map((item) => (

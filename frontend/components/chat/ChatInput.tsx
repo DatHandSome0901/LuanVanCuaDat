@@ -9,44 +9,54 @@ interface ChatInputProps {
 
 const ChatInput: React.FC<ChatInputProps> = ({ input, setInput, isLoading, onSubmit }) => {
   return (
-    <footer className="p-3 md:p-8 bg-white/50 border-t border-stone-100">
-      <div className="max-w-4xl mx-auto relative flex items-end gap-2">
-        <textarea
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            // Auto-resize
-            e.target.style.height = 'auto';
-            e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && e.ctrlKey) {
-              e.preventDefault();
-              onSubmit(e as any);
-            }
-          }}
-          placeholder="Đặt câu hỏi..."
-          rows={1}
-          className="flex-1 bg-white border border-stone-200 rounded-2xl py-3 pl-4 pr-4 shadow-lg shadow-stone-200/30 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-sm md:text-base text-stone-800 resize-none min-h-[48px] overflow-y-auto"
-          style={{ height: 'auto' }}
-        />
-        <button
-          onClick={(e) => onSubmit(e as any)}
-          disabled={isLoading || !input.trim()}
-          className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-2xl transition-all shadow-lg ${
-            isLoading || !input.trim() 
-              ? 'bg-stone-100 text-stone-300 cursor-not-allowed' 
-              : 'bg-amber-600 text-white hover:bg-amber-700 active:scale-95 shadow-amber-600/20'
-          }`}
-        >
-          <svg className="w-6 h-6 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        </button>
+    <footer className="p-4 md:p-8 bg-gradient-to-t from-stone-50 to-transparent">
+      <div className="max-w-4xl mx-auto relative">
+        <div className="relative flex items-end gap-3 bg-white border border-stone-200 p-2 rounded-[28px] shadow-xl shadow-stone-200/40 focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-800/5 transition-all">
+          <textarea
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                if (window.innerWidth > 768) {
+                  e.preventDefault();
+                  onSubmit(e as any);
+                }
+              }
+            }}
+            placeholder="Tìm hiểu sử thi Việt Nam..."
+            rows={1}
+            spellCheck={false}
+            className="flex-1 bg-transparent border-none rounded-2xl py-3 px-4 focus:outline-none text-sm md:text-base text-stone-800 resize-none min-h-[48px] overflow-y-auto"
+            style={{ height: 'auto' }}
+          />
+          
+          <button
+            onClick={(e) => onSubmit(e as any)}
+            disabled={isLoading || !input.trim()}
+            className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-2xl transition-all shadow-lg ${
+              isLoading || !input.trim() 
+                ? 'bg-stone-50 text-stone-300 cursor-not-allowed' 
+                : 'bg-red-800 text-white hover:bg-red-900 active:scale-95 shadow-red-900/20'
+            }`}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <svg className="w-6 h-6 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            )}
+          </button>
+        </div>
+        
+        <p className="text-[9px] text-center text-stone-400 mt-4 uppercase tracking-[0.2em] font-black opacity-50">
+          Thông tin mang tính chất tham khảo sử học
+        </p>
       </div>
-      <p className="hidden md:block text-[10px] text-center text-stone-400 mt-3 uppercase tracking-tighter">
-        Nhấn Enter để xuống hàng • Ctrl + Enter để gửi
-      </p>
     </footer>
   );
 };

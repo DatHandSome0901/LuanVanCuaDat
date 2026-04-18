@@ -2,33 +2,47 @@ import React from 'react';
 import { User, View } from '../types';
 import { API_ROOT } from '../api';
 import ConversationList from "./chat/ConversationList";
+import { motion, AnimatePresence } from 'framer-motion';
+
 interface SidebarProps {
   user: User | null;
   currentView: View;
   onViewChange: (view: View) => void;
   onLogout: () => void;
   siteConfig?: { logo_url: string, site_title: string };
+  activeConversationId: number | null;
+  onActiveConversationIdChange: (id: number | null) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ user, currentView, onViewChange, onLogout, siteConfig }) => {
+const Sidebar: React.FC<SidebarProps> = ({ user, currentView, onViewChange, onLogout, siteConfig, activeConversationId, onActiveConversationIdChange }) => {
   const [imgError, setImgError] = React.useState(false);
   const [mobileImgError, setMobileImgError] = React.useState(false);
+  
+  // Defensive Detection
+  const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
 
   const navItems = [
-    { id: 'chat' as View, label: 'Sử Việt', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },  { id: 'new_chat' as View, label: 'Chat mới', icon: 'M12 4v16m8-8H4' },
+    { id: 'chat' as View, label: 'Sử Việt', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+    { id: 'history' as View, label: 'Lịch sử', icon: 'M12 8v4l3 2m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { id: 'new_chat' as View, label: 'Mới', icon: 'M12 4v16m8-8H4' },
     { id: 'payment' as View, label: 'Nạp Tiền', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     ...(user?.is_admin ? [{ id: 'admin' as View, label: 'ADMIN', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' }] : []),
-    { id: 'profile' as View, label: 'Hồ Sơ', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
   ];
 
-const [activeConversationId, setActiveConversationId] = React.useState<number | null>(null);
-React.useEffect(()=>{
-  const id = localStorage.getItem("conversation_id")
-  if(id) setActiveConversationId(Number(id))
-},[])
+  const handleNavClick = (id: View) => {
+    if (id === "new_chat") {
+      localStorage.removeItem("conversation_id");
+      window.dispatchEvent(new Event("new_chat"));
+      window.dispatchEvent(new Event("reload_conversations"));
+      onViewChange("chat");
+    } else {
+      onViewChange(id);
+    }
+  };
+
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar (Original) */}
       <aside className="hidden md:flex w-64 bg-white border-r border-stone-200 flex-col h-full shrink-0">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-8">
@@ -48,28 +62,24 @@ React.useEffect(()=>{
               </h1>
           </div>
 
-          <nav className="space-y-2">
-            {navItems.map((item) => (
+          <nav className="space-y-1">
+            {navItems.filter(i => i.id !== 'history').map((item) => (
               <button
                 key={item.id}
-                // onClick={() => onViewChange(item.id)}
-                    onClick={() => {
-                  if (item.id === "new_chat") {
-                    localStorage.removeItem("conversation_id")
-                    window.dispatchEvent(new Event("new_chat"))
-                    window.dispatchEvent(new Event("reload_conversations"))
-                    onViewChange("chat")
-                  } else {
-                    onViewChange(item.id)
-                  }
-                }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                onClick={() => handleNavClick(item.id)}
+                className={`w-full group relative flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
                   currentView === item.id 
-                    ? 'bg-red-50 text-red-900 font-medium shadow-sm' 
+                    ? 'bg-red-50 text-red-900 font-bold shadow-sm' 
                     : 'text-stone-500 hover:bg-stone-50 hover:text-stone-800'
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {currentView === item.id && (
+                  <motion.div 
+                    layoutId="desktopActive"
+                    className="absolute left-0 w-1 h-6 bg-red-800 rounded-r-full"
+                  />
+                )}
+                <svg className={`w-5 h-5 transition-colors ${currentView === item.id ? 'text-red-800' : 'text-stone-400 group-hover:text-stone-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                 </svg>
                 {item.label}
@@ -77,68 +87,22 @@ React.useEffect(()=>{
             ))}
           </nav>
         </div>
-                  {/* =======================
-                  CHAT HISTORY
-                  =======================  */}
 
+        {user && (
+          <>
+            <p className="px-4 mt-4 mb-2 text-xs text-stone-400">Các đoạn chat</p>
+            <div className="flex-1 overflow-y-auto px-3">
+              <ConversationList 
+                onSelect={(id:number)=>{onActiveConversationIdChange(id)}}
+                activeId={activeConversationId}
+              />
+            </div>
+          </>
+        )}
 
-              {user && (
-                <>
-                  {/* TITLE */}
-                  <p className="px-4 mt-4 mb-2 text-xs text-stone-400">
-                    Các đoạn chat
-                  </p>
-
-                  {/* LIST */}
-                  <div className="flex-1 overflow-y-auto px-3">
-                    {/* <ConversationList onSelect={()=>{}} /> */}
-                    <ConversationList 
-                        onSelect={(id:number)=>{
-                          setActiveConversationId(id)
-                        }}
-                        activeId={activeConversationId}
-                      />
-                      
-
-                      
-                  </div>
-                </>
-              )}
-
-                    {/* {/* <div className="mt-6 flex-1 flex flex-col overflow-hidden"> */}
-
-              {/* <button
-                // onClick={()=>{
-                //   localStorage.removeItem("conversation_id")
-                //   window.dispatchEvent(new Event("new_chat"))
-                //   window.dispatchEvent(new Event("reload_conversations"))
-                // }}
-                 onClick={() => {
-                      localStorage.removeItem("conversation_id")
-
-                      // reset chat
-                      window.dispatchEvent(new Event("new_chat"))
-
-                      // reload list
-                      window.dispatchEvent(new Event("reload_conversations"))
-
-                      // 🔥 QUAN TRỌNG: chuyển sang màn chat
-                      onViewChange("chat")
-                    }}
-                className="w-full mb-2 bg-red-800 text-white text-sm py-2 rounded-lg"
-              >
-                + Chat mới
-              </button> */} 
-
-              {/* <div className="flex-1 overflow-y-auto pr-1">
-                <ConversationList onSelect={()=>{}} />
-              </div>
-
-            </div> */} 
         <div className="mt-auto p-4 border-t border-stone-100">
           {user ? (
             <div className="space-y-4">
-              {/* User Profile Section */}
               <div 
                 onClick={() => onViewChange('profile')}
                 className="flex items-center gap-3 p-2 rounded-xl border border-stone-50 hover:bg-stone-50 cursor-pointer transition-all group"
@@ -161,20 +125,12 @@ React.useEffect(()=>{
                 </div>
               </div>
 
-              {/* <button 
-                onClick={onLogout} */}
-                <button 
-               onClick={() => {
-
-                localStorage.removeItem("access_token")
-                localStorage.removeItem("conversation_id")
-
-                window.dispatchEvent(new Event("clear_conversations"))
-
-                onLogout()
-
-
-
+              <button 
+                onClick={() => {
+                  localStorage.removeItem("access_token")
+                  localStorage.removeItem("conversation_id")
+                  window.dispatchEvent(new Event("clear_conversations"))
+                  onLogout()
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
               >
@@ -187,17 +143,9 @@ React.useEffect(()=>{
           ) : (
             <div className="p-2 text-center">
               <p className="text-xs text-stone-400 mb-2">Đăng nhập để lưu lịch sử</p>
-              {/* <button 
-                onClick={() => onViewChange('chat')}
-                className="w-full bg-red-800 text-white text-sm py-2 rounded-lg font-medium hover:bg-red-900 transition-colors"
-              >
-                Bắt đầu ngay
-              </button> */}
               <button 
-                onClick={() => {
-                    window.dispatchEvent(new Event("open_login"))
-                  }}
-                  className="w-full bg-red-800 text-white text-sm py-2 rounded-lg font-medium hover:bg-red-900 transition-colors"
+                onClick={() => onViewChange('profile')} // Repurposed for Auth
+                className="w-full bg-red-800 text-white text-sm py-2 rounded-lg font-medium hover:bg-red-900 transition-colors"
                 >
                   Bắt đầu ngay
               </button>
@@ -206,44 +154,73 @@ React.useEffect(()=>{
         </div>
       </aside>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-2 py-1 flex justify-around items-center z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] pb-safe-offset-1">
+      {/* Mobile Bottom Nav - PREMIUM GLASSMORPHISM */}
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 px-2 pb-[calc(1rem+var(--sab))] pt-3 flex justify-around items-center z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] transition-all ${isNative ? 'glass-nav backdrop-blur-3xl' : 'bg-white/90 backdrop-blur-md border-t border-stone-100'}`}>
         {navItems.map((item) => (
-          <button
+          <motion.button
             key={item.id}
-            onClick={() => onViewChange(item.id)}
-            className={`flex flex-col items-center gap-1 p-2 min-w-[64px] transition-all ${
-              currentView === item.id 
-                ? 'text-red-800' 
-                : 'text-stone-400'
+            whileTap={{ scale: 0.9 }}
+            onClick={() => handleNavClick(item.id)}
+            className={`relative flex flex-col items-center gap-1.5 min-w-[64px] py-1 transition-colors ${
+              currentView === item.id ? 'text-red-800' : 'text-stone-400'
             }`}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-            </svg>
-            <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
-          </button>
+            <div className={`p-2 rounded-2xl transition-all ${currentView === item.id ? 'bg-red-50' : ''}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+              </svg>
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-wider ${currentView === item.id ? 'opacity-100' : 'opacity-60'}`}>
+              {item.label}
+            </span>
+            {currentView === item.id && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-red-800 rounded-full"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+          </motion.button>
         ))}
-        {user && (
-           <button
-             onClick={() => onViewChange('profile')}
-             className="flex flex-col items-center gap-1 p-2 min-w-[64px]"
-           >
-             {user.picture_url && !mobileImgError ? (
-               <img 
-                 src={user.picture_url} 
-                 alt={user.username} 
-                 className="w-6 h-6 rounded-full border border-stone-100 object-cover" 
-                 onError={() => setMobileImgError(true)}
-               />
-             ) : (
-               <div className="w-6 h-6 bg-red-50 rounded-full flex items-center justify-center text-red-900 text-[10px] font-bold">
-                 {(user.username || 'U').charAt(0).toUpperCase()}
-               </div>
-             )}
-             <span className="text-[10px] font-bold uppercase tracking-tighter text-stone-400">Tôi</span>
-           </button>
-        )}
+
+        {/* PROFILE / LOGIN TAB */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => onViewChange('profile')}
+          className={`relative flex flex-col items-center gap-1.5 min-w-[64px] py-1 transition-colors ${
+            currentView === 'profile' ? 'text-red-800' : 'text-stone-400'
+          }`}
+        >
+          <div className={`p-2 rounded-2xl transition-all ${currentView === 'profile' ? 'bg-red-50' : ''}`}>
+            {user ? (
+               user.picture_url && !mobileImgError ? (
+                <img 
+                  src={user.picture_url} 
+                  alt={user.username} 
+                  className={`w-6 h-6 rounded-full object-cover border-2 ${currentView === 'profile' ? 'border-red-400' : 'border-stone-200'}`} 
+                  onError={() => setMobileImgError(true)}
+                />
+              ) : (
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${currentView === 'profile' ? 'bg-red-800 text-white' : 'bg-stone-200 text-stone-500'}`}>
+                  {(user.username || 'U').charAt(0).toUpperCase()}
+                </div>
+              )
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            )}
+          </div>
+          <span className={`text-[9px] font-black uppercase tracking-wider ${currentView === 'profile' ? 'opacity-100' : 'opacity-60'}`}>
+            {user ? 'Tôi' : 'Đăng nhập'}
+          </span>
+          {currentView === 'profile' && (
+            <motion.div 
+              layoutId="activeTab"
+              className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-red-800 rounded-full"
+            />
+          )}
+        </motion.button>
       </nav>
     </>
   );

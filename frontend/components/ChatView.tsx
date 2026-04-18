@@ -249,66 +249,81 @@ const ChatView: React.FC<ChatViewProps> = ({
     }
   }, [history, isLoading]);
 
+  // Detection
+  const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
+
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
        
       {/* HEADER */}
-
-      <header className="h-16 border-b border-stone-200 bg-white flex items-center justify-between px-4 md:px-8">
-
-        <h2 className="font-serif text-lg font-bold text-red-950">
-          {siteConfig?.site_title || 'Chatbot Lịch sử'}
-        </h2>
-
-        {user && (
-          <div className="text-red-900 font-medium">
-            {(user.token_balance ?? 0).toFixed(2)} Tokens
+      {isNative ? (
+        <header className="h-16 flex items-center justify-between px-6 glass-nav border-b border-white/20 sticky top-0 z-50">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-red-800 rounded-lg flex items-center justify-center text-white font-serif text-lg shadow-lg shadow-red-900/20 italic">
+               {siteConfig?.site_title?.charAt(0) || '史'}
+            </div>
+            <h2 className="font-serif text-xl font-black text-red-950 tracking-tight leading-none">
+              {siteConfig?.site_title || 'Chatbot Lịch sử'}
+            </h2>
           </div>
-        )}
-      </header>
+
+          {user && (
+            <div className="px-3 py-1 bg-red-800/10 rounded-full border border-red-800/20">
+               <span className="text-[10px] font-black text-red-800 uppercase tracking-widest">
+                  {(user.token_balance ?? 0).toFixed(2)} Tokens
+               </span>
+            </div>
+          )}
+        </header>
+      ) : (
+        <header className="h-16 border-b border-stone-200 bg-white flex items-center justify-between px-4 md:px-8">
+          <h2 className="font-serif text-lg font-bold text-red-950">
+            {siteConfig?.site_title || 'Chatbot Lịch sử'}
+          </h2>
+
+          {user && (
+            <div className="text-red-900 font-medium">
+              {(user.token_balance ?? 0).toFixed(2)} Tokens
+            </div>
+          )}
+        </header>
+      )}
 
       {/* MESSAGES */}
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6"
+        className="flex-1 overflow-y-auto"
       >
-        {history.length === 0 && !isLoading && (
-          <EmptyChatState
-            onSuggestClick={(q) => setInput(q)}
-          />
-        )}
+        <div className="max-w-4xl mx-auto w-full p-6 space-y-6">
+          {history.length === 0 && !isLoading && (
+            <EmptyChatState
+              onSuggestClick={(q) => setInput(q)}
+            />
+          )}
 
-        {history.map((msg) => (
-        <ChatMessageItem
-          key={msg.id}
-          msg={msg}
-          userAvatar={user?.picture_url}
-          botAvatar={
-            siteConfig?.logo_url
-              ? siteConfig.logo_url.startsWith("/")
-                ? `${API_ROOT}${siteConfig.logo_url}`
-                : siteConfig.logo_url
-              : undefined
-          }
-        />
-      ))}
+          {history.map((msg) => (
+            <ChatMessageItem
+              key={msg.id}
+              msg={msg}
+              userAvatar={user?.picture_url}
+              botAvatar={
+                siteConfig?.logo_url
+                  ? siteConfig.logo_url.startsWith("/")
+                    ? `${API_ROOT}${siteConfig.logo_url}`
+                    : siteConfig.logo_url
+                  : undefined
+              }
+            />
+          ))}
 
-        {/* {isLoading && (
-          <div className="bg-white border rounded-xl p-4">
-            Đang tra cứu sử liệu...
-          </div> */}
-
-          {/* {isLoading && (
-            <div className="bg-white border rounded-xl p-4 text-stone-400 flex items-center gap-1">
-              Đang tra cứu sử liệu<span className="dots"></span>
-            </div> */}
           {isLoading && (
-            <div className="bg-white border rounded-xl p-4 text-stone-400">
+            <div className="bg-white border border-stone-100 rounded-3xl p-5 text-stone-400 font-medium shadow-sm animate-pulse flex items-center gap-3">
+              <div className="w-2 h-2 bg-red-800 rounded-full animate-bounce" />
               Đang tra cứu sử liệu {dots}
             </div>
           )}
-        
+        </div>
       </div>
 
       {/* INPUT */}

@@ -1,0 +1,94 @@
+/* Only apply mobile optimizations on small screens */
+@media (max-width: 767px) {
+  /* Safe Area Handling for Mobile (Notches) */
+  :root {
+    --sat: env(safe-area-inset-top);
+    --sar: env(safe-area-inset-right);
+    --sab: env(safe-area-inset-bottom);
+    --sal: env(safe-area-inset-left);
+  }
+
+  body {
+    padding-top: var(--sat);
+    padding-bottom: var(--sab);
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  html {
+    height: -webkit-fill-available;
+  }
+
+  /* Glassmorphism for Bottom Nav - PREMIUM REFINED */
+  .glass-nav {
+    background: rgba(255, 250, 245, 0.6);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Premium View Transitions */
+  .view-tab-transition {
+    animation: fadeInSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeInSlide {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Better Typography for Native */
+  .is-native {
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+
+  /* Better touch targets for mobile */
+  button, a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  /* Mobile Nav spacing - Only for Native App Chat/History/Admin */
+  .with-nav-padding {
+    padding-bottom: 90px !important;
+  }
+  
+  .is-native .scrolling-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbars for a cleaner native look */
+  .is-native ::-webkit-scrollbar {
+    display: none;
+    width: 0 !important;
+  }
+  
+  .is-native {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrolling-touch {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  
+  .is-native footer {
+    padding-bottom: calc(90px + var(--sab)) !important;
+  }
+}

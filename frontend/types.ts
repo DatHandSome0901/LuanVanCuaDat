@@ -51,5 +51,4 @@ export interface PaymentStatus {
   tokens: number;
 }
 
-// export type View = 'chat' | 'payment' | 'profile' | 'admin';
-export  type View = 'chat' | 'payment' | 'admin' | 'profile' | 'new_chat' | 'landing'
+export type View = 'chat' | 'payment' | 'admin' | 'profile' | 'new_chat' | 'landing' | 'history';

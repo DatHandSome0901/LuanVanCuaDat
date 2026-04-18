@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { api } from '../api';
 import { User } from '../types';
+import { Capacitor } from '@capacitor/core';
 
 interface AuthViewProps {
   onSuccess: (user: User, token: string) => void;
@@ -140,6 +141,23 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             {isLogin ? 'Đăng ký ngay' : 'Đăng nhập ngay'}
           </button>
         </p>
+
+        {/* WEB ONLY: DOWNLOAD APK */}
+        {!Capacitor.isNativePlatform() && (
+          <div className="mt-10 pt-8 border-t border-stone-100">
+            <div className="text-center mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
+               Trải nghiệm tốt hơn trên Android
+            </div>
+            <a 
+              href="/app-release.apk" 
+              download
+              className="flex items-center justify-center gap-3 w-full py-4 bg-stone-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all active:scale-95"
+            >
+              <span className="text-xl">📲</span>
+              <span>Tải xuống bản App (APK)</span>
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

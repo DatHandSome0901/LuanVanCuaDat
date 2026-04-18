@@ -17,7 +17,7 @@ app = FastAPI(
 # Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOW_ORIGINS,  # Cho phép tất cả nguồn (hoặc chỉ định danh sách ["http://example.com"])
+    allow_origins=["*"],  # Cho phép tất cả nguồn (hoặc chỉ định danh sách ["http://example.com"])
     allow_credentials=True,
     allow_methods=["*"],  # Cho phép tất cả phương thức (GET, POST, PUT, DELETE, v.v.)
     allow_headers=["*"],  # Cho phép tất cả headers

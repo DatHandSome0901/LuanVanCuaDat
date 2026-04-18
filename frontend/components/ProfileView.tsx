@@ -16,12 +16,16 @@ import TransactionDetailModal from './profile/TransactionDetailModal';
 interface ProfileViewProps {
   user: User;
   onUpdateUser?: (user: User) => void;
+  onLogout?: () => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
+
+  // Detection
+  const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
 
   const fetchHistory = async () => {
     try {
@@ -79,6 +83,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser }) => {
             onUpdateFullName={handleUpdateFullName}
             onChangePassword={handleChangePassword}
           />
+
+          {/* APP DISMISS BUTTON (Mobile Only) */}
+          {isNative && onLogout && (
+            <div className="pt-4 border-t border-stone-100">
+               <button 
+                 onClick={onLogout}
+                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-50 text-red-600 rounded-2xl font-black uppercase text-xs tracking-widest shadow-sm active:scale-95 transition-all"
+               >
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                 </svg>
+                 Đăng xuất khỏi App
+               </button>
+            </div>
+          )}
         </div>
 
         <div className="md:col-span-2">

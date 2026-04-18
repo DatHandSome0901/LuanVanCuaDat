@@ -1,30 +1,58 @@
 
+import { Capacitor } from '@capacitor/core';
 import { AuthResponse, ChatResponse, PaymentPackage, PaymentInvoice, PaymentStatus, User } from './types';
 
-export const API_ROOT = (process.env.API_URL as string) || 'http://localhost:2643';
+const isNative = Capacitor.isNativePlatform();
+const isDev = import.meta.env.DEV;
+
+// IP mặc định cho Emulator (nếu không có VITE_API_URL)
+const DEFAULT_NATIVE_API = 'http://10.0.2.2:2643';
+const DEFAULT_WEB_API = 'http://localhost:2643';
+
+export const API_ROOT = isNative 
+  ? (import.meta.env.VITE_API_URL || DEFAULT_NATIVE_API) 
+  : (import.meta.env.VITE_API_URL || DEFAULT_WEB_API);
+
+console.log("DEBUG: Connection Details", { 
+  isNative, 
+  isDev, 
+  API_ROOT,
+  vite_api_env: import.meta.env.VITE_API_URL 
+});
+
 const BASE_URL = `${API_ROOT}/api/v1`;
 
 const getHeaders = () => {
   const token = localStorage.getItem('access_token');
   return {
     'Authorization': token ? `Bearer ${token}` : '',
+    'cf-skip-tunnel-reminder': 'true', // Bỏ qua trang cảnh báo của Cloudflare Tunnel
   };
 };
 
 export const api = {
   // Auth
   async login(formData: FormData): Promise<AuthResponse> {
-    const response = await fetch(`${BASE_URL}/auth/login`, {
-      method: 'POST',
-      body: formData,
-    });
-    if (!response.ok) throw new Error('Đăng nhập thất bại');
-    return response.json();
+    const url = `${BASE_URL}/auth/login`;
+    console.warn("DEBUG: Mobile Gọi API -> ", url);
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'cf-skip-tunnel-reminder': 'true' },
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Đăng nhập thất bại (Server error)');
+      return response.json();
+    } catch (err: any) {
+      console.error("Fetch Error:", err);
+      throw new Error(`Không thể kết nối tới Backend tại: ${url}. (Lỗi: ${err.message})`);
+    }
   },
 
   async register(formData: FormData): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
+      headers: { 'cf-skip-tunnel-reminder': 'true' },
       body: formData,
     });
     if (!response.ok) throw new Error('Đăng ký thất bại');

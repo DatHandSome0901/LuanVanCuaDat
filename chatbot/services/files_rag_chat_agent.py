@@ -70,7 +70,13 @@ class FilesChatAgent:
         db.save_pending_knowledge(question, generation)
         db.close()
 
-        # 🔥 4. TRẢ RA UI (có xin lỗi + tham khảo)
+        # 🔥 4. TRẢ RA UI (có xin lỗi + tham khảo, trừ khi bị từ chối)
+        rejection_msg = "Tôi là chatbot lịch sử Việt Nam"
+        if rejection_msg in generation:
+            return {
+                "generation": generation
+            }
+
         return {
             "generation": (
                 "👉 Xin lỗi, hệ thống chưa có dữ liệu.\n"

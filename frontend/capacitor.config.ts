@@ -5,10 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Luan Van Chatbot',
   webDir: 'dist',
   server: {
-    url: 'http://10.0.2.2:3000',
     cleartext: true,
     androidScheme: 'http',
-    allowNavigation: ['10.0.2.2', 'localhost', '192.168.1.202']
   },
   plugins: {
     SplashScreen: {

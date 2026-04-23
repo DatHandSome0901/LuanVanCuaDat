@@ -285,41 +285,10 @@ class FilesChatAgent:
         question = state["question"]
         documents = state["documents"]
 
-        print(f"--- GRADING DOCUMENTS FOR QUESTION: '{question}' ---")
-
-        def grade(doc):
-
-            # 🔥 FIX 1: lấy đúng content (kiểm tra cả 'text' trong metadata nếu cần)
-            document_text = doc.metadata.get("answer", doc.metadata.get("text", doc.page_content))
-
-            response = self.document_grader.get_chain().invoke({
-                "question": question,
-                "document": document_text
-            })
-
-            content = response.content if hasattr(response, "content") else str(response)
-
-            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip().lower()
-
-            # 🔥 FIX 2: check linh hoạt hơn (hỗ trợ cả tiếng Việt nếu model tự trả lời tiếng Việt)
-            positive_keywords = ["yes", "có", "đúng", "relevant"]
-            is_relevant = any(word in content for word in positive_keywords)
-            
-            status = "✅ YES" if is_relevant else "❌ NO"
-            print(f"> {status} | Doc ID: {doc.metadata.get('id', 'N/A')} | Source: {doc.metadata.get('source', 'unknown')} | LLM said: '{content}'")
-
-            if is_relevant:
-                return doc
-
-            return None
-
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(grade, documents))
-
-        filtered_docs = [d for d in results if d]
+        print(f"--- BYPASSING LLM GRADING FOR QUESTION: '{question}' ---")
 
         return {
-            "documents": filtered_docs,
+            "documents": documents,
             "question": question
         }
 

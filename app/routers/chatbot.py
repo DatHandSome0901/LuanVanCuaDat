@@ -17,6 +17,7 @@ from chatbot.services.files_rag_chat_agent import FilesChatAgent
 from chatbot.utils.llm import LLM
 from chatbot.utils.token_counter import TokenCounter
 from app.models.base_db import UserDB
+from ingestion.retriever import Retriever
 import os
 
 router = APIRouter(tags=["Chatbot"])
@@ -30,12 +31,15 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: int | None = None
 
+class SourceInfo(BaseModel):
+    filename: str
+    content: str
 
 class ChatResponse(BaseModel):
     answer: str
     tokens_charged: float
     user_token_balance: float
-    sources: list[str] = []
+    sources: list[SourceInfo] = []
 
 
 # ===============================
@@ -212,14 +216,24 @@ async def chat_with_router(
         # ===============================
         # SOURCES (TẠO TRƯỚC)
         # ===============================
-        sources = []
-
+        source_dict = {}
         for doc in documents:
             source = doc.metadata.get("source") or doc.metadata.get("filename")
             if source:
-                sources.append(os.path.basename(source))
-
-        sources = list(set(sources))
+                fname = os.path.basename(source)
+                if fname not in source_dict:
+                    source_dict[fname] = []
+                source_dict[fname].append(doc.page_content)
+                
+        sources = []
+        for fname, chunks in source_dict.items():
+            content = f"### Tài liệu: {fname}\n\n"
+            for i, chunk in enumerate(chunks):
+                content += f"**[Đoạn {i+1}]**\n{chunk}\n\n"
+            sources.append({
+                "filename": fname,
+                "content": content.strip()
+            })
 
         # ===============================
         # SAVE AI MESSAGE (SAU KHI CÓ sources)
@@ -258,19 +272,8 @@ async def chat_with_router(
 
 
         # ===============================
-        # SOURCES
+        # SOURCES (Bỏ qua vì đã xử lý ở trên)
         # ===============================
-
-        sources = []
-
-        for doc in documents:
-
-            source = doc.metadata.get("source") or doc.metadata.get("filename")
-
-            if source:
-                sources.append(os.path.basename(source))
-
-        sources = list(set(sources))
 
 
         # ===============================
@@ -444,3 +447,88 @@ async def get_site_config():
         "logo_url": logo_url,
         "site_title": site_title
     }
+
+# ===============================
+# SOURCE CONTENT & FORMATTING
+# ===============================
+
+@router.get("/source/{filename}")
+async def get_source_content(filename: str, current_user: dict = Depends(get_current_user)):
+    db = UserDB()
+    llm_name = db.get_setting("llm_name", os.environ.get("LLM_NAME", "openai"))
+    db.close()
+    
+    base_vector_path = os.environ.get("PATH_VECTOR_STORE")
+    path_vector_store = base_vector_path
+    if base_vector_path:
+        model_specific_path = os.path.join(base_vector_path, llm_name)
+        if os.path.exists(model_specific_path):
+            path_vector_store = model_specific_path
+
+    embedding_model_name = os.environ.get("EMBEDDING_MODEL_NAME", "openai")
+    if llm_name == "openai":
+        embedding_model_name = "openai"
+    elif llm_name in ["vertex", "gemini"]:
+        embedding_model_name = "vertex"
+
+    try:
+        retriever_instance = Retriever(
+            embedding_model_name=embedding_model_name
+        ).set_retriever(
+            path_vector_store=path_vector_store
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    all_docs = list(retriever_instance.retriever.docstore._dict.values())
+    
+    matching_docs = []
+    for doc in all_docs:
+        source = doc.metadata.get("source") or doc.metadata.get("filename")
+        if source and os.path.basename(source) == filename:
+            matching_docs.append(doc)
+            
+    if not matching_docs:
+        raise HTTPException(status_code=404, detail="Source not found in vector store.")
+        
+    content = f"### Tài liệu: {filename}\n\n"
+    for i, doc in enumerate(matching_docs):
+        content += f"**[Đoạn {i+1}]**\n{doc.page_content}\n\n"
+        
+    return {"filename": filename, "content": content.strip()}
+
+
+class FormatRequest(BaseModel):
+    text: str
+
+@router.post("/source/format")
+async def format_source_content(request: FormatRequest, current_user: dict = Depends(get_current_user)):
+    db = UserDB()
+    llm_name = db.get_setting("llm_name", os.environ.get("LLM_NAME", "openai"))
+    db.close()
+    
+    llm = LLM().get_llm(llm_name)
+    prompt = f"""Bạn là một chuyên gia biên tập văn bản.
+Dưới đây là nội dung văn bản được trích xuất từ tài liệu (có thể bị lỗi xuống dòng, dính chữ, hoặc định dạng xấu do OCR/PDF extract).
+Nhiệm vụ của bạn là:
+1. Sửa lại lỗi chính tả hoặc nối các câu bị đứt gãy do lỗi extract.
+2. Trình bày lại cho đẹp mắt, dễ đọc (sử dụng Markdown: in đậm, gạch đầu dòng, chia đoạn hợp lý).
+Tuyệt đối KHÔNG thay đổi ý nghĩa gốc, KHÔNG tự bịa thêm thông tin ngoài lề. Chỉ biên tập lại văn bản này.
+
+NỘI DUNG GỐC:
+{request.text}
+
+NỘI DUNG ĐÃ BIÊN TẬP:"""
+
+    try:
+        response = llm.invoke(prompt)
+        content = response.content if hasattr(response, "content") else str(response)
+        
+        # Strip thinking tags if using reasoning models
+        import re
+        content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
+        content = re.sub(r"<\|think\|>.*?<\|/think\|>", "", content, flags=re.DOTALL).strip()
+        
+        return {"formatted_text": content.strip()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM formatting error: {str(e)}")

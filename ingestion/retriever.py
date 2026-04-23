@@ -1,5 +1,10 @@
 from langchain_community.vectorstores import FAISS
 from ingestion.service_manager import ServiceManager
+import os
+
+# ===== MODULE-LEVEL CACHE =====
+# Cache FAISS index để không load lại 330MB mỗi request
+_faiss_cache = {}
 
 
 class Retriever:
@@ -12,45 +17,42 @@ class Retriever:
 
     def __init__(self, embedding_model_name: str, faiss_fetch_k: int = 500):
         self.faiss_fetch_k = faiss_fetch_k
+        self.embedding_model_name = embedding_model_name
         self.embedding_model = ServiceManager().get_embedding_model(embedding_model_name)
 
-    # def set_retriever(self, path_vector_store: str):
-    #     result = FAISS.load_local(path_vector_store, self.embedding_model, allow_dangerous_deserialization=True)
-    #     # Xử lý trường hợp FAISS.load_local trả về tuple hoặc object
-    #     if isinstance(result, tuple):
-    #         self.retriever = result[0]  # Lấy vectorstore từ tuple
-    #     else:
-    #         self.retriever = result  # Trường hợp trả về trực tiếp vectorstore
-    #     return self
-    def set_retriever(self, path_vector_store: str):
+    def _load_faiss(self, path: str):
+        """Load FAISS index với caching"""
+        cache_key = f"{path}::{self.embedding_model_name}"
+        if cache_key in _faiss_cache:
+            print(f"⚡ CACHE HIT: {path}")
+            return _faiss_cache[cache_key]
 
-        import os
-        from langchain_community.vectorstores import FAISS
+        print(f"📂 LOADING FAISS: {path}")
+        result = FAISS.load_local(
+            path,
+            self.embedding_model,
+            allow_dangerous_deserialization=True
+        )
+        store = result[0] if isinstance(result, tuple) else result
+        _faiss_cache[cache_key] = store
+        return store
+
+    def set_retriever(self, path_vector_store: str):
 
         stores = []
 
         # ===== INDEX GỐC =====
         if os.path.exists(path_vector_store):
-            result = FAISS.load_local(
-                path_vector_store,
-                self.embedding_model,
-                allow_dangerous_deserialization=True
-            )
-            stores.append(result[0] if isinstance(result, tuple) else result)
+            stores.append(self._load_faiss(path_vector_store))
 
         # ===== INDEX HISTORY =====
         history_path = "output"   # ⚠️ thư mục chứa history.index
 
         if os.path.exists(history_path):
             try:
-                result2 = FAISS.load_local(
-                    history_path,
-                    self.embedding_model,
-                    allow_dangerous_deserialization=True
-                )
-                stores.append(result2[0] if isinstance(result2, tuple) else result2)
-            except:
-                print("⚠️ history index chưa có hoặc lỗi")
+                stores.append(self._load_faiss(history_path))
+            except Exception as e:
+                print(f"⚠️ history index chưa có hoặc lỗi: {e}")
 
         # ===== MERGE =====
         if not stores:
@@ -58,22 +60,13 @@ class Retriever:
 
         base = stores[0]
 
-        # for s in stores[1:]:
-        #     base.merge_from(s)
+        # 🔥 FIX: Dùng merge_from() thay vì chỉ add docstore
         for s in stores[1:]:
             try:
-                existing_ids = set(base.docstore._dict.keys())
-
-                new_docs = {}
-
-                for _id, doc in s.docstore._dict.items():
-                    if _id not in existing_ids:
-                        new_docs[_id] = doc
-
-                base.docstore.add(new_docs)
-
+                base.merge_from(s)
+                print(f"✅ MERGED thêm index")
             except Exception as e:
-                print("⚠️ MERGE ERROR:", e)
+                print(f"⚠️ MERGE ERROR (skip): {e}")
 
         self.retriever = base
 
@@ -99,8 +92,8 @@ class Retriever:
         """
         Tìm kiếm văn bản liên quan tới câu hỏi
         """
-        # docs = self.retriever.similarity_search(query, k=num_doc, fetch_k=fetch_k)
-        docs = self.retriever.similarity_search(query, k=10)
+        # 🔥 FIX: Dùng num_doc thay vì hardcode k=10
+        docs = self.retriever.similarity_search(query, k=num_doc)
         return docs
 
     def get_documents_by_files(self, query: str, allowed_files: list = ["*"], num_doc: int = 3, num_doc_search: int = 50) -> list:

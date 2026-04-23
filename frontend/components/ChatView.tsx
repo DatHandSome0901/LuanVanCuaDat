@@ -9,6 +9,7 @@ import { confirmDestructive } from '../utils/swal';
 import ChatMessageItem from './chat/ChatMessageItem';
 import ChatInput from './chat/ChatInput';
 import EmptyChatState from './chat/EmptyChatState';
+import SourceModal from './chat/SourceModal';
 
 interface ChatViewProps {
   user: User | null;
@@ -43,6 +44,7 @@ const ChatView: React.FC<ChatViewProps> = ({
 }, [isLoading]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
+  const [selectedSource, setSelectedSource] = useState<string | import('../types').SourceInfo | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -314,6 +316,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                     : siteConfig.logo_url
                   : undefined
               }
+              onSourceClick={setSelectedSource}
             />
           ))}
 
@@ -343,6 +346,13 @@ const ChatView: React.FC<ChatViewProps> = ({
             localStorage.setItem('access_token', token);
             window.location.reload();
           }}
+        />
+      )}
+
+      {selectedSource && (
+        <SourceModal 
+          source={selectedSource} 
+          onClose={() => setSelectedSource(null)} 
         />
       )}
     </div>

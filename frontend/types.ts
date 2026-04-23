@@ -16,20 +16,25 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface SourceInfo {
+  filename: string;
+  content: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   tokens_charged?: number;
-  sources?: string[];
+  sources?: (string | SourceInfo)[];
 }
 
 export interface ChatResponse {
   answer: string;
   tokens_charged: number;
   user_token_balance: number;
-  sources?: string[];
+  sources?: SourceInfo[];
 }
 
 export interface PaymentPackage {

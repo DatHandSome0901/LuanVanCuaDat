@@ -5,13 +5,16 @@ import { AuthResponse, ChatResponse, PaymentPackage, PaymentInvoice, PaymentStat
 const isNative = Capacitor.isNativePlatform();
 const isDev = import.meta.env.DEV;
 
-// IP mặc định cho Emulator (nếu không có VITE_API_URL)
-const DEFAULT_NATIVE_API = 'http://10.0.2.2:2643';
+// IP mặc định cho điện thoại thật cùng mạng (nếu không có VITE_API_URL)
+const DEFAULT_NATIVE_API = 'http://192.168.1.17:2643';
 const DEFAULT_WEB_API = 'http://localhost:2643';
 
+// @ts-ignore
+const envApiUrl = import.meta.env.VITE_API_URL || process.env.API_URL;
+
 export const API_ROOT = isNative 
-  ? (import.meta.env.VITE_API_URL || DEFAULT_NATIVE_API) 
-  : (import.meta.env.VITE_API_URL || DEFAULT_WEB_API);
+  ? (envApiUrl || DEFAULT_NATIVE_API) 
+  : (envApiUrl || DEFAULT_WEB_API);
 
 console.log("DEBUG: Connection Details", { 
   isNative, 

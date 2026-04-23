@@ -8,9 +8,10 @@ interface ChatMessageItemProps {
   msg: ChatMessage;
   userAvatar?: string;
   botAvatar?: string;
+  onSourceClick?: (source: string | import('../../types').SourceInfo) => void;
 }
 
-const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botAvatar }) => {
+const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botAvatar, onSourceClick }) => {
   const [imgError, setImgError] = React.useState(false);
   const avatar = msg.role === 'user' ? userAvatar : botAvatar;
   const username = msg.role === 'user' ? 'Gia chủ' : 'Thiền sư AI';
@@ -69,18 +70,35 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
           </ReactMarkdown>
         </div> */}
         {msg.sources && msg.sources.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-stone-50">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-[1px] flex-1 bg-stone-100"></div>
-              <p className="text-[9px] font-bold text-stone-400 uppercase tracking-[0.2em] px-2">Nguồn trích lục</p>
-              <div className="h-[1px] flex-1 bg-stone-100"></div>
+          <div className="mt-5 pt-4 border-t border-stone-100/60">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-4 h-4 text-amber-700 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <h4 className="font-serif text-[11px] font-bold text-amber-900 uppercase tracking-widest">Tài liệu tham khảo</h4>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {msg.sources.map((src, i) => (
-                <span key={i} className="inline-flex items-center gap-1.5 bg-stone-50/50 text-stone-500 px-2 py-0.5 rounded-full text-[9px] border border-stone-100 shadow-sm">
-                  {src}
-                </span>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              {msg.sources.map((src, i) => {
+                const filename = typeof src === 'string' ? src : src.filename;
+                return (
+                  <button 
+                    key={i} 
+                    onClick={() => onSourceClick && onSourceClick(src)}
+                    className="group relative flex items-center gap-2 bg-stone-50 hover:bg-white text-stone-600 hover:text-amber-800 px-3 py-1.5 rounded-lg text-xs font-medium border border-stone-200 hover:border-amber-300 shadow-sm hover:shadow transition-all"
+                    title="Nhấn để xem tài liệu gốc"
+                  >
+                    <div className="w-5 h-5 flex items-center justify-center rounded bg-stone-200/50 group-hover:bg-amber-100/50 text-stone-400 group-hover:text-amber-600 transition-colors">
+                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                       </svg>
+                    </div>
+                    <span className="truncate max-w-[200px]">{filename}</span>
+                    <svg className="w-3 h-3 text-stone-300 group-hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

@@ -179,9 +179,9 @@ const App: React.FC = () => {
         <div className={`flex-1 overflow-y-auto ${isNative ? 'scrolling-touch' : ''} ${isNative && currentView !== 'landing' ? 'with-nav-padding' : ''}`}>
           {currentView === 'landing' ? (
             isNative ? (
-              <LandingPageMobile siteConfig={siteConfig} onStart={() => setCurrentView('chat')} />
+              <LandingPageMobile siteConfig={siteConfig} onStart={() => setCurrentView('chat')} user={user} />
             ) : (
-              <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView('chat')} />
+              <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView('chat')} user={user} />
             )
           ) : !user && currentView !== 'chat' ? (
             <AuthView onSuccess={handleLoginSuccess} />

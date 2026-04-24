@@ -6,7 +6,7 @@ const isNative = Capacitor.isNativePlatform();
 const isDev = import.meta.env.DEV;
 
 // IP mặc định cho điện thoại thật cùng mạng (nếu không có VITE_API_URL)
-const DEFAULT_NATIVE_API = 'http://192.168.1.17:2643';
+const DEFAULT_NATIVE_API = 'http://172.15.7.45:2643';
 const DEFAULT_WEB_API = 'http://localhost:2643';
 
 // @ts-ignore

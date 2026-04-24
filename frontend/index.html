@@ -15,29 +15,48 @@
     <meta property="og:url" content="https://yourdomain.com/">
     <meta property="og:title" content="Chatbot History">
     <meta property="og:description" content="">
-    <meta property="og:image" content="/api/v1/upload-file/view/logo_543f447a1e584e9b9e0f567e47bdc26d.png">
+    <meta property="og:image" content="/api/v1/upload-file/view/logo_61f993673ee145288c6287a0809ee0af.png">
 
 
     <link rel="canonical" href="https://yourdomain.com/">
-    <link rel="icon" href="/api/v1/upload-file/view/logo_cc8c578753fe48868d3677f6c6c98ec5.png">
+    <link rel="icon" href="/api/v1/upload-file/view/logo_dfc32a50fe5445699493bf308981b022.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100..900;1,100..900&family=Inter:ital,wght@0,300..900;1,300..900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100..900;1,100..900&family=Inter:ital,wght@0,300..900;1,300..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
         rel="stylesheet">
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Be Vietnam Pro', 'Inter', sans-serif !important;
             background-color: #f8f6f2;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
+            position: relative;
+        }
+
+        /* Subtle paper texture overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
         }
 
         html body .font-historical-premium {
-            font-family: 'Lora', serif !important;
+            font-family: 'Playfair Display', serif !important;
             font-weight: 700;
             letter-spacing: -0.01em;
             font-display: swap;
@@ -45,16 +64,17 @@
 
         /* Custom scrollbar for a historical feel */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #f8f6f2;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #b45309;
+            background: #78350f;
             border-radius: 10px;
+            border: 2px solid #f8f6f2;
         }
 
         ::-webkit-scrollbar-thumb:hover {
@@ -73,7 +93,7 @@
     <link rel="stylesheet" href="/index.css">
     <meta name="twitter:title" content="Chatbot History">
     <meta name="twitter:description" content="">
-    <meta name="twitter:image" content="/api/v1/upload-file/view/logo_543f447a1e584e9b9e0f567e47bdc26d.png">
+    <meta name="twitter:image" content="/api/v1/upload-file/view/logo_61f993673ee145288c6287a0809ee0af.png">
 </head>
 
 <body class="text-stone-800">

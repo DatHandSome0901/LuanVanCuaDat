@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { api, API_ROOT } from '../api';
 import toast from 'react-hot-toast';
+import { 
+  Users as UsersIcon, Box, History as HistoryIcon, FileText, MessageSquare, 
+  Settings as SettingsIcon, LogIn, BarChart3, BookOpen, LayoutDashboard, 
+  ShieldCheck, ArrowLeft
+} from 'lucide-react';
 import { confirmDestructive, promptInput, confirmAction, promptTokenAdjustment } from '../utils/swal';
 
 import UsersTab from './admin/UsersTab';
@@ -273,33 +278,52 @@ const AdminView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-stone-100 overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full bg-stone-50 overflow-hidden relative">
       {/* Header */}
-      <header className="bg-white border-b border-stone-200 px-4 md:px-8 py-4 shrink-0 shadow-sm z-10">
-        {/* <h2 className="text-2xl font-serif font-bold text-red-950 uppercase tracking-tight">HỆ THỐNG QUẢN TRỊ SỬ VIỆT</h2> */}
-        <h2
-        className="text-2xl font-bold text-red-950"
-        style={{ fontFamily: 'Inter, Roboto, sans-serif', letterSpacing: 'normal' }}
-      >
-        HỆ THỐNG QUẢN TRỊ SỬ VIỆT
-      </h2>
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide">
+      <header className="bg-white border-b border-stone-200 px-4 md:px-8 pt-6 pb-2 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.02)] z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-800 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-900/20">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-stone-900 tracking-tight uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Hệ thống Quản trị Sử Việt
+              </h2>
+              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em]">Control Panel • v2.0</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
           {(['users', 'packages', 'history', 'payments', 'chatlogs', 'settings', 'logins', 'reports', 'knowledge'] as AdminTab[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
-                activeTab === tab ? 'bg-red-800 text-white shadow-lg shadow-red-200' : 'bg-stone-50 text-stone-400 hover:bg-stone-200 hover:text-stone-600'
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap border ${
+                activeTab === tab 
+                  ? 'bg-red-800 text-white border-red-900 shadow-lg shadow-red-900/20 scale-105' 
+                  : 'bg-white text-stone-400 border-stone-100 hover:border-stone-300 hover:text-stone-600'
               }`}
             >
+              {tab === 'users' && <UsersIcon size={14} />}
+              {tab === 'packages' && <Box size={14} />}
+              {tab === 'history' && <HistoryIcon size={14} />}
+              {tab === 'payments' && <FileText size={14} />}
+              {tab === 'chatlogs' && <MessageSquare size={14} />}
+              {tab === 'settings' && <SettingsIcon size={14} />}
+              {tab === 'logins' && <LogIn size={14} />}
+              {tab === 'reports' && <BarChart3 size={14} />}
+              {tab === 'knowledge' && <BookOpen size={14} />}
+
               {tab === 'users' && 'Người Dùng'}
               {tab === 'packages' && 'Gói Nạp'}
-              {tab === 'history' && 'Lịch Sử Tiền'}
+              {tab === 'history' && 'Tiền Tệ'}
               {tab === 'payments' && 'Hóa Đơn'}
-              {tab === 'chatlogs' && 'Nhật Ký Chat'}
-              {tab === 'settings' && 'Cấu Hình Hệ Thống'}
-              {tab === 'logins' && 'Đăng Nhập'}
-              {tab === 'reports' && 'Báo Cáo TT'}
+              {tab === 'chatlogs' && 'Lịch Sử Chat'}
+              {tab === 'settings' && 'Cấu Hình'}
+              {tab === 'logins' && 'Truy Cập'}
+              {tab === 'reports' && 'Báo Cáo'}
               {tab === 'knowledge' && 'Tri Thức AI'}
             </button>
           ))}

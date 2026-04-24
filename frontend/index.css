@@ -92,3 +92,77 @@
     padding-bottom: calc(90px + var(--sab)) !important;
   }
 }
+
+/* --- PREMIUM GLOBAL STYLES --- */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --sidebar-width: 280px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #1c1917;
+}
+
+.font-historical {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Elegant Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+/* Historical Paper Texture Overlay */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Premium Gradients */
+.bg-premium-red {
+  background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+}
+
+.bg-premium-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+}
+
+.text-glow-red {
+  text-shadow: 0 0 15px rgba(127, 29, 29, 0.3);
+}
+
+/* Smooth Hover Effects */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px) scale(1.01);
+}

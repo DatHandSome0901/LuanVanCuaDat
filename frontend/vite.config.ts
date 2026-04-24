@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     define: {
-      'process.env.API_URL': JSON.stringify('http://192.168.1.17:2643'),
+      'process.env.API_URL': JSON.stringify('http://172.15.7.45:2643'),
     },
     resolve: {
       alias: {

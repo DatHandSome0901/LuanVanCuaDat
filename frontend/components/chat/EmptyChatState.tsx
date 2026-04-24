@@ -1,71 +1,85 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Sparkles, PenTool, Book, Shield, Crown, ScrollText, History } from 'lucide-react';
 
 interface EmptyChatStateProps {
   onSuggestClick: (q: string) => void;
 }
 
 const suggestions = [
-  { text: "Trận Điện Biên Phủ", icon: "⚔️" },
-  { text: "Sự tích Hồ Gươm", icon: "🐢" },
-  { text: "Trần Hưng Đạo", icon: "🛡️" },
-  { text: "Vua Gia Long", icon: "👑" },
-  { text: "Hai Bà Trưng", icon: "🐘" },
-  { text: "Bản tuyên ngôn độc lập", icon: "📜" },
+  { text: "Trận Điện Biên Phủ", icon: <History className="text-red-800" size={18} /> },
+  { text: "Sự tích Hồ Gươm", icon: <Sparkles className="text-amber-600" size={18} /> },
+  { text: "Trần Hưng Đạo", icon: <Shield className="text-blue-700" size={18} /> },
+  { text: "Vua Gia Long", icon: <Crown className="text-amber-500" size={18} /> },
+  { text: "Hai Bà Trưng", icon: <ScrollText className="text-orange-700" size={18} /> },
+  { text: "Tuyên ngôn Độc lập", icon: <Book className="text-emerald-700" size={18} /> },
 ];
 
 const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-12 px-6">
+    <div className="h-full flex flex-col items-center justify-center text-center max-w-3xl mx-auto py-12 px-6 relative overflow-hidden">
       
+      {/* Decorative Background Elements */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none opacity-[0.03] overflow-hidden">
+        <div className="absolute top-0 left-0 w-64 h-64 border-[16px] border-red-900 rounded-full -ml-32 -mt-32"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 border-[16px] border-red-900 rounded-full -mr-48 -mb-48"></div>
+      </div>
+
       {/* Historical Scroll Icon */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-24 h-24 bg-red-800 text-white rounded-3xl flex items-center justify-center mb-8 shadow-2xl shadow-red-900/20 rotate-3"
+        animate={{ 
+          opacity: 1, 
+          scale: 1,
+          y: [0, -10, 0] 
+        }}
+        transition={{ 
+          scale: { duration: 0.5 },
+          y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+        }}
+        className="w-24 h-24 bg-gradient-to-br from-red-800 to-red-950 text-white rounded-[2rem] flex items-center justify-center mb-10 shadow-2xl shadow-red-950/40 border-4 border-white/10"
       >
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        </svg>
+        <PenTool size={40} className="drop-shadow-lg" />
       </motion.div>
-
+ 
       {/* CALLIGRAPHY QUOTE */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="relative mb-10"
+        className="relative mb-8"
       >
-        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-red-800/20 text-6xl font-historical-premium">“</div>
-        <h3 className="text-3xl md:text-5xl font-historical-premium text-red-950 px-4 leading-tight italic drop-shadow-sm">
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-red-800/10 text-8xl font-historical-premium select-none pointer-events-none opacity-50">“</div>
+        <h3 className="text-4xl md:text-6xl font-historical-premium text-red-950 px-4 leading-[1.1] drop-shadow-sm mb-6">
           {"Dân ta phải biết sử ta".normalize('NFC')}
         </h3>
-        <div className="mt-4 flex items-center justify-center gap-4">
-          <div className="h-px bg-stone-200 w-12" />
-          <span className="text-stone-400 text-xs uppercase tracking-[0.3em] font-black">{"Sử Việt Tri Ân".normalize('NFC')}</span>
-          <div className="h-px bg-stone-200 w-12" />
+        <div className="flex items-center justify-center gap-5">
+          <div className="h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent flex-1 w-20 md:w-32" />
+          <span className="text-stone-500 text-[10px] md:text-xs uppercase tracking-[0.4em] font-black whitespace-nowrap">{"Sử Việt Tri Ân".normalize('NFC')}</span>
+          <div className="h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent flex-1 w-20 md:w-32" />
         </div>
       </motion.div>
 
-      <p className="text-stone-500 text-base md:text-lg mb-12 max-w-md mx-auto leading-relaxed">
-        {"Tìm hiểu về các triều đại, những trận chiến oai hùng và những vị anh hùng kiệt xuất trong trang sử hào hùng của dân tộc.".normalize('NFC')}
+      <p className="text-stone-600 text-sm md:text-lg mb-12 max-w-xl mx-auto leading-relaxed font-medium">
+        {"Khám phá hào khí ngàn năm, những triều đại huy hoàng và những vị anh hùng đã làm nên hồn thiêng sông núi Việt Nam.".normalize('NFC')}
       </p>
 
       {/* SUGGESTION CHIPS */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
         {suggestions.map((suggest, idx) => (
           <motion.button
             key={suggest.text}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + idx * 0.05 }}
-            whileHover={{ scale: 1.03, backgroundColor: "rgb(254 242 242)" }}
-            whileTap={{ scale: 0.97 }}
+            transition={{ delay: 0.4 + idx * 0.05 }}
+            whileHover={{ y: -5, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => onSuggestClick(suggest.text.normalize('NFC'))}
-            className="flex items-center gap-2 p-3 bg-white border border-stone-100 rounded-2xl text-left shadow-sm hover:border-red-200 transition-all group"
+            className="flex items-center gap-3 p-4 bg-white/80 backdrop-blur-sm border border-stone-200 rounded-[1.5rem] text-left shadow-sm hover:shadow-xl hover:shadow-red-900/5 hover:border-red-200 transition-all group"
           >
-            <span className="text-lg group-hover:scale-125 transition-transform">{suggest.icon}</span>
+            <div className="w-10 h-10 rounded-xl bg-stone-50 group-hover:bg-red-50 flex items-center justify-center flex-shrink-0 transition-colors">
+              {suggest.icon}
+            </div>
             <span className="text-xs md:text-sm font-bold text-stone-700 truncate">{suggest.text.normalize('NFC')}</span>
           </motion.button>
         ))}

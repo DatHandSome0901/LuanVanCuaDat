@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { API_ROOT } from "../api";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { 
-  BookOpen, Search, ShieldCheck, Zap, 
-  MessageCircle, Map, Users, ChevronRight, 
+import {
+  BookOpen, Search, ShieldCheck, Zap,
+  MessageCircle, Map, Users, ChevronRight,
   Clock, Globe, ArrowRight
 } from "lucide-react";
+import { GameModal } from "./GameModal";
+import SecureImage from "./SecureImage";
+
 
 type Props = {
   siteConfig: any;
@@ -16,32 +19,37 @@ type Props = {
 // --- Subcomponents ---
 
 // Header
-const Navbar = ({ logoUrl, siteTitle, onStart, user }: any) => (
+const Navbar = ({ logoUrl, siteTitle, onStart, user, onPlayGame }: any) => (
   <nav className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-white/20 shadow-[0_4px_30px_rgba(0,0,0,0.03)] transition-all">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-stone-200 group-hover:shadow-md transition-shadow">
-          <img 
-            src={logoUrl || "/default.jpg"} 
-            alt="Logo" 
+          <SecureImage
+            src={logoUrl || "/default.jpg"}
+            alt="Logo"
             className="w-full h-full object-cover"
-            onError={(e: any) => { e.target.src = 'https://ui-avatars.com/api/?name=Sử+Việt&background=991b1b&color=fff' }}
           />
         </div>
         <span className="font-historical-premium text-xl font-bold text-stone-900 group-hover:text-red-800 transition-colors">{siteTitle}</span>
       </div>
-      <div className="hidden md:flex items-center gap-1 bg-stone-100/80 p-1.5 rounded-full border border-stone-200/60 shadow-inner">
+      <div className="hidden md:flex items-center gap-1.5 bg-stone-100/80 p-1.5 rounded-full border border-stone-200/60 shadow-inner">
         <a href="#features" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">Tính năng</a>
         <a href="#eras" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">Triều đại</a>
         <a href="#stats" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">Thống kê</a>
+        <button 
+          onClick={onPlayGame} 
+          className="px-5 py-2 text-sm font-extrabold text-white bg-gradient-to-r from-red-800 to-amber-600 hover:from-red-900 hover:to-amber-700 rounded-full transition-all hover:shadow-[0_2px_8px_rgba(153,27,27,0.3)] hover:-translate-y-0.5 active:scale-95 duration-200"
+        >
+          Chơi Game ⚔️
+        </button>
       </div>
       <div>
         {user ? (
           <div className="flex items-center gap-4">
-             <span className="font-bold text-stone-800 hidden lg:block text-sm">Xin chào, <span className="text-red-800">{user.full_name || user.username}</span>! 👋</span>
-             <button onClick={onStart} className="px-6 py-2.5 bg-gradient-to-r from-red-800 to-red-900 text-white font-bold rounded-full transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(153,27,27,0.4)] flex items-center gap-2 text-sm hover:-translate-y-0.5 active:scale-95">
-               Vào Chat <ChevronRight size={16} />
-             </button>
+            <span className="font-bold text-stone-800 hidden lg:block text-sm">Xin chào, <span className="text-red-800">{user.full_name || user.username}</span>! 👋</span>
+            <button onClick={onStart} className="px-6 py-2.5 bg-gradient-to-r from-red-800 to-red-900 text-white font-bold rounded-full transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(153,27,27,0.4)] flex items-center gap-2 text-sm hover:-translate-y-0.5 active:scale-95">
+              Vào Chat <ChevronRight size={16} />
+            </button>
           </div>
         ) : (
           <button onClick={onStart} className="px-6 py-2.5 bg-gradient-to-r from-red-800 to-red-900 text-white font-bold rounded-full transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(153,27,27,0.4)] flex items-center gap-2 text-sm hover:-translate-y-0.5 active:scale-95">
@@ -75,7 +83,7 @@ const HeroSection = ({ onStart, user }: any) => {
         <div className="lg:w-1/2 text-center lg:text-left">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-historical-premium font-bold text-stone-900 leading-normal mb-6 min-h-[140px] md:min-h-[160px] lg:min-h-[180px]">
-              Khám phá tinh hoa <br/>
+              Khám phá tinh hoa <br />
               <AnimatePresence mode="wait">
                 <motion.span
                   key={index}
@@ -100,9 +108,9 @@ const HeroSection = ({ onStart, user }: any) => {
             </div>
             <div className="mt-10 flex items-center justify-center lg:justify-start gap-4 text-sm text-stone-500 font-medium">
               <div className="flex -space-x-2">
-                {[1,2,3,4].map(i => (
+                {[1, 2, 3, 4].map(i => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-stone-200 flex items-center justify-center overflow-hidden">
-                    <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" className="w-full h-full object-cover" />
+                    <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="user" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
@@ -152,7 +160,7 @@ const ProcessSection = () => {
         <div className="relative">
           {/* Animated Connecting line */}
           <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-red-200 to-transparent z-0"></div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
             {steps.map((step, index) => (
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.2 }} key={index} className="text-center flex flex-col items-center group cursor-default">
@@ -185,20 +193,20 @@ const ProcessSection = () => {
 const FeaturesSection = ({ onStart }: any) => {
   const [activeTab, setActiveTab] = useState(0);
   const tabs = ["Cho Học Sinh", "Cho Giáo Viên", "Cho Nhà Nghiên Cứu"];
-  
+
   return (
-    <section className="py-24 bg-white overflow-hidden">
+    <section className="py-24 bg-white overflow-hidden" id="features">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-historical-premium font-bold text-stone-900 mb-4">Giải pháp toàn diện cho <span className="text-amber-600">hành trình học tập</span></h2>
         </div>
-        
+
         {/* Tabs */}
         <div className="flex justify-center mb-12">
           <div className="flex bg-stone-100 p-1 rounded-full overflow-x-auto max-w-full" style={{ scrollbarWidth: 'none' }}>
             {tabs.map((tab, idx) => (
-              <button 
-                key={idx} 
+              <button
+                key={idx}
                 onClick={() => setActiveTab(idx)}
                 className={`px-6 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeTab === idx ? 'bg-white text-red-800 shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}
               >
@@ -251,12 +259,12 @@ const FeaturesSection = ({ onStart }: any) => {
               </AnimatePresence>
             </div>
             <div className="md:w-1/2 w-full">
-               <div className="bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden h-[300px] flex items-center justify-center relative">
-                 <div className="absolute inset-0 bg-amber-50/50"></div>
-                 <div className="relative text-center w-full h-full p-2 flex flex-col items-center">
-                    <img src="/images/dashboard_mockup.png" alt="Educational Dashboard" className="w-full h-full object-cover rounded-xl" />
-                 </div>
-               </div>
+              <div className="bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden h-[300px] flex items-center justify-center relative">
+                <div className="absolute inset-0 bg-amber-50/50"></div>
+                <div className="relative text-center w-full h-full p-2 flex flex-col items-center">
+                  <img src="/images/dashboard_mockup.png" alt="Educational Dashboard" className="w-full h-full object-cover rounded-xl" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -287,51 +295,51 @@ const ErasSection = () => {
           <p className="text-stone-400 max-w-2xl mx-auto">Khám phá chiều dài lịch sử hàng ngàn năm của dân tộc thông qua các bộ dữ liệu được hệ thống hóa chuyên sâu.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-           {eras.map((era, idx) => (
-             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} key={idx} 
-               onClick={() => setActiveEra(idx)}
-               className="group relative h-64 rounded-2xl overflow-hidden flex flex-col justify-end p-6 shadow-2xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-stone-800"
-               style={{ backgroundImage: era.image, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-               <div className={`absolute inset-0 bg-gradient-to-t ${era.color} opacity-90 group-hover:opacity-75 transition-opacity duration-300`}></div>
-               <div className="relative z-10 transform group-hover:-translate-y-2 transition-transform duration-300">
-                 <Clock size={28} className="mb-4 text-white/70" />
-                 <h4 className="font-bold text-xl mb-1 text-white">{era.title}</h4>
-                 <span className="text-sm font-bold text-amber-500 drop-shadow-md">{era.time}</span>
-               </div>
-             </motion.div>
-           ))}
+          {eras.map((era, idx) => (
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} key={idx}
+              onClick={() => setActiveEra(idx)}
+              className="group relative h-64 rounded-2xl overflow-hidden flex flex-col justify-end p-6 shadow-2xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-stone-800"
+              style={{ backgroundImage: era.image, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <div className={`absolute inset-0 bg-gradient-to-t ${era.color} opacity-90 group-hover:opacity-75 transition-opacity duration-300`}></div>
+              <div className="relative z-10 transform group-hover:-translate-y-2 transition-transform duration-300">
+                <Clock size={28} className="mb-4 text-white/70" />
+                <h4 className="font-bold text-xl mb-1 text-white">{era.title}</h4>
+                <span className="text-sm font-bold text-amber-500 drop-shadow-md">{era.time}</span>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
 
       {/* Chi tiết từng Thời kỳ Modal */}
       <AnimatePresence>
         {activeEra !== null && (
-           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={() => setActiveEra(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-             <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="relative w-full max-w-2xl bg-stone-900 border border-stone-700 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-                <div className="h-56 w-full relative">
-                  <div className="absolute inset-0" style={{ backgroundImage: eras[activeEra].image, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/60 to-transparent"></div>
-                  <button onClick={() => setActiveEra(null)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 hover:bg-red-800 flex items-center justify-center text-white transition-colors backdrop-blur-sm border border-white/20">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveEra(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-2xl bg-stone-900 border border-stone-700 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+              <div className="h-56 w-full relative">
+                <div className="absolute inset-0" style={{ backgroundImage: eras[activeEra].image, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/60 to-transparent"></div>
+                <button onClick={() => setActiveEra(null)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 hover:bg-red-800 flex items-center justify-center text-white transition-colors backdrop-blur-sm border border-white/20">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-8 -mt-20 relative z-10 text-center">
+                <div className="bg-stone-800/80 backdrop-blur-md border border-stone-600 px-6 py-2 rounded-full inline-block mb-4 shadow-lg text-amber-400 font-bold text-sm">
+                  {eras[activeEra].time}
                 </div>
-                <div className="p-8 -mt-20 relative z-10 text-center">
-                  <div className="bg-stone-800/80 backdrop-blur-md border border-stone-600 px-6 py-2 rounded-full inline-block mb-4 shadow-lg text-amber-400 font-bold text-sm">
-                    {eras[activeEra].time}
-                  </div>
-                  <h3 className="text-3xl font-bold font-historical-premium text-white mb-6">
-                    {eras[activeEra].title}
-                  </h3>
-                  <p className="text-stone-300 leading-relaxed text-lg mb-8 px-4">
-                    {eras[activeEra].summary}
-                  </p>
-                  <button onClick={() => setActiveEra(null)} className="px-10 py-3 bg-red-800 text-white rounded-full font-bold hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(153,27,27,0.4)] hover:scale-105 active:scale-95">
-                    Đã hiểu
-                  </button>
-                </div>
-             </motion.div>
-           </div>
+                <h3 className="text-3xl font-bold font-historical-premium text-white mb-6">
+                  {eras[activeEra].title}
+                </h3>
+                <p className="text-stone-300 leading-relaxed text-lg mb-8 px-4">
+                  {eras[activeEra].summary}
+                </p>
+                <button onClick={() => setActiveEra(null)} className="px-10 py-3 bg-red-800 text-white rounded-full font-bold hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(153,27,27,0.4)] hover:scale-105 active:scale-95">
+                  Đã hiểu
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </section>
@@ -358,18 +366,18 @@ const StatsSection = () => {
           <motion.span initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-red-800 font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Thống kê ấn tượng</motion.span>
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl md:text-5xl font-historical-premium font-bold text-stone-900 mb-6">Tại sao nên chọn <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-800 to-amber-700">Sử Việt AI?</span></motion.h2>
         </div>
-        
+
         {/* Numbers with Counter Animation */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
           {stats.map((stat, idx) => (
-             <motion.div 
-               initial={{ opacity: 0, y: 20 }} 
-               whileInView={{ opacity: 1, y: 0 }} 
-               viewport={{ once: true }} 
-               transition={{ delay: idx * 0.1 }} 
-               key={idx} 
-               className="bg-stone-50/50 backdrop-blur-sm p-8 rounded-[2rem] border border-stone-200/60 hover:border-red-200 hover:bg-white hover:shadow-2xl hover:shadow-red-900/5 transition-all duration-500 group text-center"
-             >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+              key={idx}
+              className="bg-stone-50/50 backdrop-blur-sm p-8 rounded-[2rem] border border-stone-200/60 hover:border-red-200 hover:bg-white hover:shadow-2xl hover:shadow-red-900/5 transition-all duration-500 group text-center"
+            >
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-500 border border-stone-100">
                 {stat.icon}
               </div>
@@ -384,41 +392,41 @@ const StatsSection = () => {
 
         {/* Feature Highlights */}
         <div className="grid md:grid-cols-3 gap-10">
-           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="group relative bg-white p-10 rounded-[2.5rem] border border-stone-200 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-all duration-500">
-             <div className="w-16 h-16 bg-red-50 text-red-800 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-red-800 group-hover:text-white transition-colors duration-500 shadow-sm">
-                <Globe size={32} />
-             </div>
-             <h3 className="text-2xl font-bold font-historical-premium text-stone-900 mb-4">Dữ liệu chuẩn xác</h3>
-             <p className="text-stone-600 leading-relaxed mb-8">Mọi câu trả lời được tham chiếu từ các bộ sử liệu chính thống như Đại Việt Sử Ký Toàn Thư, Khâm Định Việt Sử Thông Giám Cương Mục.</p>
-             <div className="flex gap-3">
-               <span className="px-4 py-1.5 bg-stone-100 text-stone-800 text-xs rounded-full font-bold border border-stone-200">Chính thống</span>
-               <span className="px-4 py-1.5 bg-red-50 text-red-800 text-xs rounded-full font-bold border border-red-100">Cập nhật</span>
-             </div>
-           </motion.div>
-           
-           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="group relative bg-red-900 text-white p-10 rounded-[2.5rem] shadow-2xl shadow-red-900/20 md:-translate-y-6 overflow-hidden">
-             <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24"></div>
-             <div className="w-16 h-16 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-8 group-hover:bg-white group-hover:text-red-900 transition-colors duration-500 shadow-sm">
-                <Zap size={32} />
-             </div>
-             <h3 className="text-2xl font-bold font-historical-premium mb-4">AI Thông Minh</h3>
-             <p className="text-white/80 leading-relaxed mb-8">Công nghệ RAG tiên tiến giúp hiểu chính xác ngữ cảnh văn hóa Việt, phản hồi ngay lập tức với ngôn từ trau chuốt, tinh tế.</p>
-             <ul className="space-y-4 text-sm font-medium">
-               <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400"/> Phản hồi tức thì trong 1 giây</li>
-               <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400"/> Am hiểu ngôn ngữ cổ học</li>
-             </ul>
-           </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="group relative bg-white p-10 rounded-[2.5rem] border border-stone-200 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-all duration-500">
+            <div className="w-16 h-16 bg-red-50 text-red-800 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-red-800 group-hover:text-white transition-colors duration-500 shadow-sm">
+              <Globe size={32} />
+            </div>
+            <h3 className="text-2xl font-bold font-historical-premium text-stone-900 mb-4">Dữ liệu chuẩn xác</h3>
+            <p className="text-stone-600 leading-relaxed mb-8">Mọi câu trả lời được tham chiếu từ các bộ sử liệu chính thống như Đại Việt Sử Ký Toàn Thư, Khâm Định Việt Sử Thông Giám Cương Mục.</p>
+            <div className="flex gap-3">
+              <span className="px-4 py-1.5 bg-stone-100 text-stone-800 text-xs rounded-full font-bold border border-stone-200">Chính thống</span>
+              <span className="px-4 py-1.5 bg-red-50 text-red-800 text-xs rounded-full font-bold border border-red-100">Cập nhật</span>
+            </div>
+          </motion.div>
 
-           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }} className="group relative bg-white p-10 rounded-[2.5rem] border border-stone-200 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-all duration-500">
-             <div className="w-16 h-16 bg-stone-100 text-stone-800 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-stone-900 group-hover:text-white transition-colors duration-500 shadow-sm">
-                <Users size={32} />
-             </div>
-             <h3 className="text-2xl font-bold font-historical-premium text-stone-900 mb-4">Đa thiết bị</h3>
-             <p className="text-stone-600 leading-relaxed mb-8">Thiết kế đáp ứng hoàn hảo cho cả Web, Android và iOS. Giao diện tối giản, tập trung tối đa vào trải nghiệm đọc và học.</p>
-             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-100 text-stone-500 font-bold text-xs uppercase tracking-widest text-center">
-               Hỗ trợ Web • Mobile App • Tablet
-             </div>
-           </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="group relative bg-red-900 text-white p-10 rounded-[2.5rem] shadow-2xl shadow-red-900/20 md:-translate-y-6 overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24"></div>
+            <div className="w-16 h-16 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-8 group-hover:bg-white group-hover:text-red-900 transition-colors duration-500 shadow-sm">
+              <Zap size={32} />
+            </div>
+            <h3 className="text-2xl font-bold font-historical-premium mb-4">AI Thông Minh</h3>
+            <p className="text-white/80 leading-relaxed mb-8">Công nghệ RAG tiên tiến giúp hiểu chính xác ngữ cảnh văn hóa Việt, phản hồi ngay lập tức với ngôn từ trau chuốt, tinh tế.</p>
+            <ul className="space-y-4 text-sm font-medium">
+              <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400" /> Phản hồi tức thì trong 1 giây</li>
+              <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400" /> Am hiểu ngôn ngữ cổ học</li>
+            </ul>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }} className="group relative bg-white p-10 rounded-[2.5rem] border border-stone-200 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-all duration-500">
+            <div className="w-16 h-16 bg-stone-100 text-stone-800 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-stone-900 group-hover:text-white transition-colors duration-500 shadow-sm">
+              <Users size={32} />
+            </div>
+            <h3 className="text-2xl font-bold font-historical-premium text-stone-900 mb-4">Đa thiết bị</h3>
+            <p className="text-stone-600 leading-relaxed mb-8">Thiết kế đáp ứng hoàn hảo cho cả Web, Android và iOS. Giao diện tối giản, tập trung tối đa vào trải nghiệm đọc và học.</p>
+            <div className="bg-stone-50 p-5 rounded-2xl border border-stone-100 text-stone-500 font-bold text-xs uppercase tracking-widest text-center">
+              Hỗ trợ Web • Mobile App • Tablet
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -437,7 +445,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
       const end = value;
       const duration = 2000;
       const increment = end / (duration / 16);
-      
+
       const timer = setInterval(() => {
         start += increment;
         if (start >= end) {
@@ -461,7 +469,7 @@ const CTASection = ({ onStart, user }: any) => (
     <div className="max-w-6xl mx-auto relative group">
       {/* Dynamic Background Glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 to-amber-600/30 rounded-[3rem] blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
-      
+
       <div className="relative bg-gradient-to-br from-stone-900 via-red-950 to-stone-950 rounded-[3rem] p-12 md:p-24 shadow-[0_20px_50px_rgba(153,27,27,0.3)] overflow-hidden text-center text-white border border-white/10">
         {/* Abstract decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
@@ -482,12 +490,12 @@ const CTASection = ({ onStart, user }: any) => (
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button onClick={onStart} className="px-12 py-5 bg-gradient-to-r from-red-800 to-red-600 text-white font-bold rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(153,27,27,0.5)] hover:shadow-[0_0_40px_rgba(153,27,27,0.7)] text-xl flex items-center gap-3 hover:-translate-y-1 active:scale-95 group">
-              {user ? 'Vào Trò Chuyện' : 'Khám Phá Miễn Phí'} 
+              {user ? 'Vào Trò Chuyện' : 'Khám Phá Miễn Phí'}
               <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </button>
             <div className="flex -space-x-3 items-center ml-4">
-              {[1,2,3,4,5].map(i => (
-                <img key={i} src={`https://i.pravatar.cc/100?img=${i+20}`} className="w-10 h-10 rounded-full border-2 border-stone-900 shadow-lg" alt="User Avatar" />
+              {[1, 2, 3, 4, 5].map(i => (
+                <img key={i} src={`https://i.pravatar.cc/100?img=${i + 20}`} className="w-10 h-10 rounded-full border-2 border-stone-900 shadow-lg" alt="User Avatar" />
               ))}
               <div className="ml-6 text-stone-400 font-bold text-sm">+50k Users</div>
             </div>
@@ -521,9 +529,9 @@ const Footer = ({ onOpenModal }: { onOpenModal: (type: 'about' | 'terms' | 'priv
         <div className="md:col-span-3">
           <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">Liên kết nhanh</h4>
           <ul className="space-y-3 text-sm font-medium text-stone-500">
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('about'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14}/> Về chúng tôi</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14}/> Điều khoản dịch vụ</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14}/> Chính sách bảo mật</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('about'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> Về chúng tôi</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> Điều khoản dịch vụ</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> Chính sách bảo mật</a></li>
           </ul>
         </div>
 
@@ -551,13 +559,14 @@ const Footer = ({ onOpenModal }: { onOpenModal: (type: 'about' | 'terms' | 'priv
 
 const LandingPage: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   const [activeModal, setActiveModal] = useState<'about' | 'terms' | 'privacy' | 'contact' | null>(null);
+  const [showGame, setShowGame] = useState(false);
 
   const logoUrl =
     siteConfig?.logo_url &&
     (siteConfig.logo_url.startsWith("http")
       ? siteConfig.logo_url
       : API_ROOT + siteConfig.logo_url);
-      
+
   const bgUrl =
     siteConfig?.landing_bg &&
     (siteConfig.landing_bg.startsWith("http")
@@ -567,20 +576,19 @@ const LandingPage: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   return (
     <div className="min-h-screen w-full bg-stone-50 font-sans text-stone-800 overflow-x-hidden selection:bg-red-200 selection:text-red-900 relative">
       {bgUrl && (
-        <div 
+        <SecureImage
+          src={bgUrl}
+          isBackground={true}
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
-            backgroundImage: `url("${bgUrl}")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
             backgroundAttachment: "fixed"
           }}
         >
           <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px]"></div>
-        </div>
+        </SecureImage>
       )}
       <div className="relative z-10">
-        <Navbar logoUrl={logoUrl} siteTitle={siteConfig?.site_title || "Sử Việt Chatbot"} onStart={onStart} user={user} />
+        <Navbar logoUrl={logoUrl} siteTitle={siteConfig?.site_title || "Sử Việt Chatbot"} onStart={onStart} user={user} onPlayGame={() => setShowGame(true)} />
         <HeroSection onStart={onStart} user={user} />
         <ProcessSection />
         <FeaturesSection onStart={onStart} />
@@ -593,109 +601,111 @@ const LandingPage: React.FC<Props> = ({ siteConfig, onStart, user }) => {
       {/* Modal Overlay */}
       <AnimatePresence>
         {activeModal && (
-           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={() => setActiveModal(null)} className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" />
-             <motion.div initial={{opacity:0, scale:0.95, y:20}} animate={{opacity:1, scale:1, y:0}} exit={{opacity:0, scale:0.95, y:20}} className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-                <div className="flex justify-between items-center p-6 border-b border-stone-100 bg-stone-50/50">
-                  <h3 className="text-xl font-bold font-historical-premium text-stone-900">
-                    {activeModal === 'about' ? 'Về Chúng Tôi' : activeModal === 'terms' ? 'Điều Khoản Dịch Vụ' : activeModal === 'privacy' ? 'Chính Sách Bảo Mật' : 'Thông Tin Liên Hệ'}
-                  </h3>
-                  <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-600 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
-                </div>
-                <div className="p-8 overflow-y-auto">
-                  {activeModal === 'about' && (
-                    <>
-                      <div className="text-center mb-8">
-                        <div className="w-20 h-20 bg-red-800 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl font-historical-premium font-bold">史</div>
-                        <h2 className="text-2xl font-bold text-stone-900">Sử Việt AI</h2>
-                        <p className="text-stone-500">Nền tảng học tập Lịch Sử bằng AI tiên phong</p>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveModal(null)} className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center p-6 border-b border-stone-100 bg-stone-50/50">
+                <h3 className="text-xl font-bold font-historical-premium text-stone-900">
+                  {activeModal === 'about' ? 'Về Chúng Tôi' : activeModal === 'terms' ? 'Điều Khoản Dịch Vụ' : activeModal === 'privacy' ? 'Chính Sách Bảo Mật' : 'Thông Tin Liên Hệ'}
+                </h3>
+                <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-600 transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-8 overflow-y-auto">
+                {activeModal === 'about' && (
+                  <>
+                    <div className="text-center mb-8">
+                      <div className="w-20 h-20 bg-red-800 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl font-historical-premium font-bold">史</div>
+                      <h2 className="text-2xl font-bold text-stone-900">Sử Việt AI</h2>
+                      <p className="text-stone-500">Nền tảng học tập Lịch Sử bằng AI tiên phong</p>
+                    </div>
+                    <div className="space-y-6 text-stone-600 leading-relaxed">
+                      <p>Sử Việt AI được xây dựng và phát triển bởi <strong>CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG</strong> với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động.</p>
+                      <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 space-y-3 text-sm">
+                        <h4 className="font-bold text-stone-900 text-base mb-2">Thông tin công ty</h4>
+                        <p><strong>Tên pháp lý:</strong> CÔNG TY TNHH MỘT THÀNH VIÊN CÔNG NGHỆ KỸ THUẬT TIÊN PHONG</p>
+                        <p><strong>Mã số thuế:</strong> 1801526082</p>
+                        <p><strong>Người đại diện:</strong> NGÔ HỒ ANH KHÔI</p>
+                        <p><strong>Ngày hoạt động:</strong> 05/04/2017</p>
+                        <p><strong>Địa chỉ:</strong> P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ</p>
                       </div>
-                      <div className="space-y-6 text-stone-600 leading-relaxed">
-                        <p>Sử Việt AI được xây dựng và phát triển bởi <strong>CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG</strong> với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động.</p>
-                        <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 space-y-3 text-sm">
-                          <h4 className="font-bold text-stone-900 text-base mb-2">Thông tin công ty</h4>
-                          <p><strong>Tên pháp lý:</strong> CÔNG TY TNHH MỘT THÀNH VIÊN CÔNG NGHỆ KỸ THUẬT TIÊN PHONG</p>
-                          <p><strong>Mã số thuế:</strong> 1801526082</p>
-                          <p><strong>Người đại diện:</strong> NGÔ HỒ ANH KHÔI</p>
-                          <p><strong>Ngày hoạt động:</strong> 05/04/2017</p>
-                          <p><strong>Địa chỉ:</strong> P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ</p>
+                    </div>
+                  </>
+                )}
+                {activeModal === 'terms' && (
+                  <div className="space-y-6 text-stone-600 leading-relaxed">
+                    <h4 className="text-lg font-bold text-stone-900">1. Chấp nhận điều khoản</h4>
+                    <p>Bằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.</p>
+                    <h4 className="text-lg font-bold text-stone-900">2. Quyền và trách nhiệm người dùng</h4>
+                    <p>Bạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.</p>
+                    <h4 className="text-lg font-bold text-stone-900">3. Giới hạn trách nhiệm</h4>
+                    <p>Mặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.</p>
+                    <h4 className="text-lg font-bold text-stone-900">4. Bản quyền</h4>
+                    <p>Toàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức.</p>
+                  </div>
+                )}
+                {activeModal === 'privacy' && (
+                  <div className="space-y-6 text-stone-600 leading-relaxed">
+                    <h4 className="text-lg font-bold text-stone-900">1. Thu thập thông tin</h4>
+                    <p>Chúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.</p>
+                    <h4 className="text-lg font-bold text-stone-900">2. Bảo mật dữ liệu</h4>
+                    <p>Tất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.</p>
+                    <h4 className="text-lg font-bold text-stone-900">3. Quyền kiểm soát của người dùng</h4>
+                    <p>Bạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản.</p>
+                  </div>
+                )}
+                {activeModal === 'contact' && (
+                  <div className="space-y-6 text-stone-600 leading-relaxed text-center">
+                    <div className="w-16 h-16 bg-red-800 text-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                      <MessageCircle size={28} />
+                    </div>
+                    <h2 className="text-2xl font-bold text-stone-900 mb-2">Liên hệ với chúng tôi</h2>
+                    <p className="mb-8 text-stone-500">Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy liên hệ qua các kênh dưới đây:</p>
+
+                    <div className="grid gap-4 max-w-sm mx-auto text-left">
+                      <a href="mailto:nguyenquocdat888888@gmail.com" className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-red-800 hover:bg-red-50 transition-all group">
+                        <div className="w-12 h-12 rounded-full bg-stone-100 group-hover:bg-red-200 flex items-center justify-center flex-shrink-0 text-red-800 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         </div>
-                      </div>
-                    </>
-                  )}
-                  {activeModal === 'terms' && (
-                    <div className="space-y-6 text-stone-600 leading-relaxed">
-                      <h4 className="text-lg font-bold text-stone-900">1. Chấp nhận điều khoản</h4>
-                      <p>Bằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.</p>
-                      <h4 className="text-lg font-bold text-stone-900">2. Quyền và trách nhiệm người dùng</h4>
-                      <p>Bạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.</p>
-                      <h4 className="text-lg font-bold text-stone-900">3. Giới hạn trách nhiệm</h4>
-                      <p>Mặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.</p>
-                      <h4 className="text-lg font-bold text-stone-900">4. Bản quyền</h4>
-                      <p>Toàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức.</p>
-                    </div>
-                  )}
-                  {activeModal === 'privacy' && (
-                    <div className="space-y-6 text-stone-600 leading-relaxed">
-                      <h4 className="text-lg font-bold text-stone-900">1. Thu thập thông tin</h4>
-                      <p>Chúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.</p>
-                      <h4 className="text-lg font-bold text-stone-900">2. Bảo mật dữ liệu</h4>
-                      <p>Tất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.</p>
-                      <h4 className="text-lg font-bold text-stone-900">3. Quyền kiểm soát của người dùng</h4>
-                      <p>Bạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản.</p>
-                    </div>
-                  )}
-                  {activeModal === 'contact' && (
-                    <div className="space-y-6 text-stone-600 leading-relaxed text-center">
-                      <div className="w-16 h-16 bg-red-800 text-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
-                         <MessageCircle size={28} />
-                      </div>
-                      <h2 className="text-2xl font-bold text-stone-900 mb-2">Liên hệ với chúng tôi</h2>
-                      <p className="mb-8 text-stone-500">Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy liên hệ qua các kênh dưới đây:</p>
-                      
-                      <div className="grid gap-4 max-w-sm mx-auto text-left">
-                        <a href="mailto:nguyenquocdat888888@gmail.com" className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-red-800 hover:bg-red-50 transition-all group">
-                          <div className="w-12 h-12 rounded-full bg-stone-100 group-hover:bg-red-200 flex items-center justify-center flex-shrink-0 text-red-800 transition-colors">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                          </div>
-                          <div className="overflow-hidden">
-                            <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Email</p>
-                            <p className="font-bold text-stone-800 truncate text-sm">nguyenquocdat888888@gmail.com</p>
-                          </div>
-                        </a>
+                        <div className="overflow-hidden">
+                          <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Email</p>
+                          <p className="font-bold text-stone-800 truncate text-sm">nguyenquocdat888888@gmail.com</p>
+                        </div>
+                      </a>
 
-                        <a href="https://zalo.me/0896498997" target="_blank" rel="noreferrer" className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-blue-500 hover:bg-blue-50 transition-all group">
-                          <div className="w-12 h-12 rounded-full bg-stone-100 group-hover:bg-blue-200 flex items-center justify-center flex-shrink-0 text-blue-600 transition-colors">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">SĐT / Zalo</p>
-                            <p className="font-bold text-stone-800 text-sm">0896 498 997</p>
-                          </div>
-                        </a>
+                      <a href="https://zalo.me/0896498997" target="_blank" rel="noreferrer" className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                        <div className="w-12 h-12 rounded-full bg-stone-100 group-hover:bg-blue-200 flex items-center justify-center flex-shrink-0 text-blue-600 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">SĐT / Zalo</p>
+                          <p className="font-bold text-stone-800 text-sm">0896 498 997</p>
+                        </div>
+                      </a>
 
-                        <a href="https://www.facebook.com/nguyen.quoc.at.383270" target="_blank" rel="noreferrer" className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-blue-600 hover:bg-blue-50 transition-all group">
-                          <div className="w-12 h-12 rounded-full bg-stone-100 group-hover:bg-blue-200 flex items-center justify-center flex-shrink-0 text-blue-700 transition-colors">
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Cộng đồng</p>
-                            <p className="font-bold text-stone-800 text-sm">Facebook Group</p>
-                          </div>
-                        </a>
-                      </div>
+                      <a href="https://www.facebook.com/nguyen.quoc.at.383270" target="_blank" rel="noreferrer" className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-blue-600 hover:bg-blue-50 transition-all group">
+                        <div className="w-12 h-12 rounded-full bg-stone-100 group-hover:bg-blue-200 flex items-center justify-center flex-shrink-0 text-blue-700 transition-colors">
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Cộng đồng</p>
+                          <p className="font-bold text-stone-800 text-sm">Facebook Group</p>
+                        </div>
+                      </a>
                     </div>
-                  )}
-                </div>
-                <div className="p-4 border-t border-stone-100 bg-stone-50 flex justify-end">
-                  <button onClick={() => setActiveModal(null)} className="px-8 py-2.5 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors shadow-md hover:shadow-lg">Đã hiểu & Đóng</button>
-                </div>
-             </motion.div>
-           </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t border-stone-100 bg-stone-50 flex justify-end">
+                <button onClick={() => setActiveModal(null)} className="px-8 py-2.5 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors shadow-md hover:shadow-lg">Đã hiểu & Đóng</button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
+
+      <GameModal isOpen={showGame} onClose={() => setShowGame(false)} />
     </div>
   );
 };

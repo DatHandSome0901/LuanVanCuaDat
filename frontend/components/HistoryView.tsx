@@ -9,9 +9,10 @@ const isNative = Capacitor.isNativePlatform();
 interface HistoryViewProps {
   onSelect: (id: number) => void;
   activeId?: number | null;
+  isSidebarOpen?: boolean;
 }
 
-const HistoryView: React.FC<HistoryViewProps> = ({ onSelect, activeId }) => {
+const HistoryView: React.FC<HistoryViewProps> = ({ onSelect, activeId, isSidebarOpen }) => {
   const handleNewChat = () => {
     localStorage.removeItem("conversation_id");
     window.dispatchEvent(new Event("new_chat"));

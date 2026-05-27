@@ -1,20 +1,52 @@
 
 import { Capacitor } from '@capacitor/core';
-import { AuthResponse, ChatResponse, PaymentPackage, PaymentInvoice, PaymentStatus, User } from './types';
+import {
+  AuthResponse,
+  ChatResponse,
+  ChatJobStatus,
+  PaymentPackage,
+  PaymentInvoice,
+  PaymentStatus,
+  User,
+  SiteConfig,
+  QAStatus,
+  QAQuestionsResponse,
+  QACheckinResponse,
+  QAAnswerResponse
+} from './types';
 
 const isNative = Capacitor.isNativePlatform();
 const isDev = import.meta.env.DEV;
 
-// IP mặc định cho điện thoại thật cùng mạng (nếu không có VITE_API_URL)
-const DEFAULT_NATIVE_API = 'http://172.15.7.45:2643';
-const DEFAULT_WEB_API = 'http://localhost:2643';
+// Lấy IP từ URL hiện tại nếu đang chạy Web để hỗ trợ mạng LAN
+const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(currentHostname);
+
+// IP mặc định cho điện thoại thật (Dùng trực tiếp IP LAN để ổn định nhất)
+const DEFAULT_NATIVE_API = 'https://rehydrate-doing-crust.ngrok-free.dev';
+
+// Logic chọn API URL:
+// - LAN access (isIP=true, e.g. 192.168.1.8:3000): dùng cùng IP, cổng 2643
+// - localhost: dùng localhost:2643 (dev)
+// - Vercel/production: dùng VITE_API_URL (set trong Vercel env vars)
+const getDefaultWebApi = (): string => {
+  if (isIP) {
+    // Truy cập qua LAN → dùng IP hiện tại với cổng backend
+    return `http://${currentHostname}:2643`;
+  }
+  if (currentHostname === 'localhost' || isDev) {
+    return 'http://localhost:2643';
+  }
+  // Production (Vercel, public domain) → phải dùng VITE_API_URL
+  return '';
+};
 
 // @ts-ignore
 const envApiUrl = import.meta.env.VITE_API_URL || process.env.API_URL;
 
 export const API_ROOT = isNative 
-  ? (envApiUrl || DEFAULT_NATIVE_API) 
-  : (envApiUrl || DEFAULT_WEB_API);
+  ? ((envApiUrl && envApiUrl !== 'http://localhost') ? envApiUrl : DEFAULT_NATIVE_API) 
+  : (envApiUrl || getDefaultWebApi());
 
 console.log("DEBUG: Connection Details", { 
   isNative, 
@@ -30,6 +62,7 @@ const getHeaders = () => {
   return {
     'Authorization': token ? `Bearer ${token}` : '',
     'cf-skip-tunnel-reminder': 'true', // Bỏ qua trang cảnh báo của Cloudflare Tunnel
+    'ngrok-skip-browser-warning': 'true', // 🔥 Bỏ qua trang cảnh báo của Ngrok
   };
 };
 
@@ -41,7 +74,10 @@ export const api = {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'cf-skip-tunnel-reminder': 'true' },
+        headers: { 
+          'cf-skip-tunnel-reminder': 'true',
+          'ngrok-skip-browser-warning': 'true' 
+        },
         body: formData,
       });
       if (!response.ok) throw new Error('Đăng nhập thất bại (Server error)');
@@ -55,7 +91,10 @@ export const api = {
   async register(formData: FormData): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
-      headers: { 'cf-skip-tunnel-reminder': 'true' },
+      headers: { 
+        'cf-skip-tunnel-reminder': 'true',
+        'ngrok-skip-browser-warning': 'true' 
+      },
       body: formData,
     });
     if (!response.ok) throw new Error('Đăng ký thất bại');
@@ -72,7 +111,12 @@ export const api = {
   },
 
   async getGoogleLoginUrl(): Promise<string> {
-    const response = await fetch(`${BASE_URL}/auth/google/login`);
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    // Nếu chạy trên App (Capacitor), dùng deep link chatbot://callback để Android OS tự bắt lại
+    const redirectTarget = isNative ? 'chatbot://callback' : origin;
+    const response = await fetch(`${BASE_URL}/auth/google/login?frontend_url=${encodeURIComponent(redirectTarget)}`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
     const data = await response.json();
     return data.auth_url;
   },
@@ -94,6 +138,17 @@ export const api = {
     return response.json();
   },
 
+  async getChatJobStatus(jobId: string): Promise<ChatJobStatus> {
+    const response = await fetch(`${BASE_URL}/chat/jobs/${jobId}`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || 'Không thể kiểm tra trạng thái công việc');
+    }
+    return response.json();
+  },
+
   async getChatHistory(): Promise<{ history: any[] }> {
     const response = await fetch(`${BASE_URL}/history`, {
       headers: getHeaders(),
@@ -111,10 +166,24 @@ export const api = {
     return response.json();
   },
 
+  async rateMessage(messageId: number, rating: number): Promise<{ status: string; likes_count?: number; note?: string }> {
+    const response = await fetch(`${BASE_URL}/message/${messageId}/rate`, {
+      method: 'POST',
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ rating }),
+    });
+    if (!response.ok) throw new Error('Không thể gửi đánh giá');
+    return response.json();
+  },
+
 async getSiteConfig(): Promise<{
   logo_url: string,
   site_title: string,
-  landing_bg: string
+  landing_bg: string,
+  chat_bg: string
 }> {
   const response = await fetch(`${BASE_URL}/admin/settings`, {
     headers: getHeaders(), // 🔥 cần token admin
@@ -126,13 +195,17 @@ async getSiteConfig(): Promise<{
 },
 
 //
-async getPublicSettings() {
-  const res = await fetch(`${BASE_URL}/admin/public/settings`);
-  return res.json();
-},
+  async getPublicSettings(): Promise<SiteConfig> {
+    const res = await fetch(`${BASE_URL}/admin/public/settings`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    return res.json();
+  },
   // Payment
   async getPackages(): Promise<{ packages: PaymentPackage[] }> {
-    const response = await fetch(`${BASE_URL}/payment/packages`);
+    const response = await fetch(`${BASE_URL}/payment/packages`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
     if (!response.ok) throw new Error('Không thể tải gói nạp');
     return response.json();
   },
@@ -151,7 +224,7 @@ async getPublicSettings() {
 
   async getPaymentStatus(paymentId: number): Promise<PaymentStatus> {
     const response = await fetch(`${BASE_URL}/payment/status/${paymentId}`, {
-      headers: getHeaders(),
+      headers: { ...getHeaders() },
     });
     if (!response.ok) throw new Error('Không thể kiểm tra trạng thái');
     return response.json();
@@ -162,6 +235,58 @@ async getPublicSettings() {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Không thể tải lịch sử giao dịch');
+    return response.json();
+  },
+
+  async getQAStatus(): Promise<QAStatus> {
+    const response = await fetch(`${BASE_URL}/qa/status`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải thử thách Q&A');
+    return response.json();
+  },
+
+  async claimQACheckin(): Promise<QACheckinResponse> {
+    const response = await fetch(`${BASE_URL}/qa/checkin`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || 'Không thể điểm danh');
+    }
+    return response.json();
+  },
+
+  async getQAQuestions(): Promise<QAQuestionsResponse> {
+    const response = await fetch(`${BASE_URL}/qa/questions`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải câu hỏi Q&A');
+    return response.json();
+  },
+
+  async answerQAQuestion(payload: { question_key: string; selected_index: number; question_date?: string }): Promise<QAAnswerResponse> {
+    const response = await fetch(`${BASE_URL}/qa/answer`, {
+      method: 'POST',
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || 'Không thể gửi câu trả lời');
+    }
+    return response.json();
+  },
+
+  async getQALeaderboard(): Promise<any> {
+    const response = await fetch(`${BASE_URL}/qa/leaderboard`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải bảng xếp hạng Q&A');
     return response.json();
   },
 
@@ -291,6 +416,7 @@ async getPublicSettings() {
     logo_url: string,
     site_title: string,
     landing_bg: string,
+    chat_bg: string,
     seo_description: string,
     seo_keywords: string,
     seo_author: string,
@@ -319,6 +445,7 @@ async getPublicSettings() {
     logo_url?: string,
     favicon_url?: string,
     landing_bg?: string,
+    chat_bg?: string,
     site_title?: string,
     seo_description?: string,
     seo_keywords?: string,
@@ -448,6 +575,24 @@ async getPublicSettings() {
     return response.json();
   },
 
+  // Feedback Management
+  async adminGetNegativeFeedback(): Promise<any[]> {
+    const response = await fetch(`${BASE_URL}/admin/feedback/negative`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải danh sách phản hồi tiêu cực');
+    return response.json();
+  },
+
+  async adminMoveToPending(messageId: number): Promise<{ msg: string }> {
+    const response = await fetch(`${BASE_URL}/admin/feedback/${messageId}/to-pending`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Chuyển sang hàng chờ thất bại');
+    return response.json();
+  },
+
 };
 
 // ===============================
@@ -455,43 +600,42 @@ async getPublicSettings() {
 // ===============================
 
 export const getConversations = async () => {
-
+  const token = localStorage.getItem("access_token");
+  if (!token) return { history: [] };
+  
   const res = await fetch(`${API_ROOT}/api/v1/conversations`, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
     }
   });
-
+  if (!res.ok) return { history: [] };
   return res.json();
 };
 
-
 export const deleteConversation = async (id: number) => {
-
+  const token = localStorage.getItem("access_token");
   const res = await fetch(`${API_ROOT}/api/v1/conversation/${id}`, {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
     }
   });
-
   return res.json();
-
-  
 };
 
-
 export const updateConversation = async (id: number, data: {title?: string, note?: string, is_pinned?: boolean}) => {
-
+  const token = localStorage.getItem("access_token");
   const res = await fetch(`${API_ROOT}/api/v1/conversation/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
     },
     body: JSON.stringify(data)
   });
-
   return res.json();
 };
 

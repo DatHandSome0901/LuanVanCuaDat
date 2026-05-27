@@ -99,21 +99,50 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
 
 @router.get("/google/login")
-async def google_login():
+async def google_login(request: Request, frontend_url: str = Query("http://localhost:3000")):
+    # Tự động chọn địa chỉ trả về (Redirect URI)
+    host = request.headers.get("host", "localhost:2643")
+    
+    if "vercel.app" in frontend_url:
+        # Nếu đang dùng Vercel, bắt Google trả về Vercel (để Vercel tự trung chuyển về đây)
+        # Cách này sẽ giúp không bao giờ hiện cái bảng Ngrok khó chịu nữa
+        redirect_uri = f"{frontend_url}/api/v1/auth/google/callback"
+    elif "localhost" in host:
+        redirect_uri = f"http://{host}/api/v1/auth/google/callback"
+    else:
+        # Trường hợp dùng IP mạng LAN thì vẫn phải dùng Ngrok trực tiếp
+        ngrok_url = "https://rehydrate-doing-crust.ngrok-free.dev"
+        redirect_uri = f"{ngrok_url}/api/v1/auth/google/callback"
+    
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "redirect_uri": redirect_uri,
         "response_type": "code",
         "scope": "openid email profile",
         "access_type": "offline",
-        "prompt": "consent"
+        "prompt": "consent",
+        "state": frontend_url
     }
     query_string = "&".join([f"{k}={v}" for k, v in params.items()])
     return {"auth_url": f"https://accounts.google.com/o/oauth2/v2/auth?{query_string}"}
 
 
 @router.get("/google/callback")
-async def google_callback(code: str = Query(...)):
+async def google_callback(request: Request, code: str = Query(...), state: str = Query(None)):
+    # Phải dùng đúng Redirect URI đã khai báo với Google ở trên
+    host = request.headers.get("host", "localhost:2643")
+    frontend_url = state if state else "http://localhost:3000"
+    
+    if "vercel.app" in frontend_url:
+        redirect_uri = f"{frontend_url}/api/v1/auth/google/callback"
+    elif "localhost" in host:
+        redirect_uri = f"http://{host}/api/v1/auth/google/callback"
+    else:
+        ngrok_url = "https://rehydrate-doing-crust.ngrok-free.dev"
+        redirect_uri = f"{ngrok_url}/api/v1/auth/google/callback"
+    
+    # Tiếp tục xử lý lấy token từ Google...
+
     # 1. Trao đổi code lấy access_token từ Google
     async with httpx.AsyncClient() as client:
         token_url = "https://oauth2.googleapis.com/token"
@@ -121,11 +150,12 @@ async def google_callback(code: str = Query(...)):
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "redirect_uri": redirect_uri,
             "grant_type": "authorization_code",
         }
         resp = await client.post(token_url, data=data)
         if resp.status_code != 200:
+            print("Google Token Error:", resp.text)
             raise HTTPException(status_code=400, detail="Lỗi xác thực Google (Token Exchange)")
         
         token_data = resp.json()
@@ -157,9 +187,27 @@ async def google_callback(code: str = Query(...)):
         "token_balance": user.get("token_balance", 0)
     })
     
-    # 5. Redirect về Frontend kèm token
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url=f"{settings.FRONTEND_URL}/?token={token}")
+    # 5. Redirect về Frontend kèm token (Dùng JS redirect để tránh lỗi 307/Mixed Content trên Android WebView)
+    from fastapi.responses import HTMLResponse
+    
+    redirect_target = f"{frontend_url}/?token={token}"
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Đang xử lý đăng nhập...</title>
+        <script>
+            window.location.href = "{redirect_target}";
+        </script>
+    </head>
+    <body>
+        <p>Đang chuyển hướng về ứng dụng, vui lòng chờ...</p>
+        <p><a href="{redirect_target}">Bấm vào đây nếu không tự động chuyển hướng</a></p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 
 @router.get("/tokens/history")

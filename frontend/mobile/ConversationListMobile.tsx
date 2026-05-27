@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from "react";
 import { API_ROOT, updateConversation } from "../api";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { Pin, Trash2, Edit3, ChevronRight } from "lucide-react";
 
 interface Conversation {
   id: number;
@@ -25,7 +25,10 @@ const ConversationListMobile: React.FC<Props> = ({ onSelect, activeId }) => {
       const token = localStorage.getItem("access_token");
       if (!token) return;
       const res = await fetch(`${API_ROOT}/api/v1/conversations`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
       });
       if (res.ok) setConversations(await res.json());
     } catch (err) { console.error(err); }
@@ -37,7 +40,10 @@ const ConversationListMobile: React.FC<Props> = ({ onSelect, activeId }) => {
       const token = localStorage.getItem("access_token");
       const res = await fetch(`${API_ROOT}/api/v1/conversation/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
       });
       if (res.ok) {
         setConversations(prev => prev.filter(c => c.id !== id));
@@ -69,79 +75,93 @@ const ConversationListMobile: React.FC<Props> = ({ onSelect, activeId }) => {
 
   useEffect(() => { loadConversations(); }, []);
 
-  return (
-    <div className="flex flex-col gap-2 p-2">
-      <AnimatePresence initial={false}>
-        {conversations.map((c) => (
-          <div key={c.id} className="relative overflow-hidden rounded-2xl bg-stone-100 group">
-            
-            {/* ACTION BUTTONS (Hidden behind) */}
-            <div className="absolute inset-0 flex justify-end">
-              <button 
-                onClick={() => {
-                   setEditingId(c.id);
-                   setEditingTitle(c.title || "");
-                }}
-                className="w-16 h-full bg-blue-500 text-white flex items-center justify-center"
-              >
-                ✏️
-              </button>
-              <button 
-                onClick={() => handleTogglePin(c.id, !!c.is_pinned)}
-                className="w-16 h-full bg-amber-500 text-white flex items-center justify-center border-l border-white/10"
-              >
-                {c.is_pinned ? "🔓" : "📌"}
-              </button>
-              <button 
-                onClick={() => handleDelete(c.id)}
-                className="w-16 h-full bg-red-600 text-white flex items-center justify-center border-l border-white/10"
-              >
-                🗑️
-              </button>
-            </div>
+  const pinned = conversations.filter(c => !!c.is_pinned);
+  const others = conversations.filter(c => !c.is_pinned);
 
-            {/* FORGROUND ITEM */}
-            <motion.div
-              drag="x"
-              dragConstraints={{ left: -192, right: 0 }}
-              dragElastic={0.1}
-              className={`relative z-10 flex items-center justify-between p-4 bg-white border border-stone-100 rounded-2xl shadow-sm transition-colors ${activeId === c.id ? 'bg-red-50 border-red-200' : ''}`}
-              onClick={() => { if (editingId !== c.id) onSelect(c.id); }}
-            >
-              {editingId === c.id ? (
-                <input
-                  autoFocus
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-1 outline-none font-medium"
-                  value={editingTitle}
-                  onChange={e => setEditingTitle(e.target.value)}
-                  onBlur={saveRename}
-                  onKeyDown={e => { if (e.key==='Enter') saveRename(); if (e.key==='Escape') setEditingId(null); }}
-                  onClick={e => e.stopPropagation()}
-                />
-              ) : (
-                <div className="flex items-center gap-3 truncate">
-                  <div className={`w-2 h-2 rounded-full ${c.is_pinned ? 'bg-amber-500' : 'bg-stone-300'}`} />
-                  <span className={`truncate text-sm font-bold ${activeId === c.id ? 'text-red-900' : 'text-stone-700'}`}>
-                    {c.title || "Cuộc trò chuyện mới"}
-                  </span>
-                </div>
-              )}
-              
-              <div className="text-stone-300">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </motion.div>
+  const renderItem = (c: Conversation) => (
+    <div key={c.id} className="relative overflow-hidden rounded-xl bg-stone-100 mb-1.5 shadow-sm">
+      {/* ACTION BUTTONS (Hidden behind) */}
+      <div className="absolute inset-0 flex justify-end">
+        <button 
+          onClick={() => {
+             setEditingId(c.id);
+             setEditingTitle(c.title || "");
+          }}
+          className="w-14 h-full bg-blue-500 text-white flex items-center justify-center"
+        >
+          <Edit3 size={18} />
+        </button>
+        <button 
+          onClick={() => handleTogglePin(c.id, !!c.is_pinned)}
+          className="w-14 h-full bg-amber-500 text-white flex items-center justify-center border-l border-white/10"
+        >
+          <Pin size={18} className={c.is_pinned ? 'fill-current' : ''} />
+        </button>
+        <button 
+          onClick={() => handleDelete(c.id)}
+          className="w-14 h-full bg-red-600 text-white flex items-center justify-center border-l border-white/10"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+
+      {/* FORGROUND ITEM */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -168, right: 0 }}
+        dragElastic={0.1}
+        className={`relative z-10 flex items-center justify-between px-3 py-2.5 bg-white border border-stone-100 rounded-xl transition-colors ${activeId === c.id ? 'bg-stone-50 border-stone-200' : ''}`}
+        onClick={() => { if (editingId !== c.id) onSelect(c.id); }}
+      >
+        {editingId === c.id ? (
+          <input
+            autoFocus
+            className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 outline-none text-sm font-medium"
+            value={editingTitle}
+            onChange={e => setEditingTitle(e.target.value)}
+            onBlur={saveRename}
+            onKeyDown={e => { if (e.key==='Enter') saveRename(); if (e.key==='Escape') setEditingId(null); }}
+            onClick={e => e.stopPropagation()}
+          />
+        ) : (
+          <div className="flex items-center gap-2.5 truncate">
+            {!!c.is_pinned && <Pin size={12} className="text-amber-500 fill-amber-500 shrink-0" />}
+            <span className={`truncate text-sm font-bold tracking-tight ${activeId === c.id ? 'text-stone-900' : 'text-stone-700'}`}>
+              {c.title || "Cuộc trò chuyện mới"}
+            </span>
           </div>
-        ))}
-      </AnimatePresence>
-
-      {conversations.length === 0 && (
-        <div className="py-20 text-center text-stone-400 italic text-sm">
-          Chưa có lịch sử trò chuyện nào.
+        )}
+        
+        <div className="text-stone-300 shrink-0 ml-1">
+          <ChevronRight size={16} />
         </div>
-      )}
+      </motion.div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col p-2 select-none">
+      <AnimatePresence initial={false}>
+        {conversations.length === 0 ? (
+          <div className="py-20 text-center text-stone-400 italic text-xs opacity-60">
+            Chưa có lịch sử trò chuyện nào.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {pinned.length > 0 && (
+              <div>
+                <p className="px-1 mb-2 text-[10px] font-black text-stone-500 uppercase tracking-widest opacity-60">Đã ghim</p>
+                {pinned.map(renderItem)}
+              </div>
+            )}
+            
+            <div>
+              <p className="px-1 mb-2 text-[10px] font-black text-stone-500 uppercase tracking-widest opacity-60">Gần đây</p>
+              {others.map(renderItem)}
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

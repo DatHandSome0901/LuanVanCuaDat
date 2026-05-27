@@ -1,3 +1,6 @@
+/* --- PREMIUM GLOBAL STYLES --- */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 /* Only apply mobile optimizations on small screens */
 @media (max-width: 767px) {
   /* Safe Area Handling for Mobile (Notches) */
@@ -14,11 +17,13 @@
     padding-left: var(--sal);
     padding-right: var(--sar);
     min-height: 100vh;
-    min-height: -webkit-fill-available;
+    min-height: calc(var(--vh, 1vh) * 100);
   }
 
   html {
-    height: -webkit-fill-available;
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    overflow: hidden; /* Ngăn chặn cuộn toàn trang ngoài ý muốn trên mobile */
   }
 
   /* Glassmorphism for Bottom Nav - PREMIUM REFINED */
@@ -93,9 +98,6 @@
   }
 }
 
-/* --- PREMIUM GLOBAL STYLES --- */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 :root {
   --sidebar-width: 280px;
 }
@@ -103,6 +105,23 @@
 body {
   font-family: 'Inter', sans-serif;
   color: #1c1917;
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Responsive Scaling for Aspect Ratio */
+@media screen and (max-width: 480px) {
+  :root {
+    font-size: 14px; /* Co chữ nhỏ hơn trên thiết bị nhỏ */
+  }
+}
+
+@media screen and (min-width: 2000px) {
+  :root {
+    font-size: 18px; /* Giãn chữ to hơn trên màn hình cực lớn */
+  }
 }
 
 .font-historical {
@@ -110,29 +129,76 @@ body {
 }
 
 /* Elegant Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
+::-webkit-scrollbar-thumb {
+  background: #451a03;
   border-radius: 10px;
+  opacity: 0.3;
+  transition: all 0.3s ease;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
+::-webkit-scrollbar-thumb:hover {
+  background: #78350f;
 }
 
-/* Historical Paper Texture Overlay */
+/* ChatGPT-style Scrollbar */
+.chatgpt-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chatgpt-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatgpt-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0); /* Hidden by default */
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.chatgpt-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1); /* Visible on container hover */
+}
+
+.chatgpt-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2) !important; /* Brighter on thumb hover */
+}
+
+/* For Firefox */
+.chatgpt-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0) transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.chatgpt-scrollbar:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* --- VIETNAMESE HISTORICAL THEME --- */
+
+:root {
+  --color-huyet-du: #7f1d1d; /* Deep Red */
+  --color-vang-son: #b45309; /* Gold/Amber */
+  --color-giay-do: #fdfcf0;   /* Traditional Paper */
+  --color-go-gu: #451a03;    /* Dark Wood */
+}
+
+/* Enhanced Paper Texture (Giấy Dó) */
 .paper-texture {
   position: relative;
+  background-color: var(--color-giay-do);
 }
 
-.paper-texture::before {
+.paper-texture::before, .paper-texture-only::before {
   content: "";
   position: absolute;
   top: 0;
@@ -140,9 +206,41 @@ body {
   width: 100%;
   height: 100%;
   background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
-  opacity: 0.4;
+  opacity: 0.6;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
+}
+
+/* Scroll style border */
+.scroll-border {
+  border: 1px solid rgba(180, 83, 9, 0.2);
+  box-shadow: inset 0 0 40px rgba(180, 83, 9, 0.05);
+}
+
+/* Plaque style (Hoành phi) */
+.plaque-header {
+  background: linear-gradient(to bottom, var(--color-go-gu), #2a1002);
+  border-bottom: 3px solid var(--color-vang-son);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Dong Son Motif Watermark (CSS only) */
+.motif-watermark {
+  background-image: radial-gradient(circle at center, transparent 0%, transparent 60%, rgba(127, 29, 29, 0.03) 100%);
+  position: relative;
+}
+
+.motif-watermark::after {
+  content: "史";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40rem;
+  font-family: 'Playfair Display', serif;
+  color: rgba(127, 29, 29, 0.02);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Premium Gradients */

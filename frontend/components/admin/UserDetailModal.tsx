@@ -1,4 +1,5 @@
 import React from 'react';
+import { API_ROOT } from '../../api';
 
 interface UserDetailModalProps {
   userDetail: any;
@@ -22,18 +23,19 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
             <div className="flex items-center gap-4">
                 {userDetail.user.picture_url && !imgError ? (
                   <img 
-                    src={userDetail.user.picture_url} 
+                    src={userDetail.user.picture_url.startsWith('/') ? `${API_ROOT}${userDetail.user.picture_url}` : userDetail.user.picture_url} 
                     alt={userDetail.user.username} 
                     className="w-12 h-12 rounded-2xl object-cover border-2 border-white/20" 
+                    referrerPolicy="no-referrer"
                     onError={() => setImgError(true)}
                   />
                 ) : (
                   <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center font-bold text-xl uppercase">
-                      {userDetail.user.username[0]}
+                      {userDetail.user.username ? userDetail.user.username[0] : '?'}
                   </div>
                 )}
                 <div>
-                    <h3 className="text-xl font-bold">Chi Tiết Phật Tử</h3>
+                    <h3 className="text-xl font-bold">Chi Tiết Người Dùng</h3>
                     <p className="text-xs text-amber-200/60">{userDetail.user.email}</p>
                 </div>
             </div>
@@ -108,14 +110,14 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                                 <p className="text-xs font-medium text-stone-800 line-clamp-2 italic">"{log.question}"</p>
                                 <div className="flex justify-between items-center mt-2">
                                     <span className="text-[10px] text-stone-400">{new Date(log.created_at).toLocaleDateString()}</span>
-                                    <span className="text-[10px] font-bold text-stone-300 group-hover:text-amber-600 transition-colors uppercaseTracking-widest">Xem lời giải →</span>
+                                    <span className="text-[10px] font-bold text-stone-300 group-hover:text-amber-600 transition-colors uppercase tracking-widest">Xem lời giải →</span>
                                 </div>
                             </div>
                         ))}
                     </div>
+                </div>
             </div>
          </div>
-      </div>
 
          <div className="p-8 bg-stone-50 border-t border-stone-100 shrink-0">
             <button onClick={onClose} className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all active:scale-95">Đóng Chi Tiết</button>

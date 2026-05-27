@@ -41,6 +41,9 @@ from langchain_google_vertexai import VertexAIEmbeddings
 import os
 
 
+_embedding_model_cache = {}
+
+
 class ServiceManager:
     def __init__(self) -> None:
         pass
@@ -48,6 +51,26 @@ class ServiceManager:
     def get_embedding_model(self, embedding_model_name: str = "openai"):
 
         print(f"Using embedding model: {embedding_model_name}")
+
+        cache_parts = [embedding_model_name]
+        if embedding_model_name == "vertex":
+            cache_parts.extend([
+                os.environ.get("PROJECT_ID", ""),
+                os.environ.get("LOCATION", ""),
+                "text-embedding-004",
+            ])
+        elif embedding_model_name == "openai":
+            cache_parts.append(os.environ.get("OPENAI_EMBEDDING_MODEL_NAME", "default"))
+        elif embedding_model_name == "local":
+            cache_parts.extend([
+                os.environ.get("URL_OLLAMA", ""),
+                os.environ.get("MODEL_EMBEDDINGS_OLLAMA", ""),
+            ])
+
+        cache_key = "::".join(cache_parts)
+        if cache_key in _embedding_model_cache:
+            print(f"⚡ EMBEDDING CACHE HIT: {embedding_model_name}")
+            return _embedding_model_cache[cache_key]
 
         embeddings = None
 
@@ -90,4 +113,5 @@ class ServiceManager:
         else:
             raise ValueError(f"Embedding model not supported: {embedding_model_name}")
 
+        _embedding_model_cache[cache_key] = embeddings
         return embeddings

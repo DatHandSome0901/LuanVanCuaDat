@@ -19,22 +19,45 @@ export interface AuthResponse {
 export interface SourceInfo {
   filename: string;
   content: string;
+  page?: string | number;
+  is_web?: boolean;
+  url?: string;
 }
 
 export interface ChatMessage {
-  id: string;
+  id: string | number;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   tokens_charged?: number;
   sources?: (string | SourceInfo)[];
+  rating?: number;
+  likes_count?: number;       // Số like toàn cục (cho progress bar)
+  related_questions?: string[]; // Câu hỏi gợi ý liên quan
+  animate?: boolean;
+  isStreaming?: boolean;       // Đang nhận SSE token theo thời gian thực
 }
 
 export interface ChatResponse {
   answer: string;
+  message_id?: number;
   tokens_charged: number;
   user_token_balance: number;
   sources?: SourceInfo[];
+  related_questions?: string[]; // Câu hỏi gợi ý liên quan
+  conversation_id?: number;
+  status?: 'completed' | 'queued' | 'running' | 'failed';
+  job_id?: string;
+  progress?: number;
+}
+
+export interface ChatJobStatus {
+  job_id: string;
+  status: 'queued' | 'running' | 'completed' | 'failed' | string;
+  progress: number;
+  message?: string;
+  result?: ChatResponse | null;
+  error?: string | null;
 }
 
 export interface PaymentPackage {
@@ -56,4 +79,83 @@ export interface PaymentStatus {
   tokens: number;
 }
 
-export type View = 'chat' | 'payment' | 'admin' | 'profile' | 'new_chat' | 'landing' | 'history';
+export interface QAReward {
+  key: string;
+  amount: number;
+  description: string;
+  new_balance?: number;
+}
+
+export interface QAStatus {
+  today: string;
+  is_sunday: boolean;
+  checkin: {
+    claimed: boolean;
+    reward_today: number;
+    streak_count: number;
+  };
+  quiz: {
+    total_today: number;
+    answered_today: number;
+    correct_today: number;
+    milestones: Array<{
+      key: string;
+      target: number;
+      amount: number;
+      label: string;
+    }>;
+    rewards_claimed: Array<{
+      reward_key: string;
+      amount: number;
+    }>;
+  };
+  token_balance: number;
+}
+
+export interface QAQuestion {
+  id: string;
+  question_key: string;
+  question: string;
+  options: string[];
+  era: string;
+  difficulty: 'easy' | 'medium' | 'hard' | string;
+  answered?: boolean;
+  selected_index?: number;
+  is_correct?: boolean;
+  correct_answer_index?: number;
+  explanation?: string;
+}
+
+export interface QAQuestionsResponse {
+  question_date: string;
+  questions: QAQuestion[];
+  status: QAStatus;
+}
+
+export interface QACheckinResponse {
+  claimed: boolean;
+  message: string;
+  awards: QAReward[];
+  status: QAStatus;
+}
+
+export interface QAAnswerResponse {
+  question_key: string;
+  selected_index: number;
+  is_correct: boolean;
+  correct_answer_index: number;
+  explanation: string;
+  rewards: QAReward[];
+  status: QAStatus;
+  new_balance: number;
+}
+
+export type View = 'chat' | 'payment' | 'admin' | 'profile' | 'new_chat' | 'landing' | 'history' | 'qa';
+ 
+export interface SiteConfig {
+  logo_url: string;
+  site_title: string;
+  landing_bg: string;
+  chat_bg: string;
+  favicon_url: string;
+}

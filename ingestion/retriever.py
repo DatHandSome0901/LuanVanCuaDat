@@ -5,6 +5,14 @@ import os
 # ===== MODULE-LEVEL CACHE =====
 # Cache FAISS index để không load lại 330MB mỗi request
 _faiss_cache = {}
+_faiss_merged_paths = {}
+
+def clear_faiss_cache():
+    """Xóa bộ nhớ đệm FAISS để buộc load lại từ đĩa"""
+    global _faiss_cache, _faiss_merged_paths
+    _faiss_cache = {}
+    _faiss_merged_paths = {}
+    print("🧹 FAISS Cache cleared! System will reload index on next request.")
 
 
 class Retriever:
@@ -22,12 +30,13 @@ class Retriever:
 
     def _load_faiss(self, path: str):
         """Load FAISS index với caching"""
-        cache_key = f"{path}::{self.embedding_model_name}"
+        normalized_path = os.path.abspath(path)
+        cache_key = f"{normalized_path}::{self.embedding_model_name}"
         if cache_key in _faiss_cache:
             print(f"⚡ CACHE HIT: {path}")
             return _faiss_cache[cache_key]
 
-        print(f"📂 LOADING FAISS: {path}")
+        print(f"LOADING FAISS: {path}")
         result = FAISS.load_local(
             path,
             self.embedding_model,
@@ -37,40 +46,62 @@ class Retriever:
         _faiss_cache[cache_key] = store
         return store
 
+    def _cache_key(self, path: str) -> str:
+        return f"{os.path.abspath(path)}::{self.embedding_model_name}"
+
     def set_retriever(self, path_vector_store: str):
 
         stores = []
+        loaded_paths = set()
 
         # ===== INDEX GỐC =====
         if os.path.exists(path_vector_store):
-            stores.append(self._load_faiss(path_vector_store))
+            base_abs_path = os.path.abspath(path_vector_store)
+            loaded_paths.add(base_abs_path)
+            stores.append((base_abs_path, self._load_faiss(path_vector_store)))
 
-        # ===== INDEX HISTORY =====
-        history_path = "output"   # ⚠️ thư mục chứa history.index
+        # ===== INDEX HISTORY (EXTRA) =====
+        # Lấy từ output/vertex hoặc output/openai tùy theo model
+        sub_folder = "vertex" if self.embedding_model_name == "vertex" else "openai"
+        history_path = os.path.join("output", sub_folder)
 
-        if os.path.exists(history_path):
+        history_abs_path = os.path.abspath(history_path)
+        if (
+            history_abs_path not in loaded_paths
+            and os.path.exists(history_path)
+            and os.path.exists(os.path.join(history_path, "index.faiss"))
+        ):
             try:
-                stores.append(self._load_faiss(history_path))
+                print(f"LOADING EXTRA HISTORY: {history_path}")
+                loaded_paths.add(history_abs_path)
+                stores.append((history_abs_path, self._load_faiss(history_path)))
             except Exception as e:
-                print(f"⚠️ history index chưa có hoặc lỗi: {e}")
+                print(f"⚠️ extra history index lỗi: {e}")
 
         # ===== MERGE =====
         if not stores:
             raise Exception("Không có vector store nào")
 
-        base = stores[0]
+        base_path, base = stores[0]
+        base_cache_key = f"{base_path}::{self.embedding_model_name}"
+        merged_paths = _faiss_merged_paths.setdefault(base_cache_key, set())
 
         # 🔥 FIX: Dùng merge_from() thay vì chỉ add docstore
-        for s in stores[1:]:
+        for store_path, s in stores[1:]:
+            if store_path in merged_paths:
+                print(f"SKIP MERGED index: {store_path}")
+                continue
+
             try:
                 base.merge_from(s)
-                print(f"✅ MERGED thêm index")
+                merged_paths.add(store_path)
+                print(f"MERGED index")
             except Exception as e:
-                print(f"⚠️ MERGE ERROR (skip): {e}")
+                print(f"MERGE ERROR (skip): {e}")
 
         self.retriever = base
 
-        print("✅ Tổng vector:", len(self.retriever.docstore._dict))
+        print("Tong vector:", len(self.retriever.docstore._dict))
 
         return self
 

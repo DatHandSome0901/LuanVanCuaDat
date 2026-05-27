@@ -12,7 +12,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({ history }) => {
             <thead className="bg-stone-50 text-stone-500 text-[10px] font-black uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-5 text-left">Thời Gian</th>
-                <th className="px-6 py-5 text-left">Phật Tử</th>
+                <th className="px-6 py-5 text-left">Người Dùng</th>
                 <th className="px-6 py-5 text-left">Hợp Lễ</th>
                 <th className="px-6 py-5 text-right">Lượng</th>
                 <th className="px-6 py-5 text-left">Lý Do</th>

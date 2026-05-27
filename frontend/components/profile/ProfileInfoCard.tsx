@@ -1,5 +1,6 @@
 import React from 'react';
 import { User } from '../../types';
+import { API_ROOT } from '../../api';
 
 interface ProfileInfoCardProps {
   user: User;
@@ -15,14 +16,15 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   const [imgError, setImgError] = React.useState(false);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-6">
+    <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 p-6">
       <div className="text-center mb-6">
           <div className="relative inline-block">
             {user.picture_url && !imgError ? (
               <img 
-                src={user.picture_url} 
+                src={user.picture_url.startsWith('/') ? `${API_ROOT}${user.picture_url}` : user.picture_url} 
                 alt={user.username}
                 className="w-20 h-20 rounded-full border-4 border-white shadow-sm object-cover"
+                referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
               />
             ) : (
@@ -30,7 +32,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
                   {(user?.username || 'U').charAt(0).toUpperCase()}
               </div>
             )}
-            {user.is_admin && (
+            {!!user.is_admin && (
               <div className="absolute -bottom-1 -right-1 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border-2 border-white">
                 ADMIN
               </div>

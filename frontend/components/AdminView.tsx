@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { 
   Users as UsersIcon, Box, History as HistoryIcon, FileText, MessageSquare, 
   Settings as SettingsIcon, LogIn, BarChart3, BookOpen, LayoutDashboard, 
-  ShieldCheck, ArrowLeft
+  ShieldCheck, ArrowLeft, LogOut, ThumbsDown
 } from 'lucide-react';
 import { confirmDestructive, promptInput, confirmAction, promptTokenAdjustment } from '../utils/swal';
 
@@ -19,11 +19,19 @@ import ReportsTab from './admin/ReportsTab';
 import ChatLogDetailModal from './admin/ChatLogDetailModal';
 import UserDetailModal from './admin/UserDetailModal';
 import KnowledgeTab from './admin/KnowledgeTab';
+import FeedbackTab from './admin/FeedbackTab';
 
 // type AdminTab = 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports';
-type AdminTab = 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge';
+type AdminTab = 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback';
 
-const AdminView: React.FC = () => {
+interface AdminViewProps {
+  user?: any;
+  onUpdateUser?: (user: any) => void;
+  onLogout?: () => void;
+  isSidebarOpen?: boolean;
+}
+
+const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>(
     (localStorage.getItem('adminActiveTab') as AdminTab) || 'users'
   );
@@ -95,6 +103,7 @@ const AdminView: React.FC = () => {
           logo_url: res.logo_url,
           site_title: res.site_title,
           landing_bg: res.landing_bg,
+          chat_bg: res.chat_bg,
           seo_description: res.seo_description,
           seo_keywords: res.seo_keywords,
           seo_author: res.seo_author,
@@ -108,6 +117,8 @@ const AdminView: React.FC = () => {
       } else if (activeTab === 'reports') {
         const res = await api.adminGetPaymentReports();
         setData((prev: any) => ({ ...prev, reports: res?.reports || [] }));
+      } else if (activeTab === 'feedback') {
+        // Handled within the component itself or can fetch here if needed
       }
     } catch (err) {
       console.error(err);
@@ -117,14 +128,20 @@ const AdminView: React.FC = () => {
   };
 
   const handleUpdateBalance = async (userId: number, currentBalance: number) => {
-    const user = data.users.find((u: any) => u.id === userId);
-    const adjustment = await promptTokenAdjustment('Điều chỉnh số dư', user?.username || 'N/A');
+    const targetUser = data.users.find((u: any) => u.id === userId);
+    const adjustment = await promptTokenAdjustment('Điều chỉnh số dư', targetUser?.username || 'N/A');
     
     if (adjustment) {
       try {
         await api.adminUpdateUserBalance(userId, adjustment);
         toast.success('Đã điều chỉnh số dư thành công.');
         fetchData();
+        
+        // Cập nhật state chung nếu admin tự thay đổi số dư của mình
+        if (user && user.id === userId && onUpdateUser) {
+          const delta = adjustment.type === 'in' ? adjustment.amount : -adjustment.amount;
+          onUpdateUser({ ...user, token_balance: user.token_balance + delta });
+        }
       } catch (err: any) {
         toast.error(err.message);
       }
@@ -242,6 +259,7 @@ const AdminView: React.FC = () => {
         rate_per_1000: data.rate,
         logo_url: data.logo_url,
         landing_bg: data.landing_bg,
+        chat_bg: data.chat_bg,
         favicon_url: data.favicon_url,
         site_title: data.site_title,
         seo_description: data.seo_description,
@@ -254,6 +272,10 @@ const AdminView: React.FC = () => {
     try {
         await api.adminUpdateSettings(settings);
         toast.success('Cấu hình hệ thống đã được cập nhật thành công.');
+        
+        // 🔥 Phát tín hiệu để App.tsx cập nhật lại siteConfig
+        window.dispatchEvent(new Event('reload_site_config'));
+        
         fetchData();
     } catch (err: any) {
         toast.error(err.message);
@@ -280,7 +302,7 @@ const AdminView: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-stone-50 overflow-hidden relative">
       {/* Header */}
-      <header className="bg-white border-b border-stone-200 px-4 md:px-8 pt-6 pb-2 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.02)] z-10">
+      <header className={`bg-white border-b border-stone-200 px-4 md:px-8 pt-6 pb-2 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.02)] z-10`}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-800 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-900/20">
@@ -293,10 +315,20 @@ const AdminView: React.FC = () => {
               <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em]">Control Panel • v2.0</p>
             </div>
           </div>
+
+          {onLogout && (
+            <button 
+              onClick={onLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-all active:scale-95"
+            >
+              <LogOut size={16} />
+              Đăng xuất
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
-          {(['users', 'packages', 'history', 'payments', 'chatlogs', 'settings', 'logins', 'reports', 'knowledge'] as AdminTab[]).map(tab => (
+          {(['users', 'packages', 'history', 'payments', 'chatlogs', 'settings', 'logins', 'reports', 'knowledge', 'feedback'] as AdminTab[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -315,6 +347,7 @@ const AdminView: React.FC = () => {
               {tab === 'logins' && <LogIn size={14} />}
               {tab === 'reports' && <BarChart3 size={14} />}
               {tab === 'knowledge' && <BookOpen size={14} />}
+              {tab === 'feedback' && <ThumbsDown size={14} />}
 
               {tab === 'users' && 'Người Dùng'}
               {tab === 'packages' && 'Gói Nạp'}
@@ -325,6 +358,7 @@ const AdminView: React.FC = () => {
               {tab === 'logins' && 'Truy Cập'}
               {tab === 'reports' && 'Báo Cáo'}
               {tab === 'knowledge' && 'Tri Thức AI'}
+              {tab === 'feedback' && 'Phản Hồi'}
             </button>
           ))}
         </div>
@@ -371,16 +405,23 @@ const AdminView: React.FC = () => {
             onUploadBackground={async (file: File) => {
                 try {
                   const res = await api.adminUploadLogo(file);
-
                   setData((prev: any) => ({
                     ...prev,
                     landing_bg: res.logo_url
                   }));
-                  //  await api.adminUpdateSettings({
-                  //   landing_bg: res.logo_url // 🔥 FIX Ở ĐÂY
-                  // });
-
-                  toast.success("Upload background thành công");
+                  toast.success("Upload background landing thành công");
+                } catch (err: any) {
+                  toast.error(err.message);
+                }
+              }}
+              onUploadChatBackground={async (file: File) => {
+                try {
+                  const res = await api.adminUploadLogo(file);
+                  setData((prev: any) => ({
+                    ...prev,
+                    chat_bg: res.logo_url
+                  }));
+                  toast.success("Upload background chat thành công");
                 } catch (err: any) {
                   toast.error(err.message);
                 }
@@ -436,7 +477,10 @@ const AdminView: React.FC = () => {
         )}
         {activeTab === 'knowledge' && (
           <KnowledgeTab  />
-)}
+        )}
+        {activeTab === 'feedback' && (
+          <FeedbackTab />
+        )}
       </div>
 
       {/* Modals */}

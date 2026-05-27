@@ -5,73 +5,70 @@ import withReactContent from 'sweetalert2-react-content';
 const MySwal = withReactContent(Swal);
 
 export const confirmDestructive = async (title: string, text: string) => {
-  const result = await MySwal.fire({
-    title: <span className="font-serif text-amber-900">{title}</span>,
-    html: <p className="text-stone-500 italic">{text}</p>,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#78716c',
-    confirmButtonText: 'Xác nhận xóa',
-    cancelButtonText: 'Quay lại',
-    background: '#fcfaf7',
-    borderRadius: '24px',
-    customClass: {
-        popup: 'rounded-3xl border border-stone-100 shadow-2xl',
-        confirmButton: 'rounded-xl font-bold px-6 py-3',
-        cancelButton: 'rounded-xl font-bold px-6 py-3'
-    }
-  });
-  return result.isConfirmed;
+    const result = await MySwal.fire({
+        title: <span className="font-bold text-amber-900">{title}</span>,
+        html: <p className="text-stone-500 italic">{text}</p>,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#78716c',
+        confirmButtonText: 'Xác nhận xóa',
+        cancelButtonText: 'Quay lại',
+        background: '#fcfaf7',
+        customClass: {
+            popup: 'rounded-3xl border border-stone-100 shadow-2xl',
+            confirmButton: 'rounded-xl font-bold px-6 py-3',
+            cancelButton: 'rounded-xl font-bold px-6 py-3'
+        }
+    });
+    return result.isConfirmed;
 };
 
 export const promptInput = async (title: string, label: string, defaultValue: string = '', type: 'text' | 'password' = 'text') => {
-  const result = await MySwal.fire({
-    title: <span className="font-serif text-amber-900">{title}</span>,
-    input: type,
-    inputLabel: label,
-    inputValue: defaultValue,
-    showCancelButton: true,
-    confirmButtonColor: '#d97706',
-    cancelButtonColor: '#78716c',
-    confirmButtonText: 'Xác nhận',
-    cancelButtonText: 'Hủy',
-    background: '#fcfaf7',
-    borderRadius: '24px',
-    customClass: {
-        popup: 'rounded-3xl border border-stone-100 shadow-2xl',
-        confirmButton: 'rounded-xl font-bold px-6 py-3',
-        cancelButton: 'rounded-xl font-bold px-6 py-3',
-        input: 'rounded-xl border-stone-200 focus:ring-amber-500 focus:border-amber-500'
-    }
-  });
-  return result.value;
+    const result = await MySwal.fire({
+        title: <span className="font-bold text-amber-900">{title}</span>,
+        input: type,
+        inputLabel: label,
+        inputValue: defaultValue,
+        showCancelButton: true,
+        confirmButtonColor: '#d97706',
+        cancelButtonColor: '#78716c',
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy',
+        background: '#fcfaf7',
+        customClass: {
+            popup: 'rounded-3xl border border-stone-100 shadow-2xl',
+            confirmButton: 'rounded-xl font-bold px-6 py-3',
+            cancelButton: 'rounded-xl font-bold px-6 py-3',
+            input: 'rounded-xl border-stone-200 focus:ring-amber-500 focus:border-amber-500'
+        }
+    });
+    return result.value;
 };
 
 export const confirmAction = async (title: string, text: string) => {
-  const result = await MySwal.fire({
-    title: <span className="font-serif text-amber-900">{title}</span>,
-    html: <p className="text-stone-500 italic">{text}</p>,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#d97706',
-    cancelButtonColor: '#78716c',
-    confirmButtonText: 'Xác nhận',
-    cancelButtonText: 'Quay lại',
-    background: '#fcfaf7',
-    borderRadius: '24px',
-    customClass: {
-        popup: 'rounded-3xl border border-stone-100 shadow-2xl',
-        confirmButton: 'rounded-xl font-bold px-6 py-3',
-        cancelButton: 'rounded-xl font-bold px-6 py-3'
-    }
-  });
-  return result.isConfirmed;
+    const result = await MySwal.fire({
+        title: <span className="font-bold text-amber-900">{title}</span>,
+        html: <p className="text-stone-500 italic">{text}</p>,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d97706',
+        cancelButtonColor: '#78716c',
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Quay lại',
+        background: '#fcfaf7',
+        customClass: {
+            popup: 'rounded-3xl border border-stone-100 shadow-2xl',
+            confirmButton: 'rounded-xl font-bold px-6 py-3',
+            cancelButton: 'rounded-xl font-bold px-6 py-3'
+        }
+    });
+    return result.isConfirmed;
 };
 
 export const promptTokenAdjustment = async (title: string, username: string) => {
     const result = await MySwal.fire({
-        title: <span className="font-serif text-amber-900">{title}</span>,
+        title: <span className="font-bold text-amber-900">{title}</span>,
         html: (
             <div className="space-y-4 text-left">
                 <p className="text-stone-500 text-sm italic">Người dùng: <span className="font-bold text-stone-800">{username}</span></p>
@@ -94,7 +91,11 @@ export const promptTokenAdjustment = async (title: string, username: string) => 
         confirmButtonText: 'Xác nhận',
         cancelButtonText: 'Hủy',
         background: '#fcfaf7',
-        borderRadius: '24px',
+        customClass: {
+            popup: 'rounded-3xl border border-stone-100 shadow-2xl',
+            confirmButton: 'rounded-xl font-bold px-6 py-3',
+            cancelButton: 'rounded-xl font-bold px-6 py-3'
+        },
         preConfirm: () => {
             const type = (document.getElementById('swal-tx-type') as HTMLSelectElement).value;
             const amount = (document.getElementById('swal-amount') as HTMLInputElement).value;
@@ -110,11 +111,13 @@ export const promptTokenAdjustment = async (title: string, username: string) => 
 
 export const alertSuccess = (title: string, text: string) => {
     MySwal.fire({
-        title: <span className="font-serif text-amber-900">{title}</span>,
+        title: <span className="font-bold text-amber-900">{title}</span>,
         html: <p className="text-stone-500">{text}</p>,
         icon: 'success',
         confirmButtonColor: '#d97706',
         background: '#fcfaf7',
-        borderRadius: '24px'
+        customClass: {
+            popup: 'rounded-3xl border border-stone-100 shadow-2xl',
+        }
     });
 };

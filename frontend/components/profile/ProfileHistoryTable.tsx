@@ -12,9 +12,9 @@ const ProfileHistoryTable: React.FC<ProfileHistoryTableProps> = ({
   onViewTx 
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-stone-50 bg-stone-50/50">
-          <h3 className="font-bold text-stone-800">Lịch sử tu tập (Giao dịch)</h3>
+    <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 overflow-hidden">
+      <div className="px-6 py-4 border-b border-red-900/10 bg-red-900/5">
+          <h3 className="font-bold text-red-950 font-serif italic">Lịch sử tu tập (Giao dịch)</h3>
       </div>
       
       <div className="overflow-x-auto">

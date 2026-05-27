@@ -10,6 +10,7 @@ interface SettingsTabProps {
   onUploadFavicon: (file: File) => Promise<void>;
 
   onUploadBackground: (file: File) => Promise<void>;
+  onUploadChatBackground: (file: File) => Promise<void>;
 }
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ 
@@ -19,7 +20,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   onChange, 
   onUploadLogo,
   onUploadFavicon,
-  onUploadBackground
+  onUploadBackground,
+  onUploadChatBackground
 }) => {
   return (
     <div className="bg-white rounded-3xl border border-stone-100 p-8 shadow-sm max-w-xl mx-auto animate-in slide-in-from-bottom-4 duration-300">
@@ -244,6 +246,56 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
     )}
 
+  </div>
+</div>
+
+<div>
+  <label className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-2 block">
+    Background Chat View
+  </label>
+
+  <div className="flex gap-4 items-start">
+    <div className="flex-1 space-y-2">
+      <input 
+        name="chat_bg"
+        value={data.chat_bg || ''}
+        onChange={onChange}
+        className="w-full bg-stone-50 border border-stone-100 p-4 rounded-xl focus:outline-none focus:border-red-800 font-medium text-sm"
+        placeholder="Link background cho Chat View..."
+      />
+      <div className="flex items-center gap-3">
+        <label className="cursor-pointer bg-white border border-stone-200 px-4 py-2 rounded-xl text-xs font-bold hover:bg-stone-50 transition-all shadow-sm">
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Tải Background Chat
+          </span>
+          <input 
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onUploadChatBackground(file);
+            }}
+          />
+        </label>
+      </div>
+    </div>
+
+    {data.chat_bg && (
+      <div className="shrink-0 text-center">
+        <p className="text-[10px] font-black uppercase text-stone-400 mb-2">Preview</p>
+        <div className="w-32 h-20 bg-stone-50 rounded-2xl border border-stone-100 flex items-center justify-center overflow-hidden">
+          <img
+            src={data.chat_bg.startsWith('/') ? `${API_ROOT}${data.chat_bg}` : data.chat_bg}
+            className="w-full h-full object-cover"
+            alt="Chat Background"
+          />
+        </div>
+      </div>
+    )}
   </div>
 </div>
 

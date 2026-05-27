@@ -10,9 +10,10 @@ import PaymentInvoiceModal from './payment/PaymentInvoiceModal';
 
 interface PaymentViewProps {
   onBalanceUpdate: (balance: number) => void;
+  isSidebarOpen?: boolean;
 }
 
-const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate }) => {
+const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpen }) => {
   const [packages, setPackages] = useState<PaymentPackage[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<PaymentInvoice | null>(null);
   const [showReportForm, setShowReportForm] = useState(false);
@@ -88,19 +89,25 @@ const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate }) => {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto w-full">
-      <header className="mb-12">
-        <h2 className="text-4xl font-serif font-bold text-red-950 mb-2">Nạp Token Sử Việt</h2>
-        <p className="text-stone-500 italic">Nạp tokens để tiếp tục hành trình nghiên cứu sử liệu và hỗ trợ duy trì hệ thống.</p>
+    <div className="p-4 md:p-8 max-w-[100%] mx-auto w-full overflow-y-auto pb-24 md:pb-8">
+      <header className="mb-8 flex items-center gap-4 border-b border-stone-100 pb-6">
+        <div className="w-12 h-12 bg-red-800 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-red-900/20 shrink-0">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+        </div>
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black text-stone-900 tracking-tight uppercase leading-none">Nạp Token Sử Việt</h2>
+          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-1">Giao dịch an toàn • v1.0</p>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {packages.map((pkg) => (
+        {packages.map((pkg, index) => (
           <PackageCard 
             key={pkg.id} 
             pkg={pkg} 
             onSelect={handleCreateInvoice}
             isProcessing={isProcessing}
+            index={index}
           />
         ))}
       </div>

@@ -43,7 +43,12 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
   const handleGoogleLogin = async () => {
     try {
       const url = await api.getGoogleLoginUrl();
-      window.location.href = url;
+      if (Capacitor.isNativePlatform()) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url });
+      } else {
+        window.location.href = url;
+      }
     } catch (err) {
       setError('Không thể kết nối với Google');
     }
@@ -149,8 +154,8 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
                Trải nghiệm tốt hơn trên Android
             </div>
             <a 
-              href="/app-release.apk" 
-              download
+              href="https://rehydrate-doing-crust.ngrok-free.dev/download/apk" 
+              download="ChatbotLichSu.apk"
               className="flex items-center justify-center gap-3 w-full py-4 bg-stone-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all active:scale-95"
             >
               <span className="text-xl">📲</span>
@@ -158,6 +163,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             </a>
           </div>
         )}
+
       </div>
     </div>
   );

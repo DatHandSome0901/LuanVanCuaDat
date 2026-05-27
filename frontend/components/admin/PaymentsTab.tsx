@@ -35,10 +35,10 @@ const PaymentsTab: React.FC<PaymentsTabProps> = ({
             <thead className="bg-stone-50 text-stone-500 text-[10px] font-black uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-5 text-left">Mã</th>
-                <th className="px-6 py-5 text-left">Phật Tử</th>
-                <th className="px-6 py-5 text-right">Cúng Dường</th>
-                <th className="px-6 py-5 text-left">Hiện Vật</th>
-                <th className="px-6 py-5 text-center">Thực Tế</th>
+                <th className="px-6 py-5 text-left">Người Dùng</th>
+                <th className="px-6 py-5 text-right">Thanh Toán</th>
+                <th className="px-6 py-5 text-left">Tokens</th>
+                <th className="px-6 py-5 text-center">Trạng Thái</th>
                 <th className="px-6 py-5 text-right">Khởi Tạo</th>
               </tr>
             </thead>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { API_ROOT } from '../../api';
 
 
 interface UsersTabProps {
@@ -13,7 +14,8 @@ interface UsersTabProps {
 const AvatarImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
   const [error, setError] = React.useState(false);
   if (error) return <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center text-stone-500 font-bold uppercase">{alt[0]}</div>;
-  return <img src={src} alt={alt} className="w-8 h-8 rounded-lg object-cover shadow-sm" onError={() => setError(true)} />;
+  const finalSrc = src.startsWith('/') ? `${API_ROOT}${src}` : src;
+  return <img src={finalSrc} alt={alt} className="w-8 h-8 rounded-lg object-cover shadow-sm" referrerPolicy="no-referrer" onError={() => setError(true)} />;
 };
 
 const UsersTab: React.FC<UsersTabProps> = ({ 

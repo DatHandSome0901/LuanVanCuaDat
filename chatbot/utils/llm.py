@@ -1,7 +1,6 @@
 
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_google_vertexai import ChatVertexAI
 import os
 
 
@@ -58,8 +57,9 @@ class LLM:
 
     def vertex(self):
 
-        llm = ChatVertexAI(
-        model=os.environ["VERTEX_MODEL_NAME"],  
+        llm = ChatGoogleGenerativeAI(
+            model=os.environ["VERTEX_MODEL_NAME"],
+            vertexai=True,
             project=os.environ["PROJECT_ID"],
             location=os.environ["LOCATION"],
             temperature=self.temperature,

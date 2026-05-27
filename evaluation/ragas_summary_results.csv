@@ -1,0 +1,7 @@
+﻿difficulty,system,faithfulness,answer_relevancy,context_precision,context_recall,count
+easy,itihashqa_baseline,0.7179,0.3509,0.2637,0.35,10
+easy,talrag,0.6,0.4404,0.4414,0.4,10
+medium,itihashqa_baseline,0.64,0.1796,0.1433,0.24,10
+medium,talrag,0.8293,0.7878,0.2222,0.3333,9
+hard,itihashqa_baseline,0.6959,0.0861,0.25,0.45,10
+hard,talrag,0.7756,0.7028,0.2518,0.35,10

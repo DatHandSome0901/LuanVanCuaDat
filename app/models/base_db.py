@@ -101,7 +101,9 @@ class BaseDB:
         # Initialize default settings if not exists
         self.cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('rate_per_1000', '1.0')")
         self.cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('logo_url', '')")
-        self.cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('site_title', 'Chatbot Phật Giáo')")
+        self.cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('site_title', 'Chatbot Sử Việt')")
+        self.cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('chat_bg', '')")
+        self.cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('kb_version', '1.0')")
         
         # Create payment_reports table
         self.cursor.execute("""
@@ -159,10 +161,28 @@ class BaseDB:
             role TEXT,
             content TEXT,
             sources TEXT, 
+            timeline TEXT, -- JSON timeline data
+            rating INTEGER DEFAULT 0, -- 0: no rating, 1: like, -1: dislike
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (conversation_id) REFERENCES conversations(id)
         )
         """)
+
+        # 🔥 Migration: Thêm các cột nếu chưa có
+        try:
+            self.cursor.execute("ALTER TABLE messages ADD COLUMN rating INTEGER DEFAULT 0")
+        except:
+            pass
+
+        try:
+            self.cursor.execute("ALTER TABLE messages ADD COLUMN likes_count INTEGER DEFAULT 0")
+        except:
+            pass
+
+        try:
+            self.cursor.execute("ALTER TABLE messages ADD COLUMN timeline TEXT")
+        except:
+            pass
 
         # ===============================
         # SELF LEARNING TABLE
@@ -173,11 +193,93 @@ class BaseDB:
             question TEXT,
             answer TEXT,
             approved INTEGER DEFAULT 0,
+            likes_count INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
 
-   
+        try:
+            self.cursor.execute("ALTER TABLE pending_knowledge ADD COLUMN likes_count INTEGER DEFAULT 0")
+        except:
+            pass
+
+        # ===============================
+        # ANTI-SPAM: Theo dõi lượt like theo từng user
+        # ===============================
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_knowledge_likes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            question_normalized TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, question_normalized)
+        )
+        """)
+
+        # ===============================
+        # DAILY Q&A REWARDS
+        # ===============================
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS qa_checkins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            checkin_date TEXT NOT NULL,
+            reward_amount REAL DEFAULT 0,
+            streak_count INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, checkin_date),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS qa_answers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            question_date TEXT NOT NULL,
+            question_key TEXT NOT NULL,
+            selected_index INTEGER NOT NULL,
+            is_correct INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, question_date, question_key),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS qa_rewards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            reward_date TEXT NOT NULL,
+            reward_key TEXT NOT NULL,
+            amount REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, reward_date, reward_key),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+        """)
+
+        # ===============================
+        # SEMANTIC CACHE TABLE
+        # ===============================
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS semantic_cache (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT,
+            answer TEXT,
+            sources TEXT,          -- JSON serialized list of SourceInfo dicts
+            embedding TEXT,        -- JSON serialized list of floats (embedding vector)
+            embedding_model TEXT,  -- Embedding model name used (openai, vertex, etc.)
+            tenant_id TEXT DEFAULT 'default',
+            user_id INTEGER,       -- NULL for public / global cache, or INTEGER for private user scope
+            knowledge_base_id TEXT DEFAULT 'default',
+            kb_version TEXT DEFAULT '1.0',
+            expires_at TIMESTAMP,  -- ISO format / datetime string, NULL for never expires
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(question, tenant_id, user_id, knowledge_base_id, embedding_model)
+        )
+        """)
+
         self.conn.commit()
 
     def log_login(self, user_id, ip_address, user_agent):
@@ -237,6 +339,67 @@ class BaseDB:
         query = "SELECT * FROM base"
         self.cursor.execute(query)
         return [dict(row) for row in self.cursor.fetchall()]
+
+    # ==========================================
+    # SEMANTIC CACHE METHODS
+    # ==========================================
+    def get_all_semantic_cache(self, embedding_model, tenant_id='default', knowledge_base_id='default', user_id=None):
+        query = """
+            SELECT question, answer, sources, embedding, tenant_id, user_id, knowledge_base_id, kb_version, expires_at 
+            FROM semantic_cache 
+            WHERE embedding_model = ? 
+              AND tenant_id = ? 
+              AND knowledge_base_id = ? 
+              AND (user_id IS NULL OR user_id = ?)
+        """
+        self.cursor.execute(query, (embedding_model, tenant_id, knowledge_base_id, user_id))
+        return [dict(row) for row in self.cursor.fetchall()]
+
+    def add_semantic_cache(self, question, answer, sources_json, embedding_json, embedding_model, tenant_id='default', user_id=None, knowledge_base_id='default', kb_version='1.0', expires_at=None):
+        try:
+            self.cursor.execute(
+                """
+                INSERT OR REPLACE INTO semantic_cache 
+                (question, answer, sources, embedding, embedding_model, tenant_id, user_id, knowledge_base_id, kb_version, expires_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (question, answer, sources_json, embedding_json, embedding_model, tenant_id, user_id, knowledge_base_id, kb_version, expires_at)
+            )
+            self.conn.commit()
+        except Exception as e:
+            print(f"⚠️ add_semantic_cache error: {e}")
+
+    def delete_cache_by_kb(self, knowledge_base_id):
+        self.cursor.execute("DELETE FROM semantic_cache WHERE knowledge_base_id = ?", (knowledge_base_id,))
+        self.conn.commit()
+
+    def delete_cache_by_user(self, user_id):
+        self.cursor.execute("DELETE FROM semantic_cache WHERE user_id = ?", (user_id,))
+        self.conn.commit()
+
+    def delete_expired_cache(self):
+        self.cursor.execute("DELETE FROM semantic_cache WHERE expires_at IS NOT NULL AND expires_at < datetime('now')")
+        self.conn.commit()
+
+    def clear_all_cache(self):
+        self.cursor.execute("DELETE FROM semantic_cache")
+        self.conn.commit()
+
+    def increment_kb_version(self):
+        try:
+            current_version_str = self.get_setting("kb_version", "1.0")
+            try:
+                current_version = float(current_version_str)
+                new_version = f"{current_version + 0.1:.2f}"
+            except Exception:
+                import uuid
+                new_version = str(uuid.uuid4().hex[:8])
+            self.set_setting("kb_version", new_version)
+            print(f"[VERSION] KB Version updated to: {new_version}")
+            return new_version
+        except Exception as e:
+            print(f"[WARN] increment_kb_version error: {e}")
+            return "1.0"
 
     def close(self):
         if self.conn:
@@ -507,13 +670,45 @@ class UserDB(BaseDB):
 
  
    
-    def save_message(self, conversation_id, role, content, sources=None):
+    def save_message(self, conversation_id, role, content, sources=None, timeline=None):
         self.cursor.execute(
-        "INSERT INTO messages (conversation_id,role,content,sources) VALUES (?,?,?,?)",
-        (conversation_id, role, content, json.dumps(sources) if sources else None)
+        "INSERT INTO messages (conversation_id,role,content,sources,timeline) VALUES (?,?,?,?,?)",
+        (conversation_id, role, content, json.dumps(sources) if sources else None, json.dumps(timeline) if timeline else None)
         
     )
         self.conn.commit()
+        return self.cursor.lastrowid
+
+    def rate_message(self, message_id, rating):
+        """Cập nhật rating và tăng bộ đếm like nếu rating = 1"""
+        if rating == 1:
+            # 1. Tăng likes_count trong bảng messages
+            self.cursor.execute(
+                "UPDATE messages SET likes_count = likes_count + 1, rating = 1 WHERE id = ?",
+                (message_id,)
+            )
+            
+            # 2. Tăng likes_count trong bảng pending_knowledge (Cộng dồn theo câu hỏi)
+            # Lấy nội dung câu hỏi trước
+            ctx = self.get_message_context(message_id)
+            if ctx and ctx["question"]:
+                from chatbot.utils.question_normalizer import normalize_question
+                q_norm = normalize_question(ctx["question"]).lower().strip()
+                self.cursor.execute(
+                    "UPDATE pending_knowledge SET likes_count = likes_count + 1 WHERE question = ?",
+                    (q_norm,)
+                )
+        else:
+            self.cursor.execute(
+                "UPDATE messages SET rating = ? WHERE id = ?",
+                (rating, message_id)
+            )
+        self.conn.commit()
+
+    def get_likes_count(self, message_id):
+        self.cursor.execute("SELECT likes_count FROM messages WHERE id = ?", (message_id,))
+        row = self.cursor.fetchone()
+        return row["likes_count"] if row else 0
 
 
     def get_conversations(self, user_id):
@@ -546,6 +741,14 @@ class UserDB(BaseDB):
                     msg["sources"] = []
             else:
                 msg["sources"] = []
+
+            if msg.get("timeline"):
+                try:
+                    msg["timeline"] = json.loads(msg["timeline"])
+                except:
+                    msg["timeline"] = None
+            else:
+                msg["timeline"] = None
 
             result.append(msg)
 
@@ -608,6 +811,7 @@ class UserDB(BaseDB):
             (id,)
         )
         self.conn.commit()
+        self.increment_kb_version()
 
         # 🔥 ADD VÀO VECTOR
         try:
@@ -629,14 +833,20 @@ class UserDB(BaseDB):
             (id,)
         )
         self.conn.commit()
+        self.increment_kb_version()
 
 
 
     def get_pending_by_question(self, question):
+        """Lấy bản ghi pending (bao gồm cả đã duyệt) theo câu hỏi"""
+        from chatbot.utils.question_normalizer import normalize_question
+        question = normalize_question(question).lower().strip()
+        
         self.cursor.execute(
             """
             SELECT * FROM pending_knowledge
-            WHERE question = ? AND approved = 0
+            WHERE question = ?
+            ORDER BY created_at DESC
             LIMIT 1
             """,
             (question,)
@@ -648,5 +858,46 @@ class UserDB(BaseDB):
             return None
 
         return dict(row)
+
+    def has_user_liked_question(self, user_id: int, question_normalized: str) -> bool:
+        """Kiểm tra user đã like câu hỏi này chưa (anti-spam)"""
+        self.cursor.execute(
+            "SELECT 1 FROM user_knowledge_likes WHERE user_id = ? AND question_normalized = ? LIMIT 1",
+            (user_id, question_normalized)
+        )
+        return self.cursor.fetchone() is not None
+
+    def mark_user_liked_question(self, user_id: int, question_normalized: str):
+        """Đánh dấu user đã like câu hỏi này (chặn spam)"""
+        try:
+            self.cursor.execute(
+                "INSERT OR IGNORE INTO user_knowledge_likes (user_id, question_normalized) VALUES (?, ?)",
+                (user_id, question_normalized)
+            )
+            self.conn.commit()
+        except Exception as e:
+            print(f"⚠️ mark_user_liked_question error: {e}")
         
-   
+    def get_message_context(self, message_id):
+        """Lấy nội dung câu trả lời và câu hỏi ngay trước đó của nó"""
+        self.cursor.execute("SELECT * FROM messages WHERE id = ?", (message_id,))
+        msg = self.cursor.fetchone()
+        if not msg:
+            return None
+            
+        # Tìm câu hỏi (user message) ngay trước câu trả lời này trong cùng conversation
+        self.cursor.execute(
+            """
+            SELECT content FROM messages 
+            WHERE conversation_id = ? AND role = 'user' AND id < ?
+            ORDER BY id DESC LIMIT 1
+            """,
+            (msg["conversation_id"], message_id)
+        )
+        prev_msg = self.cursor.fetchone()
+        
+        return {
+            "answer": msg["content"],
+            "question": prev_msg["content"] if prev_msg else None,
+            "conversation_id": msg["conversation_id"]
+        }

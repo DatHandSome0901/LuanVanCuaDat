@@ -1,88 +1,100 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, PenTool, Book, Shield, Crown, ScrollText, History } from 'lucide-react';
+import { Sparkles, Book, Shield, Crown, ScrollText, History } from 'lucide-react';
 
 interface EmptyChatStateProps {
   onSuggestClick: (q: string) => void;
 }
 
 const suggestions = [
-  { text: "Trận Điện Biên Phủ", icon: <History className="text-red-800" size={18} /> },
-  { text: "Sự tích Hồ Gươm", icon: <Sparkles className="text-amber-600" size={18} /> },
-  { text: "Trần Hưng Đạo", icon: <Shield className="text-blue-700" size={18} /> },
-  { text: "Vua Gia Long", icon: <Crown className="text-amber-500" size={18} /> },
-  { text: "Hai Bà Trưng", icon: <ScrollText className="text-orange-700" size={18} /> },
-  { text: "Tuyên ngôn Độc lập", icon: <Book className="text-emerald-700" size={18} /> },
+  { text: "Trận Điện Biên Phủ", icon: History, color: "text-red-500", bg: "hover:bg-red-500/10", border: "group-hover:border-red-500/50", glow: "rgba(239, 68, 68, 0.4)" },
+  { text: "Sự tích Hồ Gươm", icon: Sparkles, color: "text-amber-500", bg: "hover:bg-amber-500/10", border: "group-hover:border-amber-500/50", glow: "rgba(245, 158, 11, 0.4)" },
+  { text: "Trần Hưng Đạo", icon: Shield, color: "text-blue-500", bg: "hover:bg-blue-500/10", border: "group-hover:border-blue-500/50", glow: "rgba(59, 130, 246, 0.4)" },
+  { text: "Vua Gia Long", icon: Crown, color: "text-yellow-500", bg: "hover:bg-yellow-500/10", border: "group-hover:border-yellow-500/50", glow: "rgba(234, 179, 8, 0.4)" },
+  { text: "Hai Bà Trưng", icon: ScrollText, color: "text-orange-500", bg: "hover:bg-orange-500/10", border: "group-hover:border-orange-500/50", glow: "rgba(249, 115, 22, 0.4)" },
+  { text: "Tuyên ngôn Độc lập", icon: Book, color: "text-emerald-500", bg: "hover:bg-emerald-500/10", border: "group-hover:border-emerald-500/50", glow: "rgba(16, 185, 129, 0.4)" },
 ];
 
 const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center max-w-3xl mx-auto py-12 px-6 relative overflow-hidden">
+    <div className="h-full flex flex-col items-center justify-center text-center max-w-4xl mx-auto py-8 md:py-16 px-4 md:px-8 relative overflow-hidden">
       
-      {/* Decorative Background Elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none opacity-[0.03] overflow-hidden">
-        <div className="absolute top-0 left-0 w-64 h-64 border-[16px] border-red-900 rounded-full -ml-32 -mt-32"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 border-[16px] border-red-900 rounded-full -mr-48 -mb-48"></div>
-      </div>
-
-      {/* Historical Scroll Icon */}
+      {/* National Flag Icon */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ 
-          opacity: 1, 
-          scale: 1,
-          y: [0, -10, 0] 
-        }}
-        transition={{ 
-          scale: { duration: 0.5 },
-          y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-        }}
-        className="w-24 h-24 bg-gradient-to-br from-red-800 to-red-950 text-white rounded-[2rem] flex items-center justify-center mb-10 shadow-2xl shadow-red-950/40 border-4 border-white/10"
+        animate={{ opacity: 1, scale: 1, y: [0, -5, 0] }}
+        transition={{ scale: { duration: 0.5 }, y: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}
+        className="w-20 md:w-32 h-14 md:h-24 bg-red-600 rounded-2xl flex items-center justify-center mb-6 md:mb-12 shadow-[0_0_50px_rgba(220,38,38,0.4)] border-2 border-amber-400 overflow-hidden relative shrink-0"
       >
-        <PenTool size={40} className="drop-shadow-lg" />
+        <svg viewBox="0 0 30 20" className="w-full h-full shadow-inner">
+          <rect width="30" height="20" fill="#da251d"/>
+          <polygon points="15,4 11.47,14.85 20.73,8.15 9.27,8.15 18.53,14.85" fill="#ffff00"/>
+        </svg>
       </motion.div>
  
       {/* CALLIGRAPHY QUOTE */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="relative mb-8"
+        className="relative mb-6 md:mb-10"
       >
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-red-800/10 text-8xl font-historical-premium select-none pointer-events-none opacity-50">“</div>
-        <h3 className="text-4xl md:text-6xl font-historical-premium text-red-950 px-4 leading-[1.1] drop-shadow-sm mb-6">
+        <h3 className="text-3xl md:text-7xl font-historical-premium text-white px-4 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] mb-2 md:mb-8 italic tracking-wide">
           {"Dân ta phải biết sử ta".normalize('NFC')}
         </h3>
-        <div className="flex items-center justify-center gap-5">
-          <div className="h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent flex-1 w-20 md:w-32" />
-          <span className="text-stone-500 text-[10px] md:text-xs uppercase tracking-[0.4em] font-black whitespace-nowrap">{"Sử Việt Tri Ân".normalize('NFC')}</span>
-          <div className="h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent flex-1 w-20 md:w-32" />
+        <div className="flex items-center justify-center gap-4 md:gap-8">
+          <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent flex-1 w-12 md:w-40" />
+          <span className="text-amber-300 text-[8px] md:text-sm uppercase tracking-[0.3em] md:tracking-[0.6em] font-black whitespace-nowrap drop-shadow-lg">
+            {"Sử Việt Tri Ân".normalize('NFC')}
+          </span>
+          <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent flex-1 w-12 md:w-40" />
         </div>
       </motion.div>
 
-      <p className="text-stone-600 text-sm md:text-lg mb-12 max-w-xl mx-auto leading-relaxed font-medium">
-        {"Khám phá hào khí ngàn năm, những triều đại huy hoàng và những vị anh hùng đã làm nên hồn thiêng sông núi Việt Nam.".normalize('NFC')}
+      <p className="text-amber-50/90 text-xs md:text-xl mb-8 md:mb-16 max-w-[320px] md:max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-md">
+        {"Khám phá hào khí ngàn năm và những vị anh hùng đã làm nên hồn thiêng sông núi Việt Nam.".normalize('NFC')}
       </p>
 
-      {/* SUGGESTION CHIPS */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
-        {suggestions.map((suggest, idx) => (
-          <motion.button
-            key={suggest.text}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 + idx * 0.05 }}
-            whileHover={{ y: -5, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onSuggestClick(suggest.text.normalize('NFC'))}
-            className="flex items-center gap-3 p-4 bg-white/80 backdrop-blur-sm border border-stone-200 rounded-[1.5rem] text-left shadow-sm hover:shadow-xl hover:shadow-red-900/5 hover:border-red-200 transition-all group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-stone-50 group-hover:bg-red-50 flex items-center justify-center flex-shrink-0 transition-colors">
-              {suggest.icon}
-            </div>
-            <span className="text-xs md:text-sm font-bold text-stone-700 truncate">{suggest.text.normalize('NFC')}</span>
-          </motion.button>
-        ))}
+      {/* SUGGESTION CHIPS - Premium Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 w-full max-w-4xl">
+        {suggestions.map((suggest, idx) => {
+          const Icon = suggest.icon;
+          return (
+            <motion.button
+              key={suggest.text}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ 
+                delay: 0.5 + idx * 0.08,
+                type: "spring",
+                stiffness: 100
+              }}
+              whileHover={{ 
+                scale: 1.05, 
+                boxShadow: `0 0 25px ${suggest.glow}`,
+                backgroundColor: "rgba(255, 255, 255, 0.15)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onSuggestClick(suggest.text.normalize('NFC'))}
+              className={`flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:p-5 bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-[2rem] text-center md:text-left transition-all group overflow-hidden relative`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/20 group-hover:border-white/40 transition-colors shadow-inner`}>
+                <Icon className={`${suggest.color} group-hover:scale-110 transition-transform`} size={24} />
+              </div>
+              
+              <div className="flex flex-col">
+                <span className="text-[11px] md:text-base font-bold text-white group-hover:text-amber-200 transition-colors tracking-tight leading-tight">
+                  {suggest.text.normalize('NFC')}
+                </span>
+                <span className="hidden md:block text-[9px] text-white/40 uppercase tracking-widest mt-1 group-hover:text-white/60 transition-colors">
+                  Khám phá ngay
+                </span>
+              </div>
+            </motion.button>
+          );
+        })}
       </div>
     </div>
   );

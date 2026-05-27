@@ -7,7 +7,7 @@ interface ChatLogDetailModalProps {
 
 const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
       <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in duration-300">
          <div className="p-8 bg-stone-900 text-white flex justify-between items-center shrink-0">
             <div className="flex items-center gap-4">
@@ -26,7 +26,7 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
          
          <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
             <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 bg-stone-50 px-2 py-1 rounded">Câu hỏi từ phật tử</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 bg-stone-50 px-2 py-1 rounded">Câu hỏi từ người dùng</label>
                 <div className="bg-amber-50 p-6 rounded-3xl border-l-4 border-amber-400 text-stone-800 font-medium italic shadow-inner">
                     "{chat.question}"
                 </div>

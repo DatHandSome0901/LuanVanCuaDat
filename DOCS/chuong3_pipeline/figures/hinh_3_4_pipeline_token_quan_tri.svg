@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .title { font: 700 32px Arial, sans-serif; fill: #1f2937; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #475569; }
+      .lane-title { font: 700 22px Arial, sans-serif; fill: #0f172a; }
+      .step-title { font: 700 18px Arial, sans-serif; fill: #111827; }
+      .step-text { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #475569; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .dash { stroke: #7c3aed; stroke-width: 3; fill: none; marker-end: url(#arrowhead2); stroke-dasharray: 8 6; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+      <path d="M 0 0 L 12 4 L 0 8 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowhead2" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+      <path d="M 0 0 L 12 4 L 0 8 z" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+  <text x="800" y="54" text-anchor="middle" class="title">Hình 3.4. Pipeline token, thanh toán và quản trị tri thức</text>
+  <text x="800" y="86" text-anchor="middle" class="subtitle">Luồng nghiệp vụ giúp hệ thống vận hành như một sản phẩm có quản lý người dùng, doanh thu và kiểm duyệt nội dung</text>
+
+  <rect x="70" y="130" width="1460" height="300" rx="22" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="110" y="172" class="lane-title">A. Pipeline thanh toán và quản lý token</text>
+
+  <g filter="url(#shadow)">
+    <rect x="115" y="220" width="205" height="115" rx="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="217" y="252" text-anchor="middle" class="step-title">1. Chọn gói</text>
+    <text x="217" y="282" text-anchor="middle" class="step-text">Lấy packages</text>
+    <text x="217" y="306" text-anchor="middle" class="step-text">từ backend</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="400" y="220" width="205" height="115" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="502" y="252" text-anchor="middle" class="step-title">2. Tạo giao dịch</text>
+    <text x="502" y="282" text-anchor="middle" class="step-text">Ghi payments</text>
+    <text x="502" y="306" text-anchor="middle" class="step-text">status pending</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="685" y="220" width="205" height="115" rx="16" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="787" y="252" text-anchor="middle" class="step-title">3. Sinh QR</text>
+    <text x="787" y="282" text-anchor="middle" class="step-text">SePay/VietQR</text>
+    <text x="787" y="306" text-anchor="middle" class="step-text">nội dung chuyển khoản</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="970" y="220" width="205" height="115" rx="16" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text x="1072" y="252" text-anchor="middle" class="step-title">4. Kiểm tra</text>
+    <text x="1072" y="282" text-anchor="middle" class="step-text">Đối soát trạng thái</text>
+    <text x="1072" y="306" text-anchor="middle" class="step-text">payment</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1255" y="220" width="205" height="115" rx="16" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="1357" y="252" text-anchor="middle" class="step-title">5. Cộng token</text>
+    <text x="1357" y="282" text-anchor="middle" class="step-text">Cập nhật users</text>
+    <text x="1357" y="306" text-anchor="middle" class="step-text">và token_history</text>
+  </g>
+
+  <path d="M 320 277 C 350 277, 370 277, 400 277" class="arrow"/>
+  <path d="M 605 277 C 635 277, 655 277, 685 277" class="arrow"/>
+  <path d="M 890 277 C 920 277, 940 277, 970 277" class="arrow"/>
+  <path d="M 1175 277 C 1205 277, 1225 277, 1255 277" class="arrow"/>
+
+  <rect x="70" y="500" width="1460" height="300" rx="22" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="110" y="542" class="lane-title">B. Pipeline tự học có kiểm duyệt và quản trị hệ thống</text>
+
+  <g filter="url(#shadow)">
+    <rect x="115" y="590" width="220" height="115" rx="16" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+    <text x="225" y="622" text-anchor="middle" class="step-title">1. Thiếu dữ liệu</text>
+    <text x="225" y="652" text-anchor="middle" class="step-text">Không tìm thấy tài liệu</text>
+    <text x="225" y="676" text-anchor="middle" class="step-text">trong FAISS</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="415" y="590" width="220" height="115" rx="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="525" y="622" text-anchor="middle" class="step-title">2. Web fallback</text>
+    <text x="525" y="652" text-anchor="middle" class="step-text">Tìm, crawl, lọc</text>
+    <text x="525" y="676" text-anchor="middle" class="step-text">nguồn từ Internet</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="715" y="590" width="220" height="115" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="825" y="622" text-anchor="middle" class="step-title">3. Lưu chờ duyệt</text>
+    <text x="825" y="652" text-anchor="middle" class="step-text">pending_knowledge</text>
+    <text x="825" y="676" text-anchor="middle" class="step-text">approved = 0</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1015" y="590" width="220" height="115" rx="16" fill="#fdf2f8" stroke="#db2777" stroke-width="2"/>
+    <text x="1125" y="622" text-anchor="middle" class="step-title">4. Admin duyệt</text>
+    <text x="1125" y="652" text-anchor="middle" class="step-text">Kiểm tra nội dung</text>
+    <text x="1125" y="676" text-anchor="middle" class="step-text">phê duyệt hoặc xóa</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1315" y="590" width="160" height="115" rx="16" fill="#ecfccb" stroke="#65a30d" stroke-width="2"/>
+    <text x="1395" y="622" text-anchor="middle" class="step-title">5. Mở rộng</text>
+    <text x="1395" y="652" text-anchor="middle" class="step-text">Cập nhật tri thức</text>
+    <text x="1395" y="676" text-anchor="middle" class="step-text">cho chatbot</text>
+  </g>
+
+  <path d="M 335 647 C 365 647, 385 647, 415 647" class="dash"/>
+  <path d="M 635 647 C 665 647, 685 647, 715 647" class="dash"/>
+  <path d="M 935 647 C 965 647, 985 647, 1015 647" class="dash"/>
+  <path d="M 1235 647 C 1265 647, 1285 647, 1315 647" class="dash"/>
+</svg>

@@ -1,6 +1,6 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { User, ChatMessage } from '../types';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { User, ChatMessage, ChatResponse, SiteConfig } from '../types';
 import { api, API_ROOT } from '../api';
 import AuthModal from './AuthModal';
 import toast from 'react-hot-toast';
@@ -10,6 +10,7 @@ import ChatMessageItem from './chat/ChatMessageItem';
 import ChatInput from './chat/ChatInput';
 import EmptyChatState from './chat/EmptyChatState';
 import SourceModal from './chat/SourceModal';
+import SecureImage from './SecureImage';
 
 interface ChatViewProps {
   user: User | null;
@@ -17,7 +18,8 @@ interface ChatViewProps {
   history: ChatMessage[];
   setHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   onBalanceUpdate: (balance: number) => void;
-  siteConfig?: { logo_url: string; site_title: string };
+  siteConfig?: SiteConfig;
+  isSidebarOpen?: boolean;
 }
 
 const ChatView: React.FC<ChatViewProps> = ({
@@ -26,9 +28,11 @@ const ChatView: React.FC<ChatViewProps> = ({
   setHistory,
   onBalanceUpdate,
   siteConfig,
+  isSidebarOpen,
 }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreamingActive, setIsStreamingActive] = useState(false); // true while SSE tokens are flowing
   const [dots, setDots] = useState('');
   useEffect(() => {
   if (!isLoading) return;
@@ -47,6 +51,15 @@ const ChatView: React.FC<ChatViewProps> = ({
   const [selectedSource, setSelectedSource] = useState<string | import('../types').SourceInfo | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isSubmittingRef = useRef(false);
+
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    });
+  }, []);
 
   // ===============================
   // LOAD CONVERSATION WHEN PAGE LOAD
@@ -71,6 +84,7 @@ const ChatView: React.FC<ChatViewProps> = ({
       const res = await fetch(`${API_ROOT}/api/v1/messages/${convId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          'ngrok-skip-browser-warning': 'true' // 🔥 Thêm chìa khóa
         },
       });
 
@@ -82,6 +96,7 @@ const ChatView: React.FC<ChatViewProps> = ({
         content: m.content,
         timestamp: new Date(m.created_at),
         sources: m.sources || [],
+        rating: m.rating || 0,
       }));
 
       setHistory(messages);
@@ -99,6 +114,7 @@ const ChatView: React.FC<ChatViewProps> = ({
       method: 'POST',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        'ngrok-skip-browser-warning': 'true' // 🔥 Thêm chìa khóa
       },
     });
 
@@ -110,6 +126,7 @@ const ChatView: React.FC<ChatViewProps> = ({
     setConversationId(convId);
 
     window.dispatchEvent(new Event('reload_conversations'));
+    window.dispatchEvent(new Event('conversation_changed'));
 
     return convId;
   };
@@ -165,139 +182,410 @@ const ChatView: React.FC<ChatViewProps> = ({
 },[])
 
 
+  const pollChatJob = async (jobId: string): Promise<ChatResponse> => {
+    const maxAttempts = 90;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, attempt < 5 ? 1000 : 2000));
+
+      const job = await api.getChatJobStatus(jobId);
+      if (job.status === 'completed' && job.result) {
+        return job.result;
+      }
+
+      if (job.status === 'failed') {
+        throw new Error(job.error || 'Tra cứu web thất bại.');
+      }
+    }
+
+    throw new Error('Tra cứu web quá thời gian chờ. Vui lòng thử lại sau.');
+  };
+
+
   // ===============================
   // SEND MESSAGE
   // ===============================
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent, questionOverride?: string) => {
     if (e) e.preventDefault();
 
-    if (!input.trim() || isLoading) return;
+    const questionToSend = questionOverride ?? input;
+
+    if (!questionToSend.trim() || isLoading || isSubmittingRef.current) return;
 
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
+    isSubmittingRef.current = true;
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: questionToSend,
       timestamp: new Date(),
     };
 
     setHistory((prev) => [...prev, userMsg]);
-
-    const currentInput = input;
-
     setInput('');
     setIsLoading(true);
 
+    // Streaming message placeholder
+    const streamingId = (Date.now() + 1).toString();
+
     try {
       let convId = conversationId;
-
       if (!convId) {
         convId = await createConversation();
       }
 
-      const response = await fetch(`${API_ROOT}/api/v1/chat`, {
+      // Add an empty streaming message immediately so the cursor blinks right away
+      const placeholderMsg: ChatMessage = {
+        id: streamingId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        animate: false,
+        isStreaming: true, // show blinking cursor while streaming
+      };
+      setHistory((prev) => [...prev, placeholderMsg]);
+      setIsStreamingActive(true); // hide the 'Đang tra cứu...' spinner
+
+      const response = await fetch(`${API_ROOT}/api/v1/chat/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          'ngrok-skip-browser-warning': 'true',
         },
         body: JSON.stringify({
-          question: currentInput,
+          question: questionToSend,
           conversation_id: convId,
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok || !response.body) {
+        throw new Error('Không thể kết nối streaming.');
+      }
 
-      const botMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.answer,
-        timestamp: new Date(),
-        tokens_charged: data.tokens_charged,
-        sources: data.sources,
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      // ── Display Queue: tokens arrive fast, we drain slowly for smooth effect ──
+      // receivedBuffer = raw text arrived from SSE (not yet shown)
+      // displayedSoFar = text already shown to user
+      let receivedBuffer = '';
+      let displayedSoFar  = '';
+      let streamDone      = false; // true when SSE [DONE] received
+      let doneMetaRef: any = null; // store [DONE] metadata to apply after queue drains
+
+      // Animation loop — runs every frame, drains receivedBuffer char by char
+      let animFrameId: number | null = null;
+      let lastTickTime = 0;
+
+      const CHAR_DELAY_MS = 18;   // ms between each character
+
+      const drainQueue = (timestamp: number) => {
+        const elapsed = timestamp - lastTickTime;
+
+        // Calculate backlog
+        const backlog = receivedBuffer.length - displayedSoFar.length;
+        
+        // Capped adaptive typing speed:
+        // - Small backlog (normal streaming): 1 char at a time
+        // - Medium backlog (cache hit / web fallback): 2 chars at a time
+        // - Huge backlog: scale up but cap at 5 characters to maintain a readable typewriter effect
+        let charsPerTick = 1;
+        if (backlog > 400) {
+          charsPerTick = Math.min(5, Math.ceil(backlog / 100));
+        } else if (backlog > 100) {
+          charsPerTick = 2;
+        }
+
+        if (elapsed >= CHAR_DELAY_MS && backlog > 0) {
+          lastTickTime = timestamp;
+          const nextChunk = receivedBuffer.slice(
+            displayedSoFar.length,
+            displayedSoFar.length + charsPerTick,
+          );
+          displayedSoFar += nextChunk;
+
+          setHistory((prev) =>
+            prev.map((m) =>
+              m.id === streamingId ? { ...m, content: displayedSoFar } : m,
+            ),
+          );
+          scrollToBottom();
+        }
+
+        // Keep looping while there's still content to drain OR stream isn't done yet
+        if (!streamDone || displayedSoFar.length < receivedBuffer.length) {
+          animFrameId = requestAnimationFrame(drainQueue);
+        } else {
+          // Queue fully drained + stream finished → apply metadata
+          animFrameId = null;
+          if (doneMetaRef) {
+            applyDoneMeta(doneMetaRef);
+          }
+        }
       };
 
-      setHistory((prev) => [...prev, botMsg]);
+      // Start the animation loop immediately
+      animFrameId = requestAnimationFrame(drainQueue);
 
-      onBalanceUpdate(data.user_token_balance);
+      // Apply [DONE] metadata — only called after queue is fully drained
+      const applyDoneMeta = (meta: any) => {
+        if (meta._isWebFallback) {
+          // Web-fallback path: content already set by pollChatJob
+          onBalanceUpdate(meta.user_token_balance);
+        } else {
+          setHistory((prev) =>
+            prev.map((m) =>
+              m.id === streamingId
+                ? {
+                    ...m,
+                    id: meta.message_id || streamingId,
+                    tokens_charged: meta.tokens_charged,
+                    sources: meta.sources || [],
+                    related_questions: meta.related_questions || [],
+                    rating: 0,
+                    isStreaming: false,
+                  }
+                : m,
+            ),
+          );
+          if (meta.user_token_balance !== undefined) {
+            onBalanceUpdate(meta.user_token_balance);
+          }
+        }
+        window.dispatchEvent(new Event('reload_conversations'));
+      };
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE events are separated by double newlines
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+
+        for (const event of events) {
+          const line = event.trim();
+          if (!line.startsWith('data: ')) continue;
+
+          const payload = line.slice('data: '.length);
+
+          if (payload.startsWith('[DONE]')) {
+            try {
+              const meta = JSON.parse(payload.slice('[DONE] '.length));
+
+              if (meta.status === 'queued' && meta.job_id) {
+                // Web-fallback: poll until done, then stream the real answer
+                const finalData = await pollChatJob(meta.job_id);
+
+                // ── RESET display state so we start fresh ──
+                // displayedSoFar still holds the old placeholder text;
+                // reset it to '' so animation loop re-drains from char 0
+                displayedSoFar = '';
+                receivedBuffer = finalData.answer;
+
+                // Clear the content in history & keep cursor blinking
+                setHistory((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingId
+                      ? { ...m, content: '', isStreaming: true }
+                      : m,
+                  ),
+                );
+
+                // doneMetaRef carries the full metadata applied AFTER drain finishes
+                doneMetaRef = {
+                  _isWebFallback: false, // use normal path so sources/tokens all appear
+                  message_id: finalData.message_id,
+                  tokens_charged: finalData.tokens_charged,
+                  user_token_balance: finalData.user_token_balance,
+                  sources: finalData.sources || [],
+                  related_questions: finalData.related_questions || [],
+                };
+              } else {
+                doneMetaRef = meta;
+              }
+            } catch (parseErr) {
+              console.error('Failed to parse [DONE] metadata', parseErr);
+            }
+            streamDone = true;
+            break;
+          }
+
+
+          if (payload.startsWith('[ERROR]')) {
+            streamDone = true;
+            if (animFrameId !== null) {
+              cancelAnimationFrame(animFrameId);
+              animFrameId = null;
+            }
+            try {
+              const errData = JSON.parse(payload.slice('[ERROR] '.length));
+              setHistory((prev) =>
+                prev.map((m) =>
+                  m.id === streamingId
+                    ? { ...m, content: `Cáo lỗi: ${errData.error || 'Hệ thống lỗi.'}`, isStreaming: false }
+                    : m,
+                ),
+              );
+            } catch {
+              setHistory((prev) =>
+                prev.map((m) =>
+                  m.id === streamingId ? { ...m, content: 'Cáo lỗi: Hệ thống lỗi.', isStreaming: false } : m,
+                ),
+              );
+            }
+            break;
+          }
+
+          // Normal token — push into receivedBuffer (animation loop will drain it)
+          try {
+            const token = JSON.parse(payload);
+            receivedBuffer += token;
+          } catch {
+            // Ignore malformed chunk
+          }
+        }
+      }
+
+      // If animation loop is still running when reader finishes (shouldn't normally happen
+      // without streamDone being set), mark done so it can finish
+      if (!streamDone) {
+        streamDone = true;
+      }
+
     } catch (error: any) {
-      const botMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `Cáo lỗi: ${error.message || 'Hệ thống lỗi.'}`,
-        timestamp: new Date(),
-      };
-
-      setHistory((prev) => [...prev, botMsg]);
+      setHistory((prev) =>
+        prev.map((m) =>
+          m.id === streamingId
+            ? { ...m, content: `Cáo lỗi: ${error.message || 'Hệ thống lỗi.'}`, isStreaming: false }
+            : m,
+        ),
+      );
     } finally {
+      isSubmittingRef.current = false;
       setIsLoading(false);
+      setIsStreamingActive(false);
     }
   };
+
+
 
   // ===============================
   // AUTO SCROLL
   // ===============================
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop =
-        scrollRef.current.scrollHeight;
+    // 🔥 Chỉ tự động cuộn xuống nếu có tin nhắn hoặc đang tải câu trả lời
+    if (scrollRef.current && (history.length > 0 || isLoading)) {
+      scrollToBottom();
     }
-  }, [history, isLoading]);
+  }, [history, isLoading, scrollToBottom]);
 
   // Detection
   const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
+
+  const handleRateClick = async (message_id: string | number, rating: number) => {
+    try {
+      const res = await api.rateMessage(Number(message_id), rating);
+      setHistory(prev => prev.map(m => m.id === message_id ? { ...m, rating } : m));
+      if (rating === 1) {
+        // ✅ Hiển thị Like Progress Bar nếu có thông tin likes_count
+        const likesCount = res?.likes_count;
+        if (likesCount !== undefined && likesCount < 5) {
+          toast.success(`❤️ ${likesCount}/5 lượt xác nhận! Thêm ${5 - likesCount} người nữa để hệ thống tự học.`, { duration: 3000 });
+        } else if (likesCount !== undefined && likesCount >= 5) {
+          toast.success('🚀 Đủ 5 lượt xác nhận! Hệ thống đang tự học kiến thức này...', { duration: 4000 });
+        } else {
+          toast.success('Cảm ơn bạn đã đánh giá hữu ích!');
+        }
+      } else if (rating === -1) {
+        toast.success('Cảm ơn bạn, chúng tôi sẽ cải thiện câu trả lời.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Không thể gửi đánh giá');
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
        
       {/* HEADER */}
+      {/* HEADER - COMPACT FOR MOBILE */}
       {isNative ? (
-        <header className="h-16 flex items-center justify-between px-6 glass-nav border-b border-white/20 sticky top-0 z-50">
+        <header className="h-12 md:h-16 flex items-center justify-between px-4 md:px-6 glass-nav border-b border-white/20 sticky top-0 z-50">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-800 rounded-lg flex items-center justify-center text-white font-serif text-lg shadow-lg shadow-red-900/20 italic">
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-red-800 rounded-lg flex items-center justify-center text-white font-serif text-base md:text-lg shadow-lg shadow-red-900/20 italic shrink-0">
                {siteConfig?.site_title?.charAt(0) || '史'}
             </div>
-            <h2 className="font-serif text-xl font-black text-red-950 tracking-tight leading-none">
+            <h2 className="font-serif text-lg md:text-xl font-black text-red-950 tracking-tight leading-none truncate max-w-[150px] md:max-w-none">
               {siteConfig?.site_title || 'Chatbot Lịch sử'}
             </h2>
           </div>
 
           {user && (
-            <div className="px-3 py-1 bg-red-800/10 rounded-full border border-red-800/20">
-               <span className="text-[10px] font-black text-red-800 uppercase tracking-widest">
-                  {(user.token_balance ?? 0).toFixed(2)} Tokens
+            <div className="px-2 md:px-3 py-0.5 md:py-1 bg-red-800/10 rounded-full border border-red-800/20 shrink-0">
+               <span className="text-[9px] md:text-[10px] font-black text-red-800 uppercase tracking-widest">
+                  {(user.token_balance ?? 0).toFixed(0)} TK
                </span>
             </div>
           )}
         </header>
       ) : (
-        <header className="h-16 border-b border-stone-200 bg-white flex items-center justify-between px-4 md:px-8">
-          <h2 className="font-serif text-lg font-bold text-red-950">
-            {siteConfig?.site_title || 'Chatbot Lịch sử'}
-          </h2>
-
-          {user && (
-            <div className="text-red-900 font-medium">
-              {(user.token_balance ?? 0).toFixed(2)} Tokens
-            </div>
-          )}
-        </header>
+      <header className="md:hidden h-14 flex items-center justify-between px-4 z-50 relative bg-black/20 backdrop-blur-md border-b border-white/5">
+        <h2 className="font-historical-premium text-xl text-amber-200 italic">
+          {siteConfig?.site_title || 'Sử Việt'}
+        </h2>
+        {user && (
+          <div className="px-2 py-0.5 bg-amber-500/20 rounded-full border border-amber-500/30">
+             <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                {(user.token_balance ?? 0).toFixed(0)} TK
+             </span>
+          </div>
+        )}
+      </header>
       )}
 
       {/* MESSAGES */}
 
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+      {/* 1. Fixed Base Background (Custom or Default Paper Color) */}
+      {siteConfig?.chat_bg ? (
+        <SecureImage 
+          src={siteConfig.chat_bg.startsWith('http') ? siteConfig.chat_bg : `${API_ROOT}${siteConfig.chat_bg.startsWith('/') ? '' : '/'}${siteConfig.chat_bg}`}
+          isBackground={true}
+          className="absolute inset-0 pointer-events-none"
+          style={{ zIndex: 0 }}
+        />
+      ) : (
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundColor: 'var(--color-giay-do)',
+            zIndex: 0
+          }}
+        />
+      )}
+
+      {/* 2. Fixed Texture & Watermark Overlays */}
+      <div className="absolute inset-0 paper-texture-only motif-watermark pointer-events-none opacity-60" style={{ zIndex: 1 }} />
+
+      {/* 3. Scrollable Content Layer */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto relative z-10"
       >
-        <div className="max-w-4xl mx-auto w-full p-6 space-y-6">
+        <div className="max-w-4xl mx-auto w-full p-6 space-y-6 relative">
           {history.length === 0 && !isLoading && (
             <EmptyChatState
               onSuggestClick={(q) => setInput(q)}
@@ -309,6 +597,7 @@ const ChatView: React.FC<ChatViewProps> = ({
               key={msg.id}
               msg={msg}
               userAvatar={user?.picture_url}
+              userName={user?.full_name || user?.username}
               botAvatar={
                 siteConfig?.logo_url
                   ? siteConfig.logo_url.startsWith("/")
@@ -317,12 +606,18 @@ const ChatView: React.FC<ChatViewProps> = ({
                   : undefined
               }
               onSourceClick={setSelectedSource}
+              onRateClick={handleRateClick}
+              onRelatedQuestionClick={(q) => {
+                // ✅ Truyền thẳng q vào handleSubmit, không phụ thuộc vào state
+                handleSubmit(undefined, q);
+              }}
+              onTypingFrame={scrollToBottom}
             />
           ))}
 
-          {isLoading && (
-            <div className="bg-white border border-stone-100 rounded-3xl p-5 text-stone-400 font-medium shadow-sm animate-pulse flex items-center gap-3">
-              <div className="w-2 h-2 bg-red-800 rounded-full animate-bounce" />
+          {isLoading && !isStreamingActive && (
+            <div className="bg-white/80 backdrop-blur-sm border border-amber-900/10 rounded-3xl p-5 text-amber-900/60 font-serif italic shadow-sm animate-pulse flex items-center gap-3">
+              <div className="w-2 h-2 bg-red-900 rounded-full animate-bounce" />
               Đang tra cứu sử liệu {dots}
             </div>
           )}
@@ -356,8 +651,7 @@ const ChatView: React.FC<ChatViewProps> = ({
         />
       )}
     </div>
-
-    
+    </div>
   );
   
 };

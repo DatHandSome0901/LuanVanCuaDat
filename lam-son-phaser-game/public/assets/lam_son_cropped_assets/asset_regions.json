@@ -1,0 +1,164 @@
+{
+  "concept_full.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1536,
+      "height": 1024
+    }
+  },
+  "hero_model_sheet.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 920,
+      "height": 355
+    }
+  },
+  "hero_action_sheet.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 920,
+      "y": 0,
+      "width": 616,
+      "height": 355
+    }
+  },
+  "enemy_sheet.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 0,
+      "y": 355,
+      "width": 1536,
+      "height": 280
+    }
+  },
+  "boss_model_sheet.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 0,
+      "y": 635,
+      "width": 660,
+      "height": 389
+    }
+  },
+  "boss_action_sheet.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 660,
+      "y": 635,
+      "width": 876,
+      "height": 389
+    }
+  },
+  "hero_idle_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 70,
+      "y": 55,
+      "width": 160,
+      "height": 265
+    }
+  },
+  "hero_side_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 275,
+      "y": 55,
+      "width": 140,
+      "height": 265
+    }
+  },
+  "enemy_infantry_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 20,
+      "y": 390,
+      "width": 190,
+      "height": 195
+    }
+  },
+  "enemy_archer_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 270,
+      "y": 390,
+      "width": 240,
+      "height": 195
+    }
+  },
+  "enemy_spearman_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 520,
+      "y": 380,
+      "width": 200,
+      "height": 205
+    }
+  },
+  "enemy_swordsman_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 760,
+      "y": 390,
+      "width": 260,
+      "height": 195
+    }
+  },
+  "enemy_cavalry_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 1100,
+      "y": 365,
+      "width": 410,
+      "height": 220
+    }
+  },
+  "boss_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 25,
+      "y": 690,
+      "width": 215,
+      "height": 270
+    }
+  },
+  "boss_front_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 255,
+      "y": 680,
+      "width": 145,
+      "height": 275
+    }
+  },
+  "boss_back_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 400,
+      "y": 680,
+      "width": 140,
+      "height": 275
+    }
+  },
+  "boss_side_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 520,
+      "y": 675,
+      "width": 135,
+      "height": 280
+    }
+  },
+  "boss_skill_effect_ref.png": {
+    "source": "image(37).png",
+    "box": {
+      "x": 1130,
+      "y": 835,
+      "width": 406,
+      "height": 145
+    }
+  }
+}

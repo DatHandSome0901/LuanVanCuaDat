@@ -10,6 +10,8 @@ from app.config import settings
 from langchain_google_vertexai import VertexAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
+from ingestion.retriever import clear_faiss_cache
+from ingestion.vectorize import remove_from_vector_store
 import os
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -42,6 +44,7 @@ class SettingsUpdate(BaseModel):
     no_answer_fallback: Optional[str] = None
     llm_name: Optional[str] = None 
     landing_bg: Optional[str] = None
+    chat_bg: Optional[str] = None
 
 def update_index_html_seo(site_title: str, description: str, keywords: str, author: str, favicon_url: str, logo_url: str):
     import re
@@ -324,6 +327,7 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
     rate = db.get_setting("rate_per_1000", "1.0")
     logo_url = db.get_setting("logo_url", "")
     landing_bg = db.get_setting("landing_bg", "")
+    chat_bg = db.get_setting("chat_bg", "")
     
     # Use HTML values as default if DB doesn't have them
     site_title = db.get_setting("site_title", html_seo.get('site_title', "Chatbot Historical"))
@@ -340,6 +344,7 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
         "logo_url": logo_url,
         "site_title": site_title,
         "landing_bg": landing_bg, 
+        "chat_bg": chat_bg,
         "seo_description": seo_description,
         "seo_keywords": seo_keywords,
         "seo_author": seo_author,
@@ -363,6 +368,7 @@ async def update_settings(
         ("logo_url", data.logo_url),
         ("site_title", data.site_title),
         ("landing_bg", data.landing_bg),
+        ("chat_bg", data.chat_bg),
         ("seo_description", data.seo_description),
         ("seo_keywords", data.seo_keywords),
         ("seo_author", data.seo_author),
@@ -430,13 +436,15 @@ async def upload_logo(
 @router.get("/public/settings")
 async def get_public_settings():
     db = UserDB()
-
-    return {
+    res = {
         "logo_url": db.get_setting("logo_url", "/default.jpg"),
         "site_title": db.get_setting("site_title", "Chatbot Historical"),
         "landing_bg": db.get_setting("landing_bg", ""),
+        "chat_bg": db.get_setting("chat_bg", ""),
         "favicon_url": db.get_setting("favicon_url", "")
     }
+    db.close()
+    return res
 
 
 @router.get("/active-users")
@@ -492,10 +500,18 @@ async def approve_knowledge(id: int, admin: dict = Depends(get_current_admin)):
     text = question + " " + answer
 
     # ===== EMBEDDING =====
-    embedding = VertexAIEmbeddings(model_name="text-embedding-004")
+    embed_type = os.getenv("EMBEDDING_MODEL_NAME", "vertex")
+    if embed_type == "vertex":
+        embedding = VertexAIEmbeddings(model_name="text-embedding-004")
+        sub_folder = "vertex"
+    else:
+        from langchain_openai import OpenAIEmbeddings
+        embedding = OpenAIEmbeddings()
+        sub_folder = "openai"
 
     # ===== FAISS (LANGCHAIN) =====
-    store_path = "output"
+    # Lưu vào output/vertex hoặc output/openai để FilesChatAgent.retrieve tìm thấy ở nhánh EXTRA
+    store_path = os.path.join("output", sub_folder)
     os.makedirs(store_path, exist_ok=True)
 
     # tạo document
@@ -523,11 +539,13 @@ async def approve_knowledge(id: int, admin: dict = Depends(get_current_admin)):
     # lưu lại
     vectorstore.save_local(store_path)
 
+    print(f"✅ ĐÃ ADD VECTOR (Model: {embed_type})")
     print("✅ TOTAL VECTOR:", len(vectorstore.docstore._dict))
 
     # ===== UPDATE DB =====
     db.approve_knowledge(id)
     db.close()
+    clear_faiss_cache()
 
     return {"msg": "approved + saved to vector"}
 # ===============================
@@ -566,7 +584,69 @@ async def delete_knowledge(id: int, admin: dict = Depends(get_current_admin)):
         raise HTTPException(status_code=404, detail="Không tìm thấy")
 
     # xóa
+    # Nếu đã được duyệt (approved=1), thực hiện xóa khỏi Vector Store luôn
+    if row["approved"] == 1:
+        try:
+            llm_name = db.get_setting("llm_name", os.environ.get("LLM_NAME", "openai"))
+            remove_from_vector_store(row["question"], llm_name=llm_name)
+        except Exception as e:
+            print(f"⚠️ Lỗi khi xóa khỏi FAISS: {e}")
+
     db.delete_knowledge(id)
 
     db.close()
+    clear_faiss_cache()
     return {"msg": "deleted"}
+# ===============================
+# QUẢN LÝ FEEDBACK (RATING)
+# ===============================
+
+@router.get("/feedback/negative")
+async def get_negative_feedback(current_user: dict = Depends(get_current_admin)):
+    """Lấy danh sách các câu trả lời bị người dùng chê (Dislike)"""
+    db = UserDB()
+    query = """
+        SELECT m.id as message_id, m.content as answer, m.created_at, m.rating,
+               prev_m.content as question, c.id as conversation_id, u.username
+        FROM messages m
+        JOIN conversations c ON m.conversation_id = c.id
+        JOIN users u ON c.user_id = u.id
+        LEFT JOIN messages prev_m ON prev_m.conversation_id = m.conversation_id 
+             AND prev_m.id < m.id AND prev_m.role = 'user'
+        WHERE m.rating = -1 AND m.role = 'assistant'
+        GROUP BY m.id
+        ORDER BY m.created_at DESC
+    """
+    try:
+        db.cursor.execute(query)
+        rows = db.cursor.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        db.close()
+
+@router.post("/feedback/{message_id}/to-pending")
+async def feedback_to_pending(message_id: int, current_user: dict = Depends(get_current_admin)):
+    """Chuyển một câu bị chê vào danh sách chờ duyệt để Admin sửa lại"""
+    db = UserDB()
+    try:
+        query = """
+            SELECT m.content as answer, prev_m.content as question
+            FROM messages m
+            LEFT JOIN messages prev_m ON prev_m.conversation_id = m.conversation_id 
+                 AND prev_m.id < m.id AND prev_m.role = 'user'
+            WHERE m.id = ?
+            ORDER BY prev_m.id DESC LIMIT 1
+        """
+        db.cursor.execute(query, (message_id,))
+        row = db.cursor.fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="Không tìm thấy tin nhắn")
+            
+        db.save_pending_knowledge(row["question"], row["answer"])
+        db.cursor.execute("UPDATE messages SET rating = -2 WHERE id = ?", (message_id,))
+        db.conn.commit()
+        
+        return {"msg": "Đã đưa vào danh sách chờ duyệt"}
+    finally:
+        db.close()

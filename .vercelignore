@@ -1,0 +1,15 @@
+# Ignore backend and data files to stay under 100MB limit
+node_modules
+.venv
+venv
+*.db
+*.faiss
+*.pkl
+output/
+utils/data_vector_new/
+app/
+chatbot/
+ingestion/
+data/
+.git
+.gemini

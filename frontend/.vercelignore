@@ -1,0 +1,12 @@
+# Ignore APKs
+public/app-release.apk
+public/*.apk
+*.apk
+
+# Ignore folders
+android
+node_modules
+dist
+.vercel
+.vscode
+.git

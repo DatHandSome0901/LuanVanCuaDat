@@ -16,7 +16,7 @@ const PackagesTab: React.FC<PackagesTabProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in">
       <div className="flex justify-between items-center">
-          <h3 className="text-xl font-serif font-bold text-amber-900 italic">"Gieo hạt lành, gặt quả ngọt"</h3>
+          <h3 className="text-xl font-bold text-amber-900 italic">"Tri thức lịch sử là chìa khóa mở lối tương lai"</h3>
           <button onClick={onCreatePackage} className="bg-amber-600 text-white px-6 py-2.5 rounded-2xl font-bold shadow-lg hover:bg-amber-700 active:scale-95 transition-all">Tạo Gói Nạp Mới</button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -34,7 +34,7 @@ const PackagesTab: React.FC<PackagesTabProps> = ({
                   </svg>
               </button>
             </div>
-            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-4 text-amber-600 font-bold">蓮</div>
+            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-4 text-amber-600 font-serif font-black">史</div>
             <h4 className="font-bold text-stone-800 mb-1">{p.name}</h4>
             <div className="text-3xl font-black text-amber-600 mb-4">{p.tokens} <span className="text-xs font-normal text-stone-400">token</span></div>
             <div className="bg-stone-50 py-2 px-3 rounded-xl inline-block text-xs font-bold text-stone-500">{p.amount_vnd.toLocaleString()} VNĐ</div>

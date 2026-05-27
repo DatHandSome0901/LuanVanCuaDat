@@ -1,11 +1,16 @@
 
 import React, { useState, useEffect } from "react";
 import { API_ROOT } from "../api";
+import { SiteConfig } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
+import { GameModal } from "../components/GameModal";
+import SecureImage from "../components/SecureImage";
+
 
 type Props = {
-  siteConfig: any;
+  siteConfig: SiteConfig;
   onStart: () => void;
+  user?: any;
 };
 
 const texts = [
@@ -20,11 +25,12 @@ const heroes = [
   "🏯 Đinh Bộ Lĩnh", "📖 Lê Lợi", "🐘 Bà Triệu", "⚡ Phan Bội Châu",
 ].map(s => s.normalize('NFC'));
 
-const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
+const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   const [displayText, setDisplayText] = useState("");
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [bubbles, setBubbles] = useState<any[]>([]);
+  const [showGame, setShowGame] = useState(false);
 
   useEffect(() => {
     let i = 0;
@@ -54,25 +60,59 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const bgUrl = siteConfig?.landing_bg && (siteConfig.landing_bg.startsWith("http") ? siteConfig.landing_bg : API_ROOT + siteConfig.landing_bg);
-  const logoUrl = siteConfig?.logo_url && (siteConfig.logo_url.startsWith("http") ? siteConfig.logo_url : API_ROOT + siteConfig.logo_url);
+  // Ưu tiên dùng URL đã được chuẩn hóa từ App.tsx
+  const bypassNgrok = (url: string | undefined) => {
+    if (!url) return undefined;
+    // Nếu dùng ngrok thì mới cần skip warning, nếu dùng IP local thì không cần
+    if (url.includes('ngrok-free.dev') || url.includes('ngrok-free.app')) {
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}ngrok-skip-browser-warning=true`;
+    }
+    return url;
+  };
+
+  // Them API_ROOT cho URL relative (giong web LandingPage.tsx)
+  const resolveUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+    return url.startsWith('http') ? url : API_ROOT + url;
+  };
+
+  const bgUrl = bypassNgrok(resolveUrl(siteConfig?.landing_bg));
+  const logoUrl = bypassNgrok(resolveUrl(siteConfig?.logo_url));
+
+  useEffect(() => {
+    console.log("DEBUG: LandingPageMobile Final URLs", { bgUrl, logoUrl });
+  }, [bgUrl, logoUrl]);
+
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-[#0c0606] text-white">
       
       {/* 📜 VINTAGE PAPER TEXTURE OVERLAY */}
-      <div className="absolute inset-0 z-30 opacity-[0.03] pointer-events-none mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')]" />
+      <div className="absolute inset-0 z-20 opacity-[0.03] pointer-events-none mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/old-paper.png')]" />
 
       {/* IMMERSIVE BACKGROUND */}
-      <motion.div 
-        initial={{ scale: 1.15, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 2.5, ease: "easeOut" }}
-        className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ backgroundImage: bgUrl ? `url("${bgUrl}")` : 'none' }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/10 to-black/95" />
-      </motion.div>
+      <div className="absolute inset-0 z-0 bg-[#0c0606]"> {/* Fallback color */}
+        <AnimatePresence>
+          {bgUrl && (
+            <motion.div
+              key={bgUrl}
+              initial={{ scale: 1.1, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <SecureImage
+                src={bgUrl}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      
+      {/* OVERLAY GRADIENT */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/80 via-black/30 to-black/95 pointer-events-none" />
 
       {/* FLOAT BUBBLES - SOFT & DEEP */}
       <AnimatePresence>
@@ -81,7 +121,6 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
             key={b.id}
             initial={{ y: "115vh", opacity: 0, x: b.left + "%", scale: 0.8 }}
             animate={{ y: "-20vh", opacity: [0, 0.6, 0.6, 0], scale: [0.8, 1.1, 1.1, 0.8] }}
-            exit={{ opacity: 0 }}
             transition={{ duration: b.duration, ease: "linear" }}
             className="absolute z-10 whitespace-nowrap px-4 py-2 bg-amber-900/10 backdrop-blur-[2px] border border-amber-500/10 rounded-full text-[10px] font-bold text-amber-200/40 pointer-events-none"
           >
@@ -107,7 +146,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
               transition={{ repeat: Infinity, duration: 4 }}
               className="rounded-[32px] p-0.5 bg-gradient-to-tr from-amber-600/50 to-red-600/50"
             >
-              <img
+              <SecureImage
                 src={logoUrl || "/default.jpg"}
                 className="w-20 h-20 rounded-[30px] border border-white/10 object-cover"
               />
@@ -171,7 +210,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
                 <>
                   <span className="text-2xl">⚔️</span>
                   <span className="text-xl font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
-                    Bắt đầu ngay
+                    {user ? "Tiếp tục" : "Bắt đầu ngay"}
                   </span>
                 </>
               )}
@@ -181,6 +220,35 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
             <motion.div 
               animate={{ left: ["-100%", "200%"] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              className="absolute top-0 bottom-0 w-32 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-[35deg]"
+            />
+          </button>
+
+          {/* SECONDARY GOLDEN CHƠI GAME BUTTON */}
+          <button
+            onClick={() => setShowGame(true)}
+            className="group relative w-full h-[64px] rounded-2xl overflow-hidden transition-all active:scale-[0.97]"
+          >
+            {/* GOLD/AMBER GLASS BASE */}
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/90 via-amber-800 to-yellow-950 backdrop-blur-md" />
+            
+            {/* BORDER INNER */}
+            <div className="absolute inset-[1px] rounded-[15px] border border-amber-300/30" />
+            
+            {/* SHINE & HIGHLIGHTS */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-white/10" />
+            
+            <div className="relative flex items-center justify-center gap-3">
+              <span className="text-xl">🛡️</span>
+              <span className="text-lg font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
+                Chơi Game (Demo)
+              </span>
+            </div>
+            
+            {/* ANIMATED GLOW STRIPE */}
+            <motion.div 
+              animate={{ left: ["-100%", "200%"] }}
+              transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
               className="absolute top-0 bottom-0 w-32 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-[35deg]"
             />
           </button>
@@ -199,6 +267,8 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart }) => {
       <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-screen z-10">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
       </div>
+
+      <GameModal isOpen={showGame} onClose={() => setShowGame(false)} />
     </div>
   );
 };

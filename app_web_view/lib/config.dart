@@ -6,7 +6,7 @@
 class AppConfig {
   // ── BASE URLs ──────────────────────────────────────────────
   /// URL backend FastAPI (không có dấu / ở cuối)
-  static const String apiBaseUrl = 'https://railcar-frostbite-alumni.ngrok-free.dev/api/v1';
+  static const String apiBaseUrl = 'https://rehydrate-doing-crust.ngrok-free.dev/api/v1';
 
   /// URL frontend web (không có dấu / ở cuối)
   static const String webBaseUrl = 'https://frontend-omega-pink-49.vercel.app';
@@ -14,10 +14,10 @@ class AppConfig {
   // ── OAUTH DEEP LINK ────────────────────────────────────────
   /// Scheme cho Deep Link callback sau Google OAuth
   /// Phải khớp với android:scheme trong AndroidManifest.xml
-  static const String callbackScheme = 'zodiacchatbot';
+  static const String callbackScheme = 'chatbot';
 
   // ── APP INFO ───────────────────────────────────────────────
-  static const String appName = 'Chiêm Tinh Zodiac';
+  static const String appName = 'Luan Van Chatbot';
   static const String appVersion = '1.0.0';
 
   // ── COMPUTED ───────────────────────────────────────────────

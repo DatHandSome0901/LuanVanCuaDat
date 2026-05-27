@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="Chiêm Tinh Zodiac"
+        android:label="Luan Van Chatbot"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
@@ -40,7 +40,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- Chỉ để scheme để Chrome dễ bắt link và tự đóng tab hơn -->
-                <data android:scheme="zodiacchatbot" />
+                <data android:scheme="chatbot" />
             </intent-filter>
         </activity>
     </application>

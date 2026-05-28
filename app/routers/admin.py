@@ -45,6 +45,30 @@ class SettingsUpdate(BaseModel):
     llm_name: Optional[str] = None 
     landing_bg: Optional[str] = None
     chat_bg: Optional[str] = None
+    game_enabled: Optional[int] = None
+    landing_hero_title: Optional[str] = None
+    landing_hero_subtitle: Optional[str] = None
+    landing_section_eras_title: Optional[str] = None
+    landing_section_stats_title: Optional[str] = None
+    landing_section_features_title: Optional[str] = None
+    landing_eras_json: Optional[str] = None
+    landing_footer_company: Optional[str] = None
+    landing_footer_mst: Optional[str] = None
+    landing_footer_representative: Optional[str] = None
+    landing_footer_address: Optional[str] = None
+    landing_footer_phone: Optional[str] = None
+    landing_footer_about_us: Optional[str] = None
+    landing_footer_terms: Optional[str] = None
+    landing_footer_privacy: Optional[str] = None
+    landing_hero_words: Optional[str] = None
+    landing_process_json: Optional[str] = None
+    landing_features_json: Optional[str] = None
+    landing_stats_json: Optional[str] = None
+    landing_highlights_json: Optional[str] = None
+    landing_contact_email: Optional[str] = None
+    landing_contact_zalo_num: Optional[str] = None
+    landing_contact_zalo_link: Optional[str] = None
+    landing_contact_fb_link: Optional[str] = None
 
 def update_index_html_seo(site_title: str, description: str, keywords: str, author: str, favicon_url: str, logo_url: str):
     import re
@@ -338,6 +362,32 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
     no_answer_fallback = db.get_setting("no_answer_fallback", "Xin lỗi, hiện tại tôi chưa tìm thấy câu trả lời chính xác cho vấn đề này.")
     llm_name = db.get_setting("llm_name", "openai")
     
+    game_enabled = db.get_setting("game_enabled", "1")
+    landing_hero_title = db.get_setting("landing_hero_title", "Khám phá tinh hoa")
+    landing_hero_subtitle = db.get_setting("landing_hero_subtitle", "Hỏi đáp, tra cứu và tìm hiểu kiến thức lịch sử chính xác thông qua sức mạnh của Trí Tuệ Nhân Tạo. Nền tảng học tập toàn diện cho mọi thế hệ.")
+    landing_section_eras_title = db.get_setting("landing_section_eras_title", "Một nền tảng vận hành xuyên suốt")
+    landing_section_stats_title = db.get_setting("landing_section_stats_title", "Tại sao nên chọn Sử Việt AI?")
+    landing_section_features_title = db.get_setting("landing_section_features_title", "Giải pháp toàn diện cho hành trình học tập")
+    landing_eras_json = db.get_setting("landing_eras_json", "")
+    landing_footer_company = db.get_setting("landing_footer_company", "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG")
+    landing_footer_mst = db.get_setting("landing_footer_mst", "1801526082")
+    landing_footer_representative = db.get_setting("landing_footer_representative", "NGÔ HỒ ANH KHÔI")
+    landing_footer_address = db.get_setting("landing_footer_address", "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ")
+    landing_footer_phone = db.get_setting("landing_footer_phone", "0916 416 409")
+    landing_footer_about_us = db.get_setting("landing_footer_about_us", "Sử Việt AI được xây dựng và phát triển bởi CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động.")
+    landing_footer_terms = db.get_setting("landing_footer_terms", "1. Chấp nhận điều khoản\nBằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.\n\n2. Quyền và trách nhiệm người dùng\nBạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.\n\n3. Giới hạn trách nhiệm\nMặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.\n\n4. Bản quyền\nToàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức.")
+    landing_footer_privacy = db.get_setting("landing_footer_privacy", "1. Thu thập thông tin\nChúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.\n\n2. Bảo mật dữ liệu\nTất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.\n\n3. Quyền kiểm soát của người dùng\nBạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản.")
+    
+    landing_hero_words = db.get_setting("landing_hero_words", "Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A")
+    landing_process_json = db.get_setting("landing_process_json", "")
+    landing_features_json = db.get_setting("landing_features_json", "")
+    landing_stats_json = db.get_setting("landing_stats_json", "")
+    landing_highlights_json = db.get_setting("landing_highlights_json", "")
+    landing_contact_email = db.get_setting("landing_contact_email", "nguyenquocdat888888@gmail.com")
+    landing_contact_zalo_num = db.get_setting("landing_contact_zalo_num", "0896 498 997")
+    landing_contact_zalo_link = db.get_setting("landing_contact_zalo_link", "https://zalo.me/0896498997")
+    landing_contact_fb_link = db.get_setting("landing_contact_fb_link", "https://www.facebook.com/nguyen.quoc.at.383270")
+
     db.close()
     return {
         "rate_per_1000": float(rate),
@@ -350,7 +400,31 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
         "seo_author": seo_author,
         "favicon_url": favicon_url,
         "llm_name": llm_name,
-        "no_answer_fallback": no_answer_fallback
+        "no_answer_fallback": no_answer_fallback,
+        "game_enabled": int(game_enabled),
+        "landing_hero_title": landing_hero_title,
+        "landing_hero_subtitle": landing_hero_subtitle,
+        "landing_section_eras_title": landing_section_eras_title,
+        "landing_section_stats_title": landing_section_stats_title,
+        "landing_section_features_title": landing_section_features_title,
+        "landing_eras_json": landing_eras_json,
+        "landing_footer_company": landing_footer_company,
+        "landing_footer_mst": landing_footer_mst,
+        "landing_footer_representative": landing_footer_representative,
+        "landing_footer_address": landing_footer_address,
+        "landing_footer_phone": landing_footer_phone,
+        "landing_footer_about_us": landing_footer_about_us,
+        "landing_footer_terms": landing_footer_terms,
+        "landing_footer_privacy": landing_footer_privacy,
+        "landing_hero_words": landing_hero_words,
+        "landing_process_json": landing_process_json,
+        "landing_features_json": landing_features_json,
+        "landing_stats_json": landing_stats_json,
+        "landing_highlights_json": landing_highlights_json,
+        "landing_contact_email": landing_contact_email,
+        "landing_contact_zalo_num": landing_contact_zalo_num,
+        "landing_contact_zalo_link": landing_contact_zalo_link,
+        "landing_contact_fb_link": landing_contact_fb_link
     }
 
 @router.post("/settings")
@@ -374,16 +448,48 @@ async def update_settings(
         ("seo_author", data.seo_author),
         ("favicon_url", data.favicon_url),
         ("llm_name", data.llm_name),
-        ("no_answer_fallback", data.no_answer_fallback)
+        ("no_answer_fallback", data.no_answer_fallback),
+        ("game_enabled", data.game_enabled),
+        ("landing_hero_title", data.landing_hero_title),
+        ("landing_hero_subtitle", data.landing_hero_subtitle),
+        ("landing_section_eras_title", data.landing_section_eras_title),
+        ("landing_section_stats_title", data.landing_section_stats_title),
+        ("landing_section_features_title", data.landing_section_features_title),
+        ("landing_eras_json", data.landing_eras_json),
+        ("landing_footer_company", data.landing_footer_company),
+        ("landing_footer_mst", data.landing_footer_mst),
+        ("landing_footer_representative", data.landing_footer_representative),
+        ("landing_footer_address", data.landing_footer_address),
+        ("landing_footer_phone", data.landing_footer_phone),
+        ("landing_footer_about_us", data.landing_footer_about_us),
+        ("landing_footer_terms", data.landing_footer_terms),
+        ("landing_footer_privacy", data.landing_footer_privacy),
+        ("landing_hero_words", data.landing_hero_words),
+        ("landing_process_json", data.landing_process_json),
+        ("landing_features_json", data.landing_features_json),
+        ("landing_stats_json", data.landing_stats_json),
+        ("landing_highlights_json", data.landing_highlights_json),
+        ("landing_contact_email", data.landing_contact_email),
+        ("landing_contact_zalo_num", data.landing_contact_zalo_num),
+        ("landing_contact_zalo_link", data.landing_contact_zalo_link),
+        ("landing_contact_fb_link", data.landing_contact_fb_link)
     ]
 
     for key, new_val in fields:
         if new_val is not None:
             current_val = db.get_setting(key, "")
-            # Special case for rate_per_1000 as it's a float stored as string
+            # Special case for rate_per_1000 and game_enabled
             if key == "rate_per_1000":
                 try:
                     if float(current_val) != float(new_val):
+                        db.set_setting(key, str(new_val))
+                        changed_any = True
+                except:
+                    db.set_setting(key, str(new_val))
+                    changed_any = True
+            elif key == "game_enabled":
+                try:
+                    if int(current_val) != int(new_val):
                         db.set_setting(key, str(new_val))
                         changed_any = True
                 except:
@@ -441,7 +547,31 @@ async def get_public_settings():
         "site_title": db.get_setting("site_title", "Chatbot Historical"),
         "landing_bg": db.get_setting("landing_bg", ""),
         "chat_bg": db.get_setting("chat_bg", ""),
-        "favicon_url": db.get_setting("favicon_url", "")
+        "favicon_url": db.get_setting("favicon_url", ""),
+        "game_enabled": int(db.get_setting("game_enabled", "1")),
+        "landing_hero_title": db.get_setting("landing_hero_title", "Khám phá tinh hoa"),
+        "landing_hero_subtitle": db.get_setting("landing_hero_subtitle", "Hỏi đáp, tra cứu và tìm hiểu kiến thức lịch sử chính xác thông qua sức mạnh của Trí Tuệ Nhân Tạo. Nền tảng học tập toàn diện cho mọi thế hệ."),
+        "landing_section_eras_title": db.get_setting("landing_section_eras_title", "Một nền tảng vận hành xuyên suốt"),
+        "landing_section_stats_title": db.get_setting("landing_section_stats_title", "Tại sao nên chọn Sử Việt AI?"),
+        "landing_section_features_title": db.get_setting("landing_section_features_title", "Giải pháp toàn diện cho hành trình học tập"),
+        "landing_eras_json": db.get_setting("landing_eras_json", ""),
+        "landing_footer_company": db.get_setting("landing_footer_company", "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG"),
+        "landing_footer_mst": db.get_setting("landing_footer_mst", "1801526082"),
+        "landing_footer_representative": db.get_setting("landing_footer_representative", "NGÔ HỒ ANH KHÔI"),
+        "landing_footer_address": db.get_setting("landing_footer_address", "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ"),
+        "landing_footer_phone": db.get_setting("landing_footer_phone", "0916 416 409"),
+        "landing_footer_about_us": db.get_setting("landing_footer_about_us", "Sử Việt AI được xây dựng và phát triển bởi CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động."),
+        "landing_footer_terms": db.get_setting("landing_footer_terms", "1. Chấp nhận điều khoản\nBằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.\n\n2. Quyền và trách nhiệm người dùng\nBạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.\n\n3. Giới hạn trách nhiệm\nMặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.\n\n4. Bản quyền\nToàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức."),
+        "landing_footer_privacy": db.get_setting("landing_footer_privacy", "1. Thu thập thông tin\nChúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.\n\n2. Bảo mật dữ liệu\nTất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.\n\n3. Quyền kiểm soát của người dùng\nBạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản."),
+        "landing_hero_words": db.get_setting("landing_hero_words", "Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A"),
+        "landing_process_json": db.get_setting("landing_process_json", ""),
+        "landing_features_json": db.get_setting("landing_features_json", ""),
+        "landing_stats_json": db.get_setting("landing_stats_json", ""),
+        "landing_highlights_json": db.get_setting("landing_highlights_json", ""),
+        "landing_contact_email": db.get_setting("landing_contact_email", "nguyenquocdat888888@gmail.com"),
+        "landing_contact_zalo_num": db.get_setting("landing_contact_zalo_num", "0896 498 997"),
+        "landing_contact_zalo_link": db.get_setting("landing_contact_zalo_link", "https://zalo.me/0896498997"),
+        "landing_contact_fb_link": db.get_setting("landing_contact_fb_link", "https://www.facebook.com/nguyen.quoc.at.383270")
     }
     db.close()
     return res

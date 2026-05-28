@@ -252,22 +252,29 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="p-4 md:p-8 max-w-[1440px] mx-auto w-full overflow-y-auto pb-24 md:pb-8 bg-stone-50/20"
+      className="paper-texture motif-watermark p-4 md:p-8 max-w-[1440px] mx-auto w-full overflow-y-auto pb-24 md:pb-8 border border-stone-200/50 rounded-3xl shadow-sm min-h-screen"
     >
       <motion.header
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 flex flex-col gap-5 border-b border-stone-200 pb-6 lg:flex-row lg:items-center lg:justify-between"
+        className="mb-8 flex flex-col gap-5 border-b border-amber-600/20 pb-6 lg:flex-row lg:items-center lg:justify-between"
       >
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-gradient-to-br from-red-800 to-red-950 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-red-900/10 shrink-0">
-            <BookOpen className="w-7 h-7" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-7 h-7">
+              <path d="M4 11l8-4l8 4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M6 15l6-3l6 3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M7 15v5M17 15v5M9 20h6" />
+              <circle cx="12" cy="11.5" r="2.2" fill="currentColor" fillOpacity="0.2" />
+              <path d="M12 9v1M12 13v1M9.5 11.5h1M13.5 11.5h1" />
+              <path d="M3 21h18" strokeLinecap="round" />
+            </svg>
           </div>
           <div>
-            <h2 className="text-2xl md:text-3xl font-black text-stone-900 tracking-tight uppercase leading-none">
+            <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">
               Sử Quán Q&A
             </h2>
-            <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-1.5 flex items-center gap-1.5">
+            <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3.5 flex items-center gap-1.5">
               <span>Hỏi đáp lịch sử Việt Nam</span>
               <span className="inline-block w-1 h-1 rounded-full bg-stone-300"></span>
               <span className="text-red-800">Nhận token miễn phí hằng ngày</span>
@@ -300,7 +307,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         {/* Daily Checkin */}
         <motion.div
           variants={itemVariants}
-          className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group"
+          className="paper-texture scroll-border border-double border-4 border-amber-600/30 rounded-2xl p-6 shadow-md transition-all flex flex-col justify-between hover:shadow-lg group hover:border-amber-600/50"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -342,7 +349,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         {/* Progress Q&A */}
         <motion.div
           variants={itemVariants}
-          className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group"
+          className="paper-texture scroll-border border-double border-4 border-amber-600/30 rounded-2xl p-6 shadow-md transition-all flex flex-col justify-between hover:shadow-lg group hover:border-amber-600/50"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -377,7 +384,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         {/* Milestones */}
         <motion.div
           variants={itemVariants}
-          className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group"
+          className="paper-texture scroll-border border-double border-4 border-amber-600/30 rounded-2xl p-6 shadow-md transition-all flex flex-col justify-between hover:shadow-lg group hover:border-amber-600/50"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -420,7 +427,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
       {/* Main content grid */}
       <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
         {/* Left column: Question Board */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm flex flex-col justify-between min-h-[480px]">
+        <div className="paper-texture scroll-border border-double border-4 border-amber-600/20 rounded-2xl p-6 shadow-md flex flex-col justify-between min-h-[480px]">
           <AnimatePresence mode="wait">
             {activeQuestion ? (
               <motion.div
@@ -551,7 +558,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         </div>
 
         {/* Right column: Question list sidebar */}
-        <aside className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm flex flex-col justify-between h-fit">
+        <aside className="paper-texture scroll-border border-double border-4 border-amber-600/20 rounded-2xl p-5 shadow-md flex flex-col justify-between h-fit">
           <div>
             <div className="mb-5 flex items-center gap-2 border-b border-stone-100 pb-3">
               <Trophy className="w-5 h-5 text-amber-600" />
@@ -612,7 +619,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
       {/* Bảng Xếp Hạng Tuần */}
       <motion.section
         variants={itemVariants}
-        className="mt-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+        className="mt-8 paper-texture scroll-border border-double border-4 border-amber-600/20 rounded-2xl p-6 shadow-md"
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-100 pb-5 mb-5">
           <div className="flex items-center gap-3">

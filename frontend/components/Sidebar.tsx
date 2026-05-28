@@ -5,6 +5,75 @@ import ConversationList from "./chat/ConversationList";
 import { motion, AnimatePresence } from 'framer-motion';
 import SecureImage from './SecureImage';
 
+const IconLanding = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2.5" />
+    <path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M19.1 4.9l-2.8 2.8M7.7 16.3l-2.8 2.8" strokeLinecap="round" />
+    <circle cx="12" cy="7.5" r="0.5" fill="currentColor" />
+    <circle cx="12" cy="16.5" r="0.5" fill="currentColor" />
+    <circle cx="7.5" cy="12" r="0.5" fill="currentColor" />
+    <circle cx="16.5" cy="12" r="0.5" fill="currentColor" />
+  </svg>
+);
+
+const IconChat = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M12 3c-1.5 2-4 3-6 3.5c2 .5 4.5 0 6-1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M12 5l7 2c-3 1-5 0-7-2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M12 5c-2 3-5 6-9 8c4-1 7-4 9-8" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M13 4.5c2-1 6-2.5 8-1c-2 2.5-5 4-8 1" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M8.5 11c-1.5 3-2.5 6-3.5 8c2.5-2.5 4.5-5.5 3.5-8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconHistory = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <rect x="3" y="4" width="2" height="16" rx="0.5" />
+    <rect x="19" y="4" width="2" height="16" rx="0.5" />
+    <path d="M5 6h14M5 18h14M5 9h14M5 12h10M5 15h12" strokeLinecap="round" />
+  </svg>
+);
+
+const IconNewChat = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M18 3L8 13" strokeLinecap="round" />
+    <path d="M8 13l-2.5 2.5" strokeLinecap="round" />
+    <path d="M5.5 15.5c-.5.5-.5 1.5 0 2s1.5.5 2 0L5.5 15.5z" strokeLinecap="round" fill="currentColor" fillOpacity="0.2" />
+    <path d="M4 20l-1 1" strokeLinecap="round" />
+    <path d="M14 6l4 4" opacity="0.6" strokeLinecap="round" />
+  </svg>
+);
+
+const IconPayment = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M6 20V9c0-3 2-5 6-5s6 2 6 5v11H6z" strokeLinejoin="round" fill="currentColor" fillOpacity="0.2" />
+    <circle cx="12" cy="7.5" r="1" />
+    <path d="M9 12h6v4H9z" />
+    <path d="M12 13v2M11 14h2" />
+    <path d="M6 17.5c2-1 4-1 6 0s4 1 6 0" />
+  </svg>
+);
+
+const IconQA = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M4 11l8-4l8 4M6 15l6-3l6 3M7 15v5M17 15v5M9 20h6" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="11.5" r="2" fill="currentColor" fillOpacity="0.2" />
+    <path d="M12 9.5v1M12 13.5v1" />
+    <path d="M3 21h18" strokeLinecap="round" />
+  </svg>
+);
+
+const IconAdmin = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M12 3v13M12 4v11" strokeLinecap="round" />
+    <path d="M8 15c1-0.5 2-1 4-1s3 0.5 4 1c0.5 0.5 0.5 1 0 1.5c-1 0.5-2 1-4 1s-3-0.5-4-1c-0.5-0.5-0.5-1 0-1.5z" fill="currentColor" fillOpacity="0.2" />
+    <path d="M12 16v4" strokeLinecap="round" />
+    <circle cx="12" cy="20.5" r="0.5" />
+  </svg>
+);
+
 interface SidebarProps {
   user: User | null;
   currentView: View;
@@ -29,13 +98,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
 
   const navItems = [
-    { id: 'landing' as View, label: 'Trang chủ', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    { id: 'chat' as View, label: 'Sử Việt', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
-    { id: 'history' as View, label: 'Lịch sử', icon: 'M12 8v4l3 2m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'new_chat' as View, label: 'Đoạn chat mới', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-    { id: 'payment' as View, label: 'Nạp Tiền', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    ...(user ? [{ id: 'qa' as View, label: 'Q&A Token', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' }] : []),
-    ...(user?.is_admin ? [{ id: 'admin' as View, label: 'ADMIN', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' }] : []),
+    { id: 'landing' as View, label: 'Trang chủ', icon: IconLanding },
+    { id: 'chat' as View, label: 'Sử Việt', icon: IconChat },
+    { id: 'history' as View, label: 'Lịch sử', icon: IconHistory },
+    { id: 'new_chat' as View, label: 'Đoạn chat mới', icon: IconNewChat },
+    { id: 'payment' as View, label: 'Nạp Tiền', icon: IconPayment },
+    ...(user ? [{ id: 'qa' as View, label: 'Q&A Token', icon: IconQA }] : []),
+    ...(user?.is_admin ? [{ id: 'admin' as View, label: 'ADMIN', icon: IconAdmin }] : []),
   ];
 
   const handleNavClick = (id: View) => {
@@ -115,9 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-stone-400 hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <svg className={`w-5 h-5 transition-colors ${isActive ? 'text-white' : 'text-stone-500 group-hover:text-stone-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-                  </svg>
+                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-white' : 'text-stone-500 group-hover:text-stone-300'}`} />
                   {isOpen && <span>{item.label}</span>}
                   
                   {isOpen && isActive && (
@@ -261,9 +328,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <div className={`p-2 rounded-2xl transition-all ${currentView === item.id ? 'bg-red-50' : ''}`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-              </svg>
+              <item.icon className="w-6 h-6" />
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider ${currentView === item.id ? 'opacity-100' : 'opacity-60'}`}>
               {item.label}

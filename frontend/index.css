@@ -1,5 +1,6 @@
 /* --- PREMIUM GLOBAL STYLES --- */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+
 
 /* Only apply mobile optimizations on small screens */
 @media (max-width: 767px) {
@@ -125,8 +126,14 @@ body {
 }
 
 .font-historical {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', 'Cambria', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
 }
+
+.font-serif {
+  font-family: 'Lora', 'Cambria', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+}
+
+
 
 /* Elegant Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -263,4 +270,2499 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-2px) scale(1.01);
+}
+
+/* ============================================================
+   LANDING PAGE - VIETNAMESE HISTORY BOOK EXPERIENCE
+   ============================================================ */
+
+/* Book table scene */
+.book-scene {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(120, 53, 15, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(127, 29, 29, 0.15) 0%, transparent 50%),
+    linear-gradient(160deg, #1a0a00 0%, #2d1505 30%, #1a0a00 60%, #0f0500 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  perspective: 2500px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Wood grain table */
+.book-scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      92deg,
+      transparent 0px,
+      rgba(255,200,100,0.015) 1px,
+      transparent 2px,
+      transparent 60px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0px,
+      rgba(80,30,5,0.1) 1px,
+      transparent 2px,
+      transparent 40px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Candle glow ambient */
+.book-scene::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 400px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 200, 80, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Book viewport with 3D perspective */
+.book-viewport {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* The actual book container */
+.book-container {
+  position: relative;
+  width: min(960px, 95vw);
+  height: clamp(500px, 70vh, 650px);
+  transform-style: preserve-3d;
+  transform: rotateX(4deg);
+  filter: drop-shadow(0 40px 80px rgba(0,0,0,0.6)) drop-shadow(0 10px 30px rgba(0,0,0,0.4));
+}
+
+/* Book cover - shared styles */
+.book-cover-front,
+.book-cover-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px 16px 16px 4px;
+  overflow: hidden;
+}
+
+/* A spread = two pages open */
+.book-spread {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 4px 16px 16px 4px;
+  overflow: hidden;
+  background: #fdfcf0;
+  box-shadow:
+    inset 0 0 80px rgba(0,0,0,0.08),
+    0 0 0 1px rgba(180, 83, 9, 0.3);
+}
+
+/* Left page */
+.book-page-left {
+  position: relative;
+  padding: 40px 32px 40px 48px;
+  background:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    linear-gradient(to right, #f5f0e0 0%, #fdfcf0 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid rgba(180, 83, 9, 0.15);
+  box-shadow: inset -8px 0 20px rgba(0,0,0,0.06);
+}
+
+/* Right page */
+.book-page-right {
+  position: relative;
+  padding: 40px 48px 40px 32px;
+  background:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    linear-gradient(to left, #f5f0e0 0%, #fdfcf0 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Spine shadow overlay */
+.book-spine {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0,0,0,0.18) 0%,
+    rgba(0,0,0,0.06) 30%,
+    rgba(0,0,0,0) 50%,
+    rgba(0,0,0,0.06) 70%,
+    rgba(0,0,0,0.15) 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Page number ribbon */
+.book-page-number {
+  position: absolute;
+  bottom: 16px;
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  color: rgba(120, 53, 15, 0.5);
+  letter-spacing: 0.15em;
+}
+.book-page-left .book-page-number { left: 48px; }
+.book-page-right .book-page-number { right: 48px; }Suffix
+
+/* Decorative page corner fold */
+.page-corner {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.page-corner-right {
+  right: 0;
+  border-style: solid;
+  border-width: 0 0 36px 36px;
+  border-color: transparent transparent rgba(180,83,9,0.12) transparent;
+}
+.page-corner-left {
+  left: 0;
+  border-style: solid;
+  border-width: 36px 36px 0 0;
+  border-color: rgba(180,83,9,0.08) transparent transparent transparent;
+}
+
+/* Page flip leaf - animated element */
+.page-flip-leaf {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  pointer-events: none;
+  border-radius: 0 16px 16px 0;
+}
+
+/* Front face of the flipping leaf */
+.page-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    #fdfcf0;
+  padding: 40px 48px 40px 32px;
+  overflow: hidden;
+  border-radius: 0 16px 16px 0;
+}
+
+/* Back face (reverse of flipping page) */
+.page-flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    #f5f0de;
+  transform: rotateY(180deg);
+  border-radius: 0 16px 16px 0;
+}
+
+/* Book nav buttons */
+.book-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(45, 21, 5, 0.85);
+  border: 2px solid rgba(180, 83, 9, 0.5);
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+}
+.book-nav-btn:hover {
+  background: rgba(127, 29, 29, 0.9);
+  border-color: rgba(245, 158, 11, 0.8);
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 25px rgba(127,29,29,0.5);
+}
+.book-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: translateY(-50%);
+}
+.book-nav-prev { left: -70px; }
+.book-nav-next { right: -70px; }
+
+/* Progress dots */
+.book-progress {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.book-progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(180,83,9,0.3);
+  border: 1px solid rgba(180,83,9,0.4);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.book-progress-dot.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  transform: scale(1.4);
+  box-shadow: 0 0 8px rgba(245,158,11,0.5);
+}
+
+/* Chapter divider ornament */
+.chapter-ornament {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: rgba(180,83,9,0.6);
+  font-size: 18px;
+}
+.chapter-ornament::before,
+.chapter-ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(180,83,9,0.4), transparent);
+}
+
+/* Book page heading style */
+.book-heading-chapter {
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(180, 83, 9, 0.7);
+  margin-bottom: 12px;
+}
+.book-heading-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  color: #1c0a00;
+  line-height: 1.2;
+}
+
+/* Dong Son decorative border on pages */
+.dongson-border {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+.dongson-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(180,83,9,0.5),
+    rgba(127,29,29,0.2),
+    rgba(180,83,9,0.5)
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Front cover specific */
+.book-front-cover {
+  background: linear-gradient(160deg, #2d1505 0%, #1a0800 40%, #2a1003 70%, #1a0800 100%);
+  border-radius: 4px 16px 16px 4px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 48px 40px;
+  border: 1px solid rgba(180, 83, 9, 0.4);
+  box-shadow:
+    inset 0 0 80px rgba(0,0,0,0.4),
+    inset 0 0 20px rgba(180,83,9,0.1);
+}
+
+/* Gold ring pattern on cover */
+.book-front-cover::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  height: 320px;
+  border: 1px solid rgba(180,83,9,0.15);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 20px rgba(180,83,9,0.05),
+    0 0 0 40px rgba(180,83,9,0.03),
+    0 0 0 60px rgba(180,83,9,0.02);
+  pointer-events: none;
+}
+
+/* Mobile single page */
+@media (max-width: 767px) {
+  .book-container {
+    height: clamp(580px, 85vh, 700px);
+    transform: rotateX(2deg);
+  }
+  .book-spread {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    border-radius: 8px;
+  }
+  .book-page-left,
+  .book-page-right {
+    padding: 28px 24px;
+  }
+  .book-nav-prev { left: -16px; }
+  .book-nav-next { right: -16px; }
+  .book-nav-btn { width: 40px; height: 40px; }
+}
+
+/* Lantern glow animation */
+@keyframes lanternGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.lantern-glow {
+  animation: lanternGlow 3s ease-in-out infinite;
+}
+
+/* Ink brush stroke underline */
+.ink-underline {
+  position: relative;
+  display: inline-block;
+}
+.ink-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, #7f1d1d, #b45309, #7f1d1d);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* Era card in book */
+.era-card-book {
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(180,83,9,0.2);
+}
+.era-card-book:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+/* Stat number in book */
+.stat-book {
+  text-align: center;
+  padding: 16px 8px;
+  border-bottom: 1px solid rgba(180,83,9,0.1);
+}
+
+/* Scrollable page content (for overflow) */
+.book-page-left::-webkit-scrollbar,
+.book-page-right::-webkit-scrollbar {
+  width: 3px;
+}
+.book-page-left::-webkit-scrollbar-thumb,
+.book-page-right::-webkit-scrollbar-thumb {
+  background: rgba(180,83,9,0.3);
+  border-radius: 2px;
+}
+
+/* ============================================================
+   LANDING PAGE V2 - 3D DAI VIET HISTORY BOOK
+   Namespaced to avoid affecting the rest of the app.
+   ============================================================ */
+
+.sv-book-root {
+  --sv-ink: #2b160b;
+  --sv-paper: #f6ecd2;
+  --sv-paper-bright: #fffcf0;
+  --sv-paper-dark: #e8d7b3;
+  --sv-gold: #d49b35;
+  --sv-gold-light: #fbe6ad;
+  --sv-red: #8a1c14;
+  --sv-red-dark: #460904;
+  --sv-wood: #2a1106;
+  --sv-jade: #185a49;
+  position: relative;
+  min-height: 100vh;
+  color: var(--sv-ink);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(247, 211, 139, 0.22), transparent 34%),
+    radial-gradient(circle at 82% 28%, rgba(166, 82, 37, 0.18), transparent 40%),
+    linear-gradient(145deg, #1b0f07 0%, #3a2211 45%, #140b04 100%);
+  overflow-x: hidden;
+  isolation: isolate;
+}
+
+.sv-book-root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, rgba(255, 220, 148, 0.015) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(61, 23, 8, 0.12) 1px, transparent 1px);
+  background-size: 78px 100%, 100% 48px;
+  opacity: 0.6;
+}
+
+.sv-book-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sv-book-config-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.38;
+  filter: sepia(0.38) saturate(1.1) contrast(1.05) brightness(1.02);
+  mix-blend-mode: soft-light;
+}
+
+.sv-book-bg-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 16%, rgba(255, 231, 176, 0.36), transparent 44%),
+    radial-gradient(ellipse at 50% 78%, rgba(255, 238, 193, 0.05), rgba(0, 0, 0, 0.42) 78%),
+    linear-gradient(180deg, rgba(30, 15, 5, 0.3), rgba(42, 20, 7, 0.1), rgba(15, 5, 2, 0.45));
+}
+
+.sv-book-dongson-mark {
+  position: absolute;
+  right: -160px;
+  bottom: -210px;
+  width: min(58vw, 720px);
+  opacity: 0.09;
+  filter: sepia(1) saturate(1.4) hue-rotate(-10deg);
+  animation: svBookSlowSpin 100s linear infinite;
+}
+
+/* Header & Brand with Glassmorphic Gold design */
+.sv-book-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px clamp(20px, 5vw, 64px);
+  color: #fff7db;
+  background: linear-gradient(180deg, rgba(20, 8, 3, 0.72), rgba(20, 8, 3, 0));
+}
+
+.sv-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: #fff4d7;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+  font-weight: 900;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.sv-brand-logo {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1.5px solid rgba(212, 155, 53, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  transition: transform 0.3s ease;
+}
+
+.sv-brand:hover .sv-brand-logo {
+  transform: rotate(5deg) scale(1.05);
+  border-color: var(--sv-gold);
+}
+
+.sv-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sv-book-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid rgba(212, 155, 53, 0.28);
+  border-radius: 999px;
+  background: rgba(30, 12, 4, 0.48);
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.sv-book-nav button,
+.sv-header-game,
+.sv-header-start,
+.sv-close-book {
+  min-height: 36px;
+  border: 0;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.sv-book-nav button {
+  padding: 0 16px;
+  border-radius: 999px;
+  color: rgba(255, 244, 215, 0.76);
+  font-size: 13px;
+  font-weight: 800;
+  background: transparent;
+}
+
+.sv-book-nav button:hover,
+.sv-book-nav button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(138, 28, 20, 0.95), rgba(212, 155, 53, 0.9));
+  box-shadow: 0 6px 18px rgba(138, 28, 20, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sv-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sv-header-game,
+.sv-header-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.sv-header-game {
+  color: #fbe6ad;
+  border: 1px solid rgba(212, 155, 53, 0.38);
+  background: rgba(50, 18, 5, 0.58);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.sv-header-game:hover {
+  background: rgba(212, 155, 53, 0.15);
+  border-color: var(--sv-gold);
+}
+
+.sv-header-start {
+  color: #fff;
+  background: linear-gradient(135deg, var(--sv-red), var(--sv-gold));
+  box-shadow: 0 8px 24px rgba(138, 28, 20, 0.38);
+  position: relative;
+  overflow: hidden;
+}
+
+.sv-header-start::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-20deg);
+  transition: none;
+}
+
+.sv-header-start:hover::after {
+  left: 150%;
+  transition: left 0.8s ease-in-out;
+}
+
+.sv-header-game:hover,
+.sv-header-start:hover,
+.sv-close-book:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+}
+
+/* Core 3D Stage & Shell Setup */
+.sv-book-main {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+}
+
+.sv-book-desktop-stage {
+  min-height: 100vh;
+  padding: 96px clamp(16px, 4vw, 56px) 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  perspective: 2500px;
+}
+
+.sv-book-shell {
+  position: relative;
+  width: min(1180px, 92vw);
+  height: clamp(560px, 72vh, 690px);
+  transform-style: preserve-3d;
+  transform: rotateX(5deg);
+  filter:
+    drop-shadow(0 32px 50px rgba(15, 6, 2, 0.65))
+    drop-shadow(0 8px 16px rgba(15, 6, 2, 0.4));
+  transition: transform 0.6s cubic-bezier(0.15, 0.85, 0.32, 1);
+}
+
+.sv-book-shell.is-open {
+  transform: rotateX(4deg) rotateY(0deg);
+}
+
+.sv-book-shell.is-closed {
+  transform: rotateX(5deg) rotateY(-5deg);
+}
+
+/* Stacked pages simulating book depth underneath */
+.sv-page-stack {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 14px);
+  background: var(--sv-paper-dark);
+  border-radius: 6px;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.15);
+}
+
+.sv-page-stack-left {
+  left: 12px;
+  border-left: 5px solid #d3c09b;
+  box-shadow: 
+    -1px 1px 0 #baa680,
+    -2px 2px 0 #b09c76,
+    -3px 3px 0 #a6916a,
+    -4px 4px 0 #9d8760,
+    -5px 5px 6px rgba(0,0,0,0.3);
+}
+
+.sv-page-stack-right {
+  right: 12px;
+  border-right: 5px solid #d3c09b;
+  box-shadow: 
+    1px 1px 0 #baa680,
+    2px 2px 0 #b09c76,
+    3px 3px 0 #a6916a,
+    4px 4px 0 #9d8760,
+    5px 5px 6px rgba(0,0,0,0.3);
+}
+
+/* Beautiful Imperial Cinnabar Red Cover & Ly-Tran golden borders */
+.sv-book-cover,
+.sv-book-spread {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  z-index: 2; /* Render on top of visual page depth stack (z-index: 1) */
+}
+
+.sv-book-cover {
+  width: min(540px, 54vw);
+  margin: 0 auto;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  right: auto;
+  translate: -50% 0;
+  border-radius: 8px 24px 24px 8px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 243, 202, 0.15), transparent 34%),
+    url("https://www.transparenttextures.com/patterns/leather.png"),
+    linear-gradient(135deg, #741712 0%, #460904 50%, #1c0200 100%);
+  border: 4px solid var(--sv-gold);
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.72),
+    inset 24px 0 34px rgba(0, 0, 0, 0.35),
+    inset -10px 0 24px rgba(255, 238, 177, 0.15),
+    0 16px 38px rgba(0,0,0,0.6);
+  overflow: hidden;
+}
+
+.sv-book-cover::before,
+.sv-book-cover::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 2px solid var(--sv-gold);
+  border-radius: 6px 18px 18px 6px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.sv-book-cover::after {
+  inset: 28px;
+  border-style: double;
+  border-width: 3px;
+  border-color: var(--sv-gold-light);
+  opacity: 0.65;
+}
+
+.sv-cover-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 58px;
+  background:
+    linear-gradient(90deg, rgba(40, 6, 3, 0.9), rgba(116, 23, 18, 0.85), rgba(255, 214, 132, 0.18)),
+    repeating-linear-gradient(0deg, transparent 0 54px, var(--sv-gold) 56px 58px);
+  border-right: 1px solid var(--sv-gold);
+  box-shadow: 4px 0 10px rgba(0,0,0,0.3);
+}
+
+.sv-cover-ribs {
+  position: absolute;
+  left: 18px;
+  top: 72px;
+  bottom: 72px;
+  width: 24px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 74px, var(--sv-gold-light) 76px 83px, transparent 85px 116px);
+  opacity: 0.48;
+}
+
+.sv-cover-inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 66px 44px 40px 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.sv-cover-emblem {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  margin-bottom: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--sv-gold);
+  background: rgba(255, 246, 219, 0.28);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), inset 0 0 20px rgba(255, 255, 255, 0.24);
+}
+
+.sv-cover-emblem img {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  object-fit: cover;
+  opacity: 0.22;
+  border-radius: 50%;
+  animation: svBookSlowSpin 60s linear infinite reverse;
+}
+
+.sv-cover-emblem span {
+  position: relative;
+  z-index: 2;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 52px;
+  font-weight: 900;
+  color: #fff4d7;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.68), 0 0 12px rgba(212, 155, 53, 0.6);
+}
+
+.sv-cover-kicker {
+  color: var(--sv-gold-light);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.sv-cover-inner h1 {
+  margin: 6px 0 12px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(48px, 6vw, 82px);
+  line-height: 0.95;
+  color: #ffffff;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.5), 
+    0 10px 24px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(212, 155, 53, 0.4);
+  letter-spacing: -0.02em;
+}
+
+.sv-cover-copy {
+  max-width: 420px;
+  margin: 10px auto 26px;
+  color: rgba(255, 244, 215, 0.85);
+  font-family: "Lora", Georgia, serif;
+  font-size: 15px;
+  line-height: 1.75;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.sv-cover-actions,
+.sv-hero-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.sv-cover-inner small {
+  position: absolute;
+  bottom: 26px;
+  color: var(--sv-gold-light);
+  opacity: 0.68;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Premium Gradients and buttons with glow/sheen */
+.sv-primary-btn,
+.sv-secondary-btn,
+.sv-ink-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  border: 0;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0;
+  transition: all 0.24s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.sv-primary-btn {
+  padding: 0 26px;
+  color: #fff;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--sv-red), var(--sv-gold));
+  box-shadow: 
+    0 6px 20px rgba(138, 28, 20, 0.35),
+    inset 0 1px rgba(255, 255, 255, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.sv-primary-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: skewX(-20deg);
+  transition: none;
+}
+
+.sv-primary-btn:hover::after {
+  left: 150%;
+  transition: left 0.8s ease-in-out;
+}
+
+.sv-secondary-btn {
+  padding: 0 22px;
+  color: var(--sv-red);
+  border: 1.5px solid rgba(138, 28, 20, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 253, 245, 0.94);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sv-secondary-btn:hover {
+  background: #ffffff;
+  border-color: var(--sv-red);
+  box-shadow: 0 6px 18px rgba(138, 28, 20, 0.12);
+}
+
+.sv-primary-btn:hover,
+.sv-secondary-btn:hover,
+.sv-ink-link:hover {
+  transform: translateY(-2.5px);
+}
+
+/* Beautiful double-page spread background */
+.sv-book-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-radius: 8px 20px 20px 8px;
+  background: #dfc292;
+  box-shadow:
+    inset 0 0 0 1px rgba(114, 63, 16, 0.5),
+    inset 0 0 68px rgba(73, 35, 7, 0.24);
+  overflow: hidden;
+}
+
+/* 3D Page turn rendering structure */
+.sv-3d-sheet {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.sv-3d-sheet-front,
+.sv-3d-sheet-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  box-shadow: inset 0 0 40px rgba(89, 43, 14, 0.1);
+  overflow: hidden;
+}
+
+.sv-3d-sheet-front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+
+.sv-3d-sheet-back {
+  transform: rotateY(180deg);
+}
+
+.sv-page-shading {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: black;
+  opacity: 0;
+}
+
+/* Ancient parchment paper texturing with lotus/dragon watermarks */
+.sv-book-page {
+  position: relative;
+  z-index: 1; /* Establish stacking context to contain pseudo-elements */
+  min-width: 0;
+  padding: clamp(28px, 3.2vw, 48px);
+  overflow: hidden; /* Avoid Chrome 3D overflow scrolling rendering bug */
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.6), transparent 32%),
+    radial-gradient(circle at 86% 80%, rgba(212, 155, 53, 0.08), transparent 38%),
+    linear-gradient(90deg, var(--sv-paper-dark), var(--sv-paper), var(--sv-paper-bright));
+  box-shadow: inset 0 0 54px rgba(73, 35, 7, 0.15);
+}
+
+.sv-book-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    repeating-linear-gradient(0deg, rgba(110, 76, 38, 0.02) 0 1px, transparent 1px 26px);
+  opacity: 0.78;
+  z-index: 0;
+}
+
+/* Subtle Golden Imperial Watermark */
+.sv-book-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/images/trong_dong_bg.png");
+  background-size: 78% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.038;
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+
+/* Gold corner frame borders */
+.sv-page-inner-border {
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(212, 155, 53, 0.35);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sv-page-inner-border::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1.5px solid rgba(212, 155, 53, 0.2);
+  border-radius: 3px;
+}
+
+.sv-book-page > * {
+  position: relative;
+  z-index: 2;
+}
+
+.sv-book-page-left {
+  padding-right: clamp(38px, 4vw, 58px);
+  border-right: 1.5px solid rgba(112, 62, 18, 0.18);
+  box-shadow: 
+    inset -24px 0 36px rgba(58, 28, 8, 0.14),
+    inset 0 0 54px rgba(73, 35, 7, 0.15);
+}
+
+.sv-book-page-right {
+  padding-left: clamp(38px, 4vw, 58px);
+  box-shadow: 
+    inset 24px 0 36px rgba(58, 28, 8, 0.16),
+    inset 0 0 54px rgba(73, 35, 7, 0.15);
+}
+
+.sv-book-page-corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+  height: 44px;
+  z-index: 4;
+  background: linear-gradient(135deg, transparent 50%, rgba(118, 71, 19, 0.18) 51%);
+}
+
+.sv-book-page-left .sv-book-page-corner {
+  left: 0;
+  right: auto;
+  transform: rotate(90deg);
+}
+
+.sv-book-gutter {
+  position: absolute;
+  z-index: 9;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 64px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(31, 15, 4, 0.32), rgba(31, 15, 4, 0.1), transparent 50%, rgba(31, 15, 4, 0.12), rgba(31, 15, 4, 0.28));
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.22);
+}
+
+/* Golden silk ribbon bookmark in gutter */
+.sv-gutter-ribbon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 8px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #d49b35, #fff4d7, #b58022);
+  z-index: 12;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  border-radius: 0 0 2px 2px;
+}
+
+.sv-book-page-number {
+  position: absolute;
+  bottom: 20px;
+  z-index: 4;
+  color: rgba(93, 48, 12, 0.54);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sv-book-page-left .sv-book-page-number {
+  left: 48px;
+}
+
+.sv-book-page-right .sv-book-page-number {
+  right: 48px;
+}
+
+.sv-chapter-head {
+  margin-bottom: 18px;
+}
+
+.sv-chapter-head span {
+  color: var(--sv-red);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.sv-chapter-head h2 {
+  margin: 6px 0 10px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.05;
+  color: #1e0900;
+  letter-spacing: -0.01em;
+}
+
+.sv-chapter-rule {
+  width: 100%;
+  height: 9px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(138, 28, 20, 0.6) 0 3px, transparent 4px),
+    linear-gradient(90deg, transparent, rgba(212, 155, 53, 0.5), transparent);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.sv-prose {
+  margin: 0 0 14px;
+  color: rgba(35, 16, 6, 0.85);
+  font-family: "Lora", Georgia, serif;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.sv-prose-large {
+  font-size: clamp(14.5px, 1.3vw, 17px);
+  line-height: 1.72;
+  font-weight: 500;
+}
+
+.sv-quote {
+  margin: 16px 0;
+  padding: 14px 18px;
+  color: #3b1101;
+  font-family: "Lora", Georgia, serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.62;
+  border-left: 4px solid var(--sv-red);
+  background: rgba(255, 246, 219, 0.68);
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 4px 12px rgba(89, 43, 14, 0.03);
+}
+
+.sv-book-seal {
+  width: 116px;
+  height: 116px;
+  margin: 0 0 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid rgba(138, 28, 20, 0.32);
+  background: rgba(255, 249, 226, 0.54);
+  overflow: hidden;
+  box-shadow: inset 0 0 12px rgba(138, 28, 20, 0.08);
+}
+
+.sv-book-seal img {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  opacity: 0.2;
+  border-radius: 50%;
+}
+
+.sv-book-seal span {
+  position: relative;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--sv-red);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Elegant ledger panels with subtle golden accents */
+.sv-mini-ledger {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(212, 155, 53, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 252, 240, 0.72);
+  box-shadow: 0 4px 12px rgba(73, 35, 7, 0.03);
+}
+
+.sv-mini-ledger span,
+.sv-caption-card span,
+.sv-feature-notes span,
+.sv-process-card span,
+.sv-advantage-card span,
+.sv-stat-card span {
+  color: rgba(35, 16, 6, 0.68);
+  line-height: 1.45;
+  font-size: 12px;
+}
+
+/* Glassmorphic Golden Table of Contents */
+.sv-toc-list {
+  display: grid;
+  gap: 10px;
+}
+
+.sv-toc-list button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 16px;
+  text-align: left;
+  border: 1px solid rgba(212, 155, 53, 0.25);
+  border-radius: 10px;
+  color: #2b160b;
+  background: rgba(255, 251, 240, 0.5);
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.sv-toc-list button:hover {
+  transform: translateX(6px);
+  border-color: var(--sv-gold);
+  box-shadow: 0 6px 18px rgba(138, 28, 20, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.sv-toc-list span {
+  color: var(--sv-red);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.sv-toc-list strong {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #1e0900;
+}
+
+.sv-toc-list em {
+  grid-column: 2 / 3;
+  margin-top: -12px;
+  color: rgba(35, 16, 6, 0.6);
+  font-family: "Lora", Georgia, serif;
+  font-size: 11.5px;
+  font-style: italic;
+}
+
+.sv-toc-list small {
+  grid-column: 3 / 4;
+  grid-row: 1 / 3;
+  color: var(--sv-red);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.sv-trust-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  color: rgba(35, 16, 6, 0.72);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sv-visual-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sv-mockup-frame {
+  position: relative;
+  overflow: hidden;
+  min-height: 230px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(212, 155, 53, 0.32);
+  background: rgba(255, 249, 230, 0.54);
+  box-shadow: 0 16px 36px rgba(71, 37, 9, 0.16);
+}
+
+.sv-mockup-frame-large {
+  min-height: 330px;
+}
+
+.sv-mockup-frame::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+.sv-mockup-frame img,
+.sv-map-panel img,
+.sv-mobile-chapter img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Breathtaking Glass Cards for lists and grid items */
+.sv-caption-card,
+.sv-process-card,
+.sv-advantage-card,
+.sv-stat-card,
+.sv-audience-panel,
+.sv-flow-map div {
+  background: rgba(255, 252, 243, 0.54);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(212, 155, 53, 0.28);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 14px rgba(73, 35, 7, 0.03);
+}
+
+.sv-caption-card:hover,
+.sv-process-card:hover,
+.sv-advantage-card:hover,
+.sv-stat-card:hover,
+.sv-flow-map div:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--sv-gold);
+  box-shadow: 0 8px 20px rgba(138, 28, 20, 0.08);
+  transform: translateY(-2px);
+}
+
+.sv-caption-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+}
+
+.sv-caption-card strong,
+.sv-process-card strong,
+.sv-advantage-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #200900;
+  font-weight: 800;
+}
+
+.sv-process-stack,
+.sv-advantage-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.sv-process-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px 14px;
+  align-items: center;
+  padding: 14px 14px 14px 58px;
+}
+
+.sv-process-card svg,
+.sv-advantage-card svg,
+.sv-feature-notes svg,
+.sv-caption-card svg,
+.sv-trust-note svg {
+  color: var(--sv-red);
+}
+
+.sv-step-index {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sv-red);
+  opacity: 0.28;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.sv-flow-map {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.sv-flow-map div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 14px;
+}
+
+.sv-flow-map svg {
+  color: var(--sv-jade);
+}
+
+.sv-flow-map > span {
+  width: 2px;
+  height: 20px;
+  margin-left: 28px;
+  background: linear-gradient(180deg, rgba(138, 28, 20, 0.1), var(--sv-gold), rgba(138, 28, 20, 0.1));
+}
+
+.sv-ink-link {
+  margin-top: 6px;
+  color: var(--sv-red);
+  background: transparent;
+  border-bottom: 1.5px solid rgba(138, 28, 20, 0.35);
+  font-size: 13.5px;
+}
+
+.sv-ink-link:hover {
+  border-bottom-color: var(--sv-red);
+}
+
+.sv-audience-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: rgba(101, 56, 17, 0.08);
+}
+
+.sv-audience-tabs button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(35, 16, 6, 0.72);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sv-audience-tabs button.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--sv-red), var(--sv-gold));
+  box-shadow: 0 6px 14px rgba(138, 28, 20, 0.28);
+}
+
+.sv-audience-panel {
+  padding: 16px;
+}
+
+.sv-audience-panel h3 {
+  margin: 0 0 10px;
+  color: #1e0900;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.sv-audience-panel p {
+  margin: 0 0 14px;
+  color: rgba(35, 16, 6, 0.74);
+  line-height: 1.55;
+  font-size: 13.5px;
+}
+
+.sv-audience-panel ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sv-audience-panel li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: rgba(35, 16, 6, 0.85);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sv-audience-panel li svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--sv-gold);
+}
+
+.sv-feature-notes {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.sv-feature-notes div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1.5px solid rgba(212, 155, 53, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 252, 240, 0.58);
+}
+
+.sv-map-panel {
+  position: relative;
+  min-height: 210px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1.5px solid rgba(212, 155, 53, 0.35);
+  background: #2b1106;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.sv-map-panel img {
+  position: absolute;
+  inset: 0;
+  opacity: 0.68;
+  filter: sepia(0.38) saturate(0.85);
+  transition: transform 0.8s ease;
+}
+
+.sv-map-panel:hover img {
+  transform: scale(1.05);
+}
+
+.sv-map-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(20, 8, 3, 0.82));
+  z-index: 1;
+}
+
+.sv-map-panel div {
+  position: absolute;
+  z-index: 2;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+  color: #fff4d7;
+}
+
+.sv-map-panel strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+}
+
+.sv-map-panel span {
+  color: rgba(255, 244, 215, 0.8);
+  font-size: 13px;
+}
+
+/* Beautiful zoom-hover Era Grid */
+.sv-era-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sv-era-card {
+  position: relative;
+  min-height: 110px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(212, 155, 53, 0.28);
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  color: #fff8df;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.sv-era-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(25, 8, 3, 0.38), rgba(28, 7, 5, 0.86));
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.sv-era-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--sv-gold);
+  box-shadow: 0 16px 32px rgba(42, 17, 4, 0.35);
+}
+
+.sv-era-card:hover::before {
+  opacity: 0.9;
+}
+
+.sv-era-card span,
+.sv-era-card strong,
+.sv-era-card em {
+  position: relative;
+  z-index: 2;
+  display: block;
+}
+
+.sv-era-card span {
+  color: var(--sv-gold-light);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.sv-era-card strong {
+  margin-top: 24px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 14.5px;
+  line-height: 1.25;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.sv-era-card em {
+  margin-top: 4px;
+  color: rgba(255, 248, 223, 0.8);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+/* Beautiful Serif Stat Cards */
+.sv-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sv-stat-card {
+  min-height: 124px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.sv-stat-card svg {
+  color: var(--sv-red);
+  margin-bottom: 8px;
+}
+
+.sv-stat-card strong {
+  color: #1e0900;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(24px, 2.8vw, 34px);
+  line-height: 1;
+}
+
+.sv-stat-card small {
+  margin-left: 2px;
+  color: var(--sv-red);
+  font-size: 16px;
+}
+
+.sv-stat-card span {
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.sv-advantage-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+}
+
+/* Premium Gold sheen Final CTA and Footer */
+.sv-final-cta {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1.5px solid rgba(212, 155, 53, 0.32);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 240, 0.95), rgba(212, 155, 53, 0.12));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.5), 0 8px 24px rgba(73, 35, 7, 0.03);
+}
+
+.sv-final-cta div {
+  margin-bottom: 14px;
+}
+
+.sv-final-cta span,
+.sv-footer-book dt {
+  display: block;
+  color: rgba(138, 28, 20, 0.72);
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.sv-final-cta strong {
+  display: block;
+  margin-top: 6px;
+  color: #271107;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.sv-footer-book h3 {
+  margin: 0 0 10px;
+  color: #1e0900;
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.sv-footer-book p {
+  margin: 0 0 12px;
+  color: rgba(35, 16, 6, 0.7);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sv-footer-book dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.sv-footer-book div {
+  min-width: 0;
+}
+
+.sv-footer-book dd {
+  margin: 4px 0 0;
+  color: #271107;
+  font-size: 11.5px;
+  line-height: 1.38;
+}
+
+.sv-footer-book a {
+  color: var(--sv-red);
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.sv-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sv-footer-links button,
+.sv-mobile-footer-links button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(212, 155, 53, 0.35);
+  border-radius: 999px;
+  color: var(--sv-red);
+  background: rgba(255, 252, 240, 0.9);
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sv-footer-links button:hover,
+.sv-mobile-footer-links button:hover {
+  background: var(--sv-red);
+  color: #ffffff;
+  border-color: var(--sv-red);
+  transform: translateY(-1.5px);
+}
+
+.sv-footer-book small {
+  display: block;
+  margin-top: 14px;
+  color: rgba(35, 16, 6, 0.48);
+  font-size: 10px;
+}
+
+/* Glassmorphic Arrow Controls */
+.sv-book-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 30;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 155, 53, 0.52);
+  color: #fbe6ad;
+  background: rgba(25, 8, 3, 0.82);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.sv-book-arrow-left {
+  left: -78px;
+}
+
+.sv-book-arrow-right {
+  right: -78px;
+}
+
+.sv-book-arrow:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.08);
+  background: linear-gradient(135deg, var(--sv-red), rgba(212, 155, 53, 0.95));
+  border-color: var(--sv-gold-light);
+  box-shadow: 0 16px 36px rgba(138, 28, 20, 0.42);
+}
+
+.sv-book-arrow:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+  border-color: rgba(212, 155, 53, 0.2);
+}
+
+.sv-book-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sv-progress-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid rgba(212, 155, 53, 0.24);
+  border-radius: 999px;
+  background: rgba(25, 8, 3, 0.48);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.sv-progress-dots button {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(212, 155, 53, 0.65);
+  border-radius: 50%;
+  background: rgba(212, 155, 53, 0.2);
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.sv-progress-dots button:hover {
+  background: rgba(212, 155, 53, 0.5);
+  transform: scale(1.18);
+}
+
+.sv-progress-dots button.active {
+  background: #f1c45f;
+  border-color: #fff5dd;
+  transform: scale(1.42);
+  box-shadow: 0 0 18px rgba(241, 196, 95, 0.72);
+}
+
+.sv-close-book {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  color: #fff0d4;
+  border: 1.5px solid rgba(212, 155, 53, 0.24);
+  border-radius: 999px;
+  background: rgba(30, 12, 4, 0.58);
+  backdrop-filter: blur(12px);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.sv-close-book:hover {
+  background: rgba(138, 28, 20, 0.82);
+  border-color: var(--sv-gold);
+}
+
+.sv-book-mobile-reader {
+  display: none;
+}
+
+/* Modals with enhanced Cinnabar Gold design */
+.sv-modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sv-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 5, 2, 0.88);
+  backdrop-filter: blur(14px);
+}
+
+.sv-modal-card,
+.sv-era-modal {
+  position: relative;
+  z-index: 2;
+  width: min(720px, 100%);
+  max-height: 86vh;
+  overflow: hidden;
+  border: 2px solid var(--sv-gold);
+  border-radius: 12px;
+  background:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    linear-gradient(145deg, #fff6dd, #ead8ae);
+  box-shadow: 
+    0 24px 72px rgba(0, 0, 0, 0.72),
+    inset 0 0 40px rgba(89, 43, 14, 0.08);
+}
+
+.sv-modal-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px;
+  color: #fff6dd;
+  background: linear-gradient(135deg, #460904, #8a1c14);
+  border-bottom: 2px solid var(--sv-gold);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+}
+
+.sv-modal-card header h3 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  font-weight: 900;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.sv-modal-card header button,
+.sv-era-modal-hero button {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(255, 236, 193, 0.35);
+  border-radius: 50%;
+  color: #fff6dd;
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sv-modal-card header button:hover,
+.sv-era-modal-hero button:hover {
+  background: var(--sv-red);
+  border-color: #ffffff;
+  transform: scale(1.08);
+}
+
+.sv-modal-content {
+  max-height: min(60vh, 580px);
+  overflow-y: auto;
+  padding: 28px;
+  color: #271107;
+}
+
+.sv-modal-content h2,
+.sv-modal-content h4 {
+  color: #1e0900;
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.sv-modal-content h2 {
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.sv-modal-content h4 {
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--sv-red);
+  padding-left: 10px;
+}
+
+.sv-modal-content p {
+  color: rgba(35, 16, 6, 0.78);
+  line-height: 1.76;
+}
+
+.sv-modal-seal {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  color: #fff6dd;
+  background: linear-gradient(135deg, var(--sv-red), var(--sv-gold));
+  border: 2px solid var(--sv-gold-light);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 32px;
+  font-weight: 900;
+  box-shadow: 0 8px 24px rgba(138, 28, 20, 0.28);
+}
+
+.sv-modal-ledger {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1.5px solid rgba(212, 155, 53, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 252, 240, 0.72);
+}
+
+.sv-contact-list {
+  display: grid;
+  gap: 14px;
+}
+
+.sv-contact-list a {
+  display: block;
+  padding: 14px 16px;
+  border: 1.5px solid rgba(212, 155, 53, 0.28);
+  border-radius: 10px;
+  color: var(--sv-red);
+  font-weight: 900;
+  background: rgba(255, 252, 240, 0.72);
+  transition: all 0.24s ease;
+}
+
+.sv-contact-list a:hover {
+  transform: translateX(4px);
+  border-color: var(--sv-red);
+  background: #ffffff;
+}
+
+.sv-modal-card footer {
+  padding: 18px 24px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(127, 29, 29, 0.15);
+  background: rgba(255, 252, 240, 0.58);
+}
+
+.sv-modal-card footer button,
+.sv-era-modal-body button {
+  min-height: 42px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--sv-red), var(--sv-gold));
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(138, 28, 20, 0.24);
+}
+
+.sv-modal-card footer button:hover,
+.sv-era-modal-body button:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 18px rgba(138, 28, 20, 0.35);
+}
+
+.sv-era-modal {
+  width: min(680px, 100%);
+}
+
+.sv-era-modal-hero {
+  position: relative;
+  height: 280px;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 2px solid var(--sv-gold);
+}
+
+.sv-era-modal-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(26, 8, 3, 0.85));
+}
+
+.sv-era-modal-hero button {
+  position: absolute;
+  z-index: 10;
+  top: 18px;
+  right: 18px;
+}
+
+.sv-era-modal-body {
+  position: relative;
+  z-index: 2;
+  margin-top: -66px;
+  padding: 0 28px 28px;
+  text-align: center;
+}
+
+.sv-era-modal-body span {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 20px;
+  border-radius: 999px;
+  color: #fbe6ad;
+  background: rgba(30, 12, 4, 0.9);
+  border: 1.5px solid var(--sv-gold);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.sv-era-modal-body h3 {
+  margin: 18px 0 12px;
+  color: #1e0900;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 36px;
+  font-weight: 900;
+}
+
+.sv-era-modal-body p {
+  max-width: 560px;
+  margin: 0 auto 24px;
+  color: rgba(35, 16, 6, 0.85);
+  font-family: "Lora", Georgia, serif;
+  line-height: 1.76;
+  font-size: 14.5px;
+}
+
+@keyframes svBookSlowSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   RESPONSIVE MEDIA QUERIES - FULL MOBILE 3D GESTURES
+   ============================================================ */
+
+@media (max-width: 1180px) {
+  .sv-book-nav {
+    display: none;
+  }
+
+  .sv-book-arrow-left {
+    left: -24px;
+  }
+
+  .sv-book-arrow-right {
+    right: -24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .sv-book-shell {
+    width: min(96vw, 840px);
+    height: clamp(600px, 78vh, 730px);
+  }
+
+  .sv-book-page {
+    padding: clamp(20px, 2.5vw, 32px);
+  }
+
+  .sv-book-page-left {
+    padding-right: 32px;
+  }
+
+  .sv-book-page-right {
+    padding-left: 32px;
+  }
+
+  .sv-chapter-head h2 {
+    font-size: 32px;
+  }
+
+  .sv-era-card {
+    min-height: 112px;
+  }
+}
+
+/* 3D Single Page View on Mobile Phones (No vertical scrolling layout!) */
+@media (max-width: 767px) {
+  .sv-book-root {
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sv-book-header {
+    position: fixed;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: rgba(20, 8, 3, 0.88);
+    backdrop-filter: blur(18px);
+    border-bottom: 1.5px solid rgba(212, 155, 53, 0.28);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .sv-brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sv-brand > span:last-child {
+    font-size: 18px;
+  }
+
+  .sv-header-game,
+  .sv-header-actions {
+    display: none;
+  }
+
+  .sv-book-desktop-stage {
+    padding: 84px 12px 28px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Shrink shell to single page size fitting mobile viewport */
+  .sv-book-shell {
+    width: min(440px, 94vw);
+    height: clamp(520px, 74vh, 630px);
+    transform: rotateX(0deg) rotateY(0deg) !important;
+  }
+
+  /* Stacked pages hidden or made small */
+  .sv-page-stack {
+    width: calc(100% - 10px);
+    left: 5px;
+    right: 5px;
+    border: 1px solid rgba(212, 155, 53, 0.2);
+    box-shadow: 
+      0 1px 0 #baa680,
+      0 2px 0 #b09c76,
+      0 3px 5px rgba(0,0,0,0.35);
+  }
+  .sv-page-stack-left,
+  .sv-page-stack-right {
+    display: none;
+  }
+
+  /* Cover adaptation for mobile */
+  .sv-book-cover {
+    width: 100% !important;
+    border-radius: 12px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.55);
+  }
+  
+  .sv-cover-spine,
+  .sv-cover-ribs {
+    display: none;
+  }
+
+  .sv-cover-inner {
+    padding: 36px 20px;
+  }
+
+  .sv-cover-emblem {
+    width: 108px;
+    height: 108px;
+  }
+  .sv-cover-emblem span {
+    font-size: 44px;
+  }
+
+  /* Spread becomes single-page layout */
+  .sv-book-spread {
+    grid-template-columns: 1fr;
+    border-radius: 12px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.45);
+  }
+
+  /* The page sheet becomes full width on mobile */
+  .sv-3d-sheet {
+    width: 100%;
+    left: 0;
+    transform-origin: left center;
+  }
+
+  .sv-book-page {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 24px 20px;
+    border-radius: 12px;
+    overflow-y: auto; /* Enable scroll on mobile flat layouts */
+  }
+
+  .sv-book-page-left,
+  .sv-book-page-right {
+    padding: 24px 20px;
+    border-right: 0;
+  }
+
+  .sv-page-inner-border {
+    inset: 8px;
+  }
+
+  .sv-book-gutter,
+  .sv-gutter-ribbon {
+    display: none;
+  }
+
+  .sv-chapter-head h2 {
+    font-size: clamp(23px, 5.5vw, 30px);
+  }
+
+  /* Arrows scale down and shift */
+  .sv-book-arrow {
+    width: 44px;
+    height: 44px;
+  }
+  .sv-book-arrow-left {
+    left: 4px;
+  }
+  .sv-book-arrow-right {
+    right: 4px;
+  }
+
+  /* UI Cards responsive scaling */
+  .sv-era-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .sv-era-card {
+    min-height: 84px;
+  }
+  .sv-era-card strong {
+    margin-top: 14px;
+  }
+
+  .sv-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .sv-stat-card {
+    min-height: 100px;
+    padding: 8px;
+  }
+
+  .sv-toc-list button {
+    grid-template-columns: 36px 1fr auto;
+    min-height: 48px;
+    padding: 6px 12px;
+  }
+  .sv-toc-list span {
+    font-size: 17px;
+  }
+  .sv-toc-list em {
+    margin-top: -8px;
+  }
+
+  .sv-audience-tabs button {
+    font-size: 11px;
+    min-height: 28px;
+  }
+
+  .sv-final-cta strong {
+    font-size: 20px;
+  }
+  
+  .sv-footer-book {
+    overflow-y: auto;
+    max-height: 100%;
+    padding-bottom: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-book-root *,
+  .sv-book-root *::before,
+  .sv-book-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -5,10 +5,42 @@ import json
 from app.config import settings
 from chatbot.utils.question_normalizer import normalize_question
 
+class CustomRow:
+    def __init__(self, cursor, row):
+        self.fields = [col[0] for col in cursor.description]
+        self.values = row
+        
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            val = self.values[key]
+            name = self.fields[key]
+        else:
+            try:
+                idx = self.fields.index(key)
+                val = self.values[idx]
+                name = key
+            except ValueError:
+                raise KeyError(key)
+        
+        # Format datetime strings to ISO format with UTC 'Z' suffix
+        if isinstance(val, str) and (name.endswith('_at') or name.endswith('_time')):
+            if len(val) == 19 and val[4] == '-' and val[7] == '-' and val[13] == ':' and val[16] == ':':
+                if val[10] == ' ':
+                    return val.replace(' ', 'T') + 'Z'
+                elif val[10] == 'T':
+                    return val + 'Z'
+        return val
+
+    def keys(self):
+        return self.fields
+
+    def __iter__(self):
+        return iter(self.fields)
+
 class BaseDB:
     def __init__(self):
         self.conn = sqlite3.connect(settings.DB_PATH)
-        self.conn.row_factory = sqlite3.Row
+        self.conn.row_factory = CustomRow
         self.cursor = self.conn.cursor()
         self._create_tables()
 
@@ -291,7 +323,7 @@ class BaseDB:
 
     def get_recent_logins(self, limit=50):
         query = """
-            SELECT ll.*, u.username, u.email 
+            SELECT ll.*, u.username, u.email, u.picture_url 
             FROM login_logs ll
             JOIN users u ON ll.user_id = u.id
             ORDER BY ll.created_at DESC
@@ -318,7 +350,7 @@ class BaseDB:
 
     def get_all_chat_logs(self):
         query = """
-            SELECT cl.*, u.username, u.email 
+            SELECT cl.*, u.username, u.email, u.picture_url 
             FROM chat_logs cl
             JOIN users u ON cl.user_id = u.id
             ORDER BY cl.created_at DESC
@@ -448,10 +480,20 @@ class UserDB(BaseDB):
     def update_or_create_google_user(self, email, full_name, picture_url):
         user = self.get_by_email(email)
         if user:
-            # Update existing user
+            # Update existing user but preserve custom name and picture
+            existing_full_name = user.get("full_name")
+            existing_picture = user.get("picture_url")
+            
+            # Keep custom name if set
+            new_full_name = existing_full_name if existing_full_name else full_name
+            
+            # Keep custom profile picture (only override if it's currently missing or Gravatar)
+            is_gravatar = existing_picture and "gravatar.com" in existing_picture
+            new_picture_url = picture_url if (not existing_picture or is_gravatar) else existing_picture
+            
             self.cursor.execute(
                 "UPDATE users SET full_name = ?, picture_url = ? WHERE email = ?",
-                (full_name, picture_url, email)
+                (new_full_name, new_picture_url, email)
             )
             self.conn.commit()
             return self.get_by_email(email)
@@ -504,7 +546,7 @@ class UserDB(BaseDB):
 
     def get_all_token_history(self):
         query = """
-            SELECT th.*, u.username, u.email 
+            SELECT th.*, u.username, u.email, u.picture_url 
             FROM token_history th
             JOIN users u ON th.user_id = u.id
             ORDER BY th.created_at DESC
@@ -601,7 +643,7 @@ class UserDB(BaseDB):
 
     def get_all_payments(self):
         query = """
-            SELECT p.*, u.username, u.email 
+            SELECT p.*, u.username, u.email, u.picture_url 
             FROM payments p
             JOIN users u ON p.user_id = u.id
             ORDER BY p.created_at DESC
@@ -620,7 +662,7 @@ class UserDB(BaseDB):
         
     def get_all_payment_reports(self):
         query = """
-            SELECT pr.*, u.username, u.email 
+            SELECT pr.*, u.username, u.email, u.picture_url 
             FROM payment_reports pr
             JOIN users u ON pr.user_id = u.id
             ORDER BY pr.created_at DESC

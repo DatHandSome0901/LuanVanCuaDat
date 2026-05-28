@@ -47,7 +47,7 @@ const App: React.FC = () => {
         const { SplashScreen } = await import('@capacitor/splash-screen');
         const { App: CapApp } = await import('@capacitor/app');
         const { Browser } = await import('@capacitor/browser');
-        
+
         await StatusBar.setBackgroundColor({ color: '#7c1515' });
         await StatusBar.setStyle({ style: Style.Dark });
         await SplashScreen.hide();
@@ -58,7 +58,7 @@ const App: React.FC = () => {
             const token = urlObj.searchParams.get('token');
             if (token) {
               localStorage.setItem('access_token', token);
-              Browser.close().catch(() => {});
+              Browser.close().catch(() => { });
               window.location.reload();
             }
           }
@@ -75,7 +75,19 @@ const App: React.FC = () => {
     site_title: 'Chatbot Lịch sử',
     landing_bg: '',
     chat_bg: '',
-    favicon_url: ''
+    favicon_url: '',
+    game_enabled: 1,
+    landing_hero_title: '',
+    landing_hero_subtitle: '',
+    landing_section_eras_title: '',
+    landing_section_stats_title: '',
+    landing_section_features_title: '',
+    landing_eras_json: '',
+    landing_footer_company: '',
+    landing_footer_mst: '',
+    landing_footer_representative: '',
+    landing_footer_address: '',
+    landing_footer_phone: ''
   });
 
   const fetchSiteConfig = async () => {
@@ -85,7 +97,7 @@ const App: React.FC = () => {
       // Chuẩn hóa URL ảnh: nếu URL chứa host cũ (IP/localhost khác), thay bằng API_ROOT hiện tại
       const normalizeUrl = (url: string): string => {
         if (!url) return '';
-        
+
         // Nếu là absolute URL (bắt đầu bằng http)
         if (url.startsWith('http')) {
           try {
@@ -111,7 +123,19 @@ const App: React.FC = () => {
         site_title: config.site_title || "Chatbot",
         landing_bg: normalizeUrl(config.landing_bg || ""),
         chat_bg: normalizeUrl(config.chat_bg || ""),
-        favicon_url: normalizeUrl(config.favicon_url || "")
+        favicon_url: normalizeUrl(config.favicon_url || ""),
+        game_enabled: config.game_enabled !== undefined ? config.game_enabled : 1,
+        landing_hero_title: config.landing_hero_title || '',
+        landing_hero_subtitle: config.landing_hero_subtitle || '',
+        landing_section_eras_title: config.landing_section_eras_title || '',
+        landing_section_stats_title: config.landing_section_stats_title || '',
+        landing_section_features_title: config.landing_section_features_title || '',
+        landing_eras_json: config.landing_eras_json || '',
+        landing_footer_company: config.landing_footer_company || '',
+        landing_footer_mst: config.landing_footer_mst || '',
+        landing_footer_representative: config.landing_footer_representative || '',
+        landing_footer_address: config.landing_footer_address || '',
+        landing_footer_phone: config.landing_footer_phone || ''
       });
     } catch (err) {
       console.error("Load config lỗi:", err);
@@ -120,7 +144,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     fetchSiteConfig();
-    
+
     // Lắng nghe sự kiện cập nhật cấu hình từ Admin
     window.addEventListener('reload_site_config', fetchSiteConfig);
     return () => window.removeEventListener('reload_site_config', fetchSiteConfig);
@@ -131,7 +155,7 @@ const App: React.FC = () => {
     try {
       const userData = await api.checkAuth();
       setUser(userData);
-      setCurrentView('chat');
+      setCurrentView(userData.is_admin ? 'admin' : 'chat');
     } catch {
       setUser(null);
     } finally {
@@ -187,7 +211,7 @@ const App: React.FC = () => {
   const handleLoginSuccess = (userData: User, token: string) => {
     localStorage.setItem('access_token', token);
     setUser(userData);
-    setCurrentView('chat');
+    setCurrentView(userData.is_admin ? 'admin' : 'chat');
     fetchSiteConfig();
   };
 
@@ -213,7 +237,7 @@ const App: React.FC = () => {
     <div className={`flex h-screen ${currentView === 'landing' ? 'bg-black' : 'bg-[#f8f6f2]'} ${isNative ? 'is-native' : ''}`}>
       {/* SIDEBAR */}
       <AnimatePresence>
-        {currentView !== 'landing' && (
+        {currentView !== 'landing' && currentView !== 'admin' && (
           <Sidebar
             user={user}
             currentView={currentView}
@@ -232,12 +256,12 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col overflow-hidden min-h-0 relative">
 
         {/* CONTENT */}
-        <div className={`flex-1 ${currentView === 'chat' ? 'overflow-hidden' : 'overflow-y-auto'} ${isNative ? 'scrolling-touch' : ''} ${currentView !== 'landing' ? 'with-nav-padding' : ''}`}>
+        <div className={`flex-1 ${(currentView === 'chat' || currentView === 'admin') ? 'overflow-hidden' : 'overflow-y-auto'} ${isNative ? 'scrolling-touch' : ''} ${currentView !== 'landing' ? 'with-nav-padding' : ''}`}>
           {currentView === 'landing' ? (
             isNative ? (
-              <LandingPageMobile siteConfig={siteConfig} onStart={() => setCurrentView('chat')} user={user} />
+              <LandingPageMobile siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
             ) : (
-              <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView('chat')} user={user} />
+              <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
             )
           ) : !user && currentView !== 'chat' ? (
             <AuthView onSuccess={handleLoginSuccess} />
@@ -266,7 +290,7 @@ const App: React.FC = () => {
               )}
               {currentView === 'payment' && <PaymentView onBalanceUpdate={updateBalance} isSidebarOpen={isSidebarOpen} />}
               {currentView === 'qa' && user && <QAView user={user} onBalanceUpdate={updateBalance} onNavigate={setCurrentView} />}
-              {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} />}
+              {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
               {currentView === 'profile' && user && <ProfileView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
             </>
           )}

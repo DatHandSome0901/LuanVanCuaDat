@@ -16,52 +16,60 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       whileHover={{ 
-        y: -10,
-        scale: 1.02,
-        boxShadow: "0 25px 50px -12px rgba(180, 83, 9, 0.15)"
+        y: -5,
+        scale: 1.01,
+        boxShadow: "0 20px 40px -12px rgba(127, 29, 29, 0.15)"
       }}
-      className="bg-white rounded-3xl border border-stone-100 p-8 shadow-sm transition-all flex flex-col group relative overflow-hidden"
+      className="paper-texture scroll-border p-6 rounded-2xl border-double border-4 border-amber-600/30 shadow-md transition-all flex flex-col group relative overflow-hidden min-h-[300px]"
     >
       {/* Popular Badge for middle package */}
       {pkg.tokens === 350 && (
-        <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-widest shadow-md z-10">
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-[#7f1d1d] to-[#451a03] text-amber-100 text-[8px] font-historical font-black px-4 py-1.5 rounded-bl-xl uppercase tracking-widest shadow-md z-10 border-l border-b border-amber-500/40">
           Phổ biến nhất
         </div>
       )}
 
-      <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-amber-100 transition-colors">
-          <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.5)] border border-amber-300">
-            <span className="text-xs font-black text-red-950 font-serif">史</span>
-          </div>
+      {/* Decree Mark Icon */}
+      <div className="w-12 h-12 bg-amber-100/50 border border-amber-300 rounded-2xl flex items-center justify-center mb-6 shadow-inner font-historical font-black text-[#7f1d1d] text-lg shrink-0">
+        敕
       </div>
       
-      <h3 className="text-xl font-black text-stone-800 mb-2 tracking-tight">{pkg.name}</h3>
-      <div className="flex items-baseline gap-1 mb-6">
-          <span className="text-4xl font-black text-amber-600">{pkg.tokens}</span>
-          <span className="text-stone-400 text-sm font-black uppercase tracking-widest">Tokens</span>
+      {/* Title */}
+      <h3 className="text-lg font-sans font-black text-[#7f1d1d] mb-1.5 tracking-wide leading-tight">{pkg.name}</h3>
+      
+      {/* Tokens */}
+      <div className="flex items-baseline gap-1 mb-5">
+          <span className="text-4xl font-historical font-black text-amber-800">{pkg.tokens}</span>
+          <span className="text-amber-900/60 text-xs font-sans uppercase tracking-widest font-normal">Tệ</span>
       </div>
       
-      <div className="space-y-3 mb-8 text-sm text-stone-500 font-medium">
+      {/* Features list */}
+      <div className="space-y-2 mb-8 text-xs text-stone-500 font-sans leading-relaxed italic">
           <p className="flex items-center gap-2 group-hover:text-stone-700 transition-colors">
-              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-              Không giới hạn thời gian
+              <svg className="w-3.5 h-3.5 text-green-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+              Không giới hạn thời hạn sử dụng
           </p>
           <p className="flex items-center gap-2 group-hover:text-stone-700 transition-colors">
-              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+              <svg className="w-3.5 h-3.5 text-green-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
               Tốc độ trả lời ưu tiên
           </p>
       </div>
 
+      {/* Nạp Button */}
       <motion.button 
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         onClick={() => onSelect(pkg.id)}
         disabled={isProcessing}
-        className="mt-auto w-full py-4 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 text-white font-black hover:from-amber-700 hover:to-orange-700 shadow-lg shadow-amber-900/20 transition-all flex flex-col items-center group/btn relative overflow-hidden"
+        className="mt-auto w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7f1d1d] to-[#451a03] hover:from-[#b45309] hover:to-[#7f1d1d] text-amber-100 font-historical font-black text-xs uppercase tracking-widest border border-amber-500/40 shadow-lg transition-all flex flex-col items-center group/btn relative overflow-hidden"
       >
-        <span className="relative z-10">{pkg.amount_vnd.toLocaleString('vi-VN')} VNĐ</span>
-        <span className="relative z-10 text-[9px] opacity-80 font-bold uppercase tracking-tighter">Nạp ngay qua VietQR</span>
-        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500" />
+        <span className="relative z-10 font-bold">{pkg.amount_vnd.toLocaleString('vi-VN')} VNĐ</span>
+        <span className="relative z-10 text-[8px] opacity-80 font-bold uppercase tracking-widest mt-0.5">Nạp ngay qua VietQR</span>
+        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500" />
       </motion.button>
     </motion.div>
   );

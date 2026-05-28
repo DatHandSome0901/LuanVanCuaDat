@@ -15,9 +15,22 @@ interface ChatMessageItemProps {
   onRateClick?: (messageId: string | number, rating: number) => void;
   onRelatedQuestionClick?: (question: string) => void; // ✅ [MỚI]
   onTypingFrame?: () => void;
+  isSpeaking?: boolean;
+  onSpeakToggle?: (id: string, text: string) => void;
 }
 
-const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botAvatar, userName, onSourceClick, onRateClick, onRelatedQuestionClick, onTypingFrame }) => {
+const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ 
+  msg, 
+  userAvatar, 
+  botAvatar, 
+  userName, 
+  onSourceClick, 
+  onRateClick, 
+  onRelatedQuestionClick, 
+  onTypingFrame,
+  isSpeaking = false,
+  onSpeakToggle
+}) => {
   const [imgError, setImgError] = React.useState(false);
   const [currentRating, setCurrentRating] = React.useState(msg.rating || 0);
 
@@ -59,14 +72,14 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
       if (cancelled) return;
 
       const remaining = fullText.length - index;
-      const chunkSize = remaining > 2000 ? 24 : remaining > 1000 ? 18 : remaining > 400 ? 12 : 7;
+      const chunkSize = remaining > 2000 ? 30 : remaining > 1000 ? 20 : remaining > 400 ? 12 : 6;
       index = Math.min(fullText.length, index + chunkSize);
 
       setDisplayContent(fullText.slice(0, index));
       onTypingFrame?.();
 
       if (index < fullText.length) {
-        window.setTimeout(tick, 12);
+        window.setTimeout(tick, 25);
       } else {
         setIsTypingText(false);
         onTypingFrame?.();
@@ -164,10 +177,34 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
           title="Sao chép tin nhắn"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
           </svg>
         </button>
         )}
+
+        {/* Speak Button (Floating above Copy Button) */}
+        {!showCursor && msg.role === 'assistant' && onSpeakToggle && (
+        <button 
+          onClick={() => onSpeakToggle(String(msg.id), msg.content)}
+          className={`absolute -right-12 bottom-14 p-2.5 bg-white border border-stone-100 rounded-xl transition-all shadow-sm opacity-0 group-hover:opacity-100 flex items-center justify-center z-20 ${
+            isSpeaking 
+              ? 'bg-red-50 border-red-200 text-red-700 hover:text-red-800' 
+              : 'text-stone-400 hover:text-red-700 hover:border-red-200'
+          }`}
+          title={isSpeaking ? "Dừng đọc" : "Đọc thành tiếng"}
+        >
+          {isSpeaking ? (
+            <svg className="w-4 h-4 text-red-700 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="6" width="12" height="12" rx="1.5" strokeWidth={2} />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.75V5.25L7.75 9.5H4.5v5h3.25L12 18.75z" />
+            </svg>
+          )}
+        </button>
+        )}
+
 
         <div className={`prose prose-sm md:prose-base max-w-none leading-[1.9] overflow-x-hidden relative z-10 ${msg.role === 'user' ? 'prose-invert font-medium' : 'prose-stone prose-headings:text-red-900 prose-headings:font-historical-premium prose-strong:text-red-950 prose-p:text-stone-800'}`}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -243,6 +280,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
           <div className="flex items-center gap-2">
             {msg.role === 'assistant' && (
               <div className="flex items-center gap-1 mr-2">
+
                 <button 
                   onClick={() => handleRate(1)}
                   className={`p-1.5 rounded-lg transition-colors ${currentRating === 1 ? 'bg-green-100 text-green-600' : 'hover:bg-stone-100 text-stone-400'}`}
@@ -294,4 +332,20 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, userAvatar, botA
   </>);
 };
 
-export default ChatMessageItem;
+export default React.memo(ChatMessageItem, (prev, next) => {
+  return (
+    prev.msg.id === next.msg.id &&
+    prev.msg.content === next.msg.content &&
+    prev.msg.isStreaming === next.msg.isStreaming &&
+    prev.msg.animate === next.msg.animate &&
+    prev.msg.rating === next.msg.rating &&
+    prev.msg.tokens_charged === next.msg.tokens_charged &&
+    prev.userAvatar === next.userAvatar &&
+    prev.userName === next.userName &&
+    prev.botAvatar === next.botAvatar &&
+    prev.msg.sources?.length === next.msg.sources?.length &&
+    prev.msg.related_questions?.length === next.msg.related_questions?.length &&
+    prev.isSpeaking === next.isSpeaking &&
+    prev.onSpeakToggle === next.onSpeakToggle
+  );
+});

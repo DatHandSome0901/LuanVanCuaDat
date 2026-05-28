@@ -7,11 +7,17 @@ interface ChatInputProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ input, setInput, isLoading, onSubmit }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ 
+  input, 
+  setInput, 
+  isLoading, 
+  onSubmit,
+}) => {
   return (
     <footer className="p-4 md:p-8 bg-gradient-to-t from-black/20 to-transparent relative z-10">
       <div className="max-w-4xl mx-auto relative">
         <div className="relative flex items-end gap-3 bg-white/50 backdrop-blur-2xl border-[3px] border-[#451a03] p-2 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] focus-within:border-amber-800 transition-all after:absolute after:inset-0 after:rounded-[28px] after:border after:border-amber-400/20 after:pointer-events-none">
+          
           <textarea
             value={input}
             onChange={(e) => {

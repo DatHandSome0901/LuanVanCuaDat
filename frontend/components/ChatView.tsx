@@ -33,6 +33,13 @@ const ChatView: React.FC<ChatViewProps> = ({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isStreamingActive, setIsStreamingActive] = useState(false); // true while SSE tokens are flowing
+  const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
+  const currentlySpeakingIdRef = useRef<string | null>(null);
+  const setCurrentlySpeaking = useCallback((id: string | null) => {
+    currentlySpeakingIdRef.current = id;
+    setCurrentlySpeakingId(id);
+  }, []);
+
   const [dots, setDots] = useState('');
   useEffect(() => {
   if (!isLoading) return;
@@ -52,8 +59,14 @@ const ChatView: React.FC<ChatViewProps> = ({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
+  const lastScrollTimeRef = useRef(0);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((force = false) => {
+    const now = Date.now();
+    if (!force && now - lastScrollTimeRef.current < 100) {
+      return;
+    }
+    lastScrollTimeRef.current = now;
     requestAnimationFrame(() => {
       if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -74,6 +87,89 @@ const ChatView: React.FC<ChatViewProps> = ({
       loadMessages(convId);
     }
   }, []);
+
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      const handleVoicesChanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+      window.speechSynthesis.getVoices();
+      return () => {
+        window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+      };
+    }
+  }, []);
+
+
+
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  const stopSpeaking = useCallback(() => {
+    window.speechSynthesis.cancel();
+    setCurrentlySpeaking(null);
+  }, [setCurrentlySpeaking]);
+
+  const speakText = useCallback((id: string, text: string) => {
+    if (!('speechSynthesis' in window)) {
+      toast.error('Trình duyệt của bạn không hỗ trợ đọc văn bản (TTS).');
+      return;
+    }
+
+    if (currentlySpeakingIdRef.current === id) {
+      window.speechSynthesis.cancel();
+      setCurrentlySpeaking(null);
+      return;
+    }
+
+    // Clean markdown characters for cleaner reading
+    const cleanText = text
+      .replace(/```[\s\S]*?```/g, '') // remove code blocks
+      .replace(/`([^`]+)`/g, '$1')     // remove inline code
+      .replace(/[*#_~]/g, '')          // remove markdown formatting
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // remove markdown links, keeping text
+      .replace(/<\/?[^>]+(>|$)/g, ""); // remove HTML tags
+
+    if (!cleanText.trim()) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'vi-VN';
+
+    const voices = window.speechSynthesis.getVoices();
+    const viVoice = voices.find(v => v.lang.startsWith('vi'));
+    if (viVoice) {
+      utterance.voice = viVoice;
+    }
+
+    utterance.onend = () => {
+      setCurrentlySpeaking(null);
+    };
+
+    utterance.onerror = (e) => {
+      console.error('TTS error:', e);
+      setCurrentlySpeaking(null);
+    };
+
+    const isSpeakingActive = window.speechSynthesis.speaking || window.speechSynthesis.pending;
+
+    if (isSpeakingActive) {
+      window.speechSynthesis.cancel();
+      setCurrentlySpeaking(null);
+      // Use a small timeout to avoid Chrome/Edge speechSynthesis cancel-speak bug
+      setTimeout(() => {
+        setCurrentlySpeaking(id);
+        window.speechSynthesis.speak(utterance);
+      }, 100);
+    } else {
+      // Direct call preserves user gesture activation perfectly!
+      setCurrentlySpeaking(id);
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [setCurrentlySpeaking]);
 
   // ===============================
   // LOAD MESSAGES
@@ -218,6 +314,9 @@ const ChatView: React.FC<ChatViewProps> = ({
       return;
     }
 
+    // Stop any ongoing speech when user submits a new message
+    stopSpeaking();
+
     isSubmittingRef.current = true;
 
     const userMsg: ChatMessage = {
@@ -285,7 +384,7 @@ const ChatView: React.FC<ChatViewProps> = ({
       let animFrameId: number | null = null;
       let lastTickTime = 0;
 
-      const CHAR_DELAY_MS = 18;   // ms between each character
+      const CHAR_DELAY_MS = 30;   // ms between each character group update
 
       const drainQueue = (timestamp: number) => {
         const elapsed = timestamp - lastTickTime;
@@ -293,15 +392,17 @@ const ChatView: React.FC<ChatViewProps> = ({
         // Calculate backlog
         const backlog = receivedBuffer.length - displayedSoFar.length;
         
-        // Capped adaptive typing speed:
-        // - Small backlog (normal streaming): 1 char at a time
-        // - Medium backlog (cache hit / web fallback): 2 chars at a time
-        // - Huge backlog: scale up but cap at 5 characters to maintain a readable typewriter effect
         let charsPerTick = 1;
-        if (backlog > 400) {
-          charsPerTick = Math.min(5, Math.ceil(backlog / 100));
+        if (backlog > 300) {
+          charsPerTick = Math.min(backlog, Math.ceil(backlog / 6));
         } else if (backlog > 100) {
+          charsPerTick = Math.min(backlog, 8);
+        } else if (backlog > 30) {
+          charsPerTick = 4;
+        } else if (backlog > 10) {
           charsPerTick = 2;
+        } else {
+          charsPerTick = 1;
         }
 
         if (elapsed >= CHAR_DELAY_MS && backlog > 0) {
@@ -329,6 +430,7 @@ const ChatView: React.FC<ChatViewProps> = ({
           if (doneMetaRef) {
             applyDoneMeta(doneMetaRef);
           }
+          scrollToBottom(true);
         }
       };
 
@@ -337,6 +439,7 @@ const ChatView: React.FC<ChatViewProps> = ({
 
       // Apply [DONE] metadata — only called after queue is fully drained
       const applyDoneMeta = (meta: any) => {
+        const finalMsgId = String(meta.message_id || streamingId);
         if (meta._isWebFallback) {
           // Web-fallback path: content already set by pollChatJob
           onBalanceUpdate(meta.user_token_balance);
@@ -346,7 +449,7 @@ const ChatView: React.FC<ChatViewProps> = ({
               m.id === streamingId
                 ? {
                     ...m,
-                    id: meta.message_id || streamingId,
+                    id: finalMsgId,
                     tokens_charged: meta.tokens_charged,
                     sources: meta.sources || [],
                     related_questions: meta.related_questions || [],
@@ -361,6 +464,7 @@ const ChatView: React.FC<ChatViewProps> = ({
           }
         }
         window.dispatchEvent(new Event('reload_conversations'));
+
       };
 
       // eslint-disable-next-line no-constant-condition
@@ -488,9 +592,9 @@ const ChatView: React.FC<ChatViewProps> = ({
   useEffect(() => {
     // 🔥 Chỉ tự động cuộn xuống nếu có tin nhắn hoặc đang tải câu trả lời
     if (scrollRef.current && (history.length > 0 || isLoading)) {
-      scrollToBottom();
+      scrollToBottom(true);
     }
-  }, [history, isLoading, scrollToBottom]);
+  }, [history.length, isLoading, scrollToBottom]);
 
   // Detection
   const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
@@ -612,6 +716,8 @@ const ChatView: React.FC<ChatViewProps> = ({
                 handleSubmit(undefined, q);
               }}
               onTypingFrame={scrollToBottom}
+              isSpeaking={currentlySpeakingId === String(msg.id)}
+              onSpeakToggle={speakText}
             />
           ))}
 

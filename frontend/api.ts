@@ -423,7 +423,22 @@ async getSiteConfig(): Promise<{
     favicon_url: string,
     no_answer_fallback: string,
     rate_per_1000: number,
-    llm_name: string
+    llm_name: string,
+    game_enabled?: number,
+    landing_hero_title?: string,
+    landing_hero_subtitle?: string,
+    landing_section_eras_title?: string,
+    landing_section_stats_title?: string,
+    landing_section_features_title?: string,
+    landing_eras_json?: string,
+    landing_footer_company?: string,
+    landing_footer_mst?: string,
+    landing_footer_representative?: string,
+    landing_footer_address?: string,
+    landing_footer_phone?: string,
+    landing_footer_about_us?: string,
+    landing_footer_terms?: string,
+    landing_footer_privacy?: string
   }> {
     const response = await fetch(`${BASE_URL}/admin/settings`, {
       headers: getHeaders(),
@@ -451,7 +466,22 @@ async getSiteConfig(): Promise<{
     seo_keywords?: string,
     seo_author?: string,
     no_answer_fallback?: string,
-    llm_name?: string
+    llm_name?: string,
+    game_enabled?: number,
+    landing_hero_title?: string,
+    landing_hero_subtitle?: string,
+    landing_section_eras_title?: string,
+    landing_section_stats_title?: string,
+    landing_section_features_title?: string,
+    landing_eras_json?: string,
+    landing_footer_company?: string,
+    landing_footer_mst?: string,
+    landing_footer_representative?: string,
+    landing_footer_address?: string,
+    landing_footer_phone?: string,
+    landing_footer_about_us?: string,
+    landing_footer_terms?: string,
+    landing_footer_privacy?: string
   }): Promise<any> {
     const response = await fetch(`${BASE_URL}/admin/settings`, {
       method: 'POST',

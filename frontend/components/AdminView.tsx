@@ -7,6 +7,8 @@ import {
   ShieldCheck, ArrowLeft, LogOut, ThumbsDown
 } from 'lucide-react';
 import { confirmDestructive, promptInput, confirmAction, promptTokenAdjustment } from '../utils/swal';
+import { motion } from 'framer-motion';
+import SecureImage from './SecureImage';
 
 import UsersTab from './admin/UsersTab';
 import PackagesTab from './admin/PackagesTab';
@@ -20,27 +22,43 @@ import ChatLogDetailModal from './admin/ChatLogDetailModal';
 import UserDetailModal from './admin/UserDetailModal';
 import KnowledgeTab from './admin/KnowledgeTab';
 import FeedbackTab from './admin/FeedbackTab';
+import DashboardTab from './admin/DashboardTab';
 
-// type AdminTab = 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports';
-type AdminTab = 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback';
+type AdminTab = 'dashboard' | 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback';
 
 interface AdminViewProps {
   user?: any;
   onUpdateUser?: (user: any) => void;
   onLogout?: () => void;
   isSidebarOpen?: boolean;
+  onViewChange?: (view: any) => void;
 }
 
-const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen }) => {
+const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen, onViewChange }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>(
-    (localStorage.getItem('adminActiveTab') as AdminTab) || 'users'
+    (localStorage.getItem('adminActiveTab') as AdminTab) || 'dashboard'
   );
+  const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(() => {
+    return localStorage.getItem('isAdminSidebarOpen') !== 'false';
+  });
   const [paymentFilter, setPaymentFilter] = useState<'completed' | 'pending' | 'failed'>('completed');
   const [data, setData] = useState<any>({ 
     users: [], packages: [], history: [], payments: [], chatlogs: [], 
-    rate: 1.0, logins: [], reports: [],
-    site_title: '', seo_description: '', seo_keywords: '', seo_author: '', favicon_url: '',landing_bg: '',
-    no_answer_fallback: '', llm_name: 'openai'
+    rate: 1.0, logins: [], reports: [], negativeFeedback: [],
+    site_title: '', seo_description: '', seo_keywords: '', seo_author: '', favicon_url: '', landing_bg: '', chat_bg: '',
+    no_answer_fallback: '', llm_name: 'openai',
+    game_enabled: 1,
+    landing_hero_title: '',
+    landing_hero_subtitle: '',
+    landing_section_eras_title: '',
+    landing_section_stats_title: '',
+    landing_section_features_title: '',
+    landing_eras_json: '',
+    landing_footer_company: '',
+    landing_footer_mst: '',
+    landing_footer_representative: '',
+    landing_footer_address: '',
+    landing_footer_phone: ''
   } as any);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChat, setSelectedChat] = useState<any | null>(null);
@@ -80,7 +98,47 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      if (activeTab === 'users') {
+      if (activeTab === 'dashboard') {
+        const [usersRes, paymentsRes, chatlogsRes, loginsRes, settingsRes, feedbackRes] = await Promise.all([
+          api.adminGetUsers().catch(() => ({ users: [] })),
+          api.adminGetPayments().catch(() => ({ payments: [] })),
+          api.adminGetChatLogs().catch(() => ({ logs: [] })),
+          api.adminGetActiveUsers().catch(() => ({ logins: [] })),
+          api.adminGetSettings().catch(() => ({} as any)),
+          api.adminGetNegativeFeedback().catch(() => [])
+        ]);
+        setData((prev: any) => ({
+          ...prev,
+          users: usersRes?.users || [],
+          payments: paymentsRes?.payments || [],
+          chatlogs: chatlogsRes?.logs || [],
+          logins: loginsRes?.logins || [],
+          rate: settingsRes.rate_per_1000,
+          logo_url: settingsRes.logo_url,
+          site_title: settingsRes.site_title,
+          landing_bg: settingsRes.landing_bg,
+          chat_bg: settingsRes.chat_bg,
+          seo_description: settingsRes.seo_description,
+          seo_keywords: settingsRes.seo_keywords,
+          seo_author: settingsRes.seo_author,
+          favicon_url: settingsRes.favicon_url,
+          no_answer_fallback: settingsRes.no_answer_fallback,
+          llm_name: settingsRes.llm_name || 'openai',
+          game_enabled: settingsRes.game_enabled,
+          landing_hero_title: settingsRes.landing_hero_title,
+          landing_hero_subtitle: settingsRes.landing_hero_subtitle,
+          landing_section_eras_title: settingsRes.landing_section_eras_title,
+          landing_section_stats_title: settingsRes.landing_section_stats_title,
+          landing_section_features_title: settingsRes.landing_section_features_title,
+          landing_eras_json: settingsRes.landing_eras_json,
+          landing_footer_company: settingsRes.landing_footer_company,
+          landing_footer_mst: settingsRes.landing_footer_mst,
+          landing_footer_representative: settingsRes.landing_footer_representative,
+          landing_footer_address: settingsRes.landing_footer_address,
+          landing_footer_phone: settingsRes.landing_footer_phone,
+          negativeFeedback: feedbackRes || []
+        }));
+      } else if (activeTab === 'users') {
         const res = await api.adminGetUsers();
         setData((prev: any) => ({ ...prev, users: res?.users || [] }));
       } else if (activeTab === 'packages') {
@@ -109,7 +167,22 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           seo_author: res.seo_author,
           favicon_url: res.favicon_url,
           no_answer_fallback: res.no_answer_fallback,
-          llm_name: res.llm_name
+          llm_name: res.llm_name,
+          game_enabled: res.game_enabled,
+          landing_hero_title: res.landing_hero_title,
+          landing_hero_subtitle: res.landing_hero_subtitle,
+          landing_section_eras_title: res.landing_section_eras_title,
+          landing_section_stats_title: res.landing_section_stats_title,
+          landing_section_features_title: res.landing_section_features_title,
+          landing_eras_json: res.landing_eras_json,
+          landing_footer_company: res.landing_footer_company,
+          landing_footer_mst: res.landing_footer_mst,
+          landing_footer_representative: res.landing_footer_representative,
+          landing_footer_address: res.landing_footer_address,
+          landing_footer_phone: res.landing_footer_phone,
+          landing_footer_about_us: res.landing_footer_about_us,
+          landing_footer_terms: res.landing_footer_terms,
+          landing_footer_privacy: res.landing_footer_privacy
         }));
       } else if (activeTab === 'logins') {
         const res = await api.adminGetActiveUsers();
@@ -266,7 +339,22 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
         seo_keywords: data.seo_keywords,
         seo_author: data.seo_author,
         no_answer_fallback: data.no_answer_fallback,
-        llm_name: data.llm_name
+        llm_name: data.llm_name,
+        game_enabled: data.game_enabled,
+        landing_hero_title: data.landing_hero_title,
+        landing_hero_subtitle: data.landing_hero_subtitle,
+        landing_section_eras_title: data.landing_section_eras_title,
+        landing_section_stats_title: data.landing_section_stats_title,
+        landing_section_features_title: data.landing_section_features_title,
+        landing_eras_json: data.landing_eras_json,
+        landing_footer_company: data.landing_footer_company,
+        landing_footer_mst: data.landing_footer_mst,
+        landing_footer_representative: data.landing_footer_representative,
+        landing_footer_address: data.landing_footer_address,
+        landing_footer_phone: data.landing_footer_phone,
+        landing_footer_about_us: data.landing_footer_about_us,
+        landing_footer_terms: data.landing_footer_terms,
+        landing_footer_privacy: data.landing_footer_privacy
     };
 
     try {
@@ -299,188 +387,276 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
     setData((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  const navItems = [
+    { id: 'dashboard' as AdminTab, label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'users' as AdminTab, label: 'Người Dùng', icon: UsersIcon },
+    { id: 'packages' as AdminTab, label: 'Gói Nạp', icon: Box },
+    { id: 'history' as AdminTab, label: 'Tiền Tệ', icon: HistoryIcon },
+    { id: 'payments' as AdminTab, label: 'Hóa Đơn', icon: FileText },
+    { id: 'chatlogs' as AdminTab, label: 'Lịch Sử Chat', icon: MessageSquare },
+    { id: 'settings' as AdminTab, label: 'Cấu Hình', icon: SettingsIcon },
+    { id: 'logins' as AdminTab, label: 'Truy Cập', icon: LogIn },
+    { id: 'reports' as AdminTab, label: 'Báo Cáo', icon: BarChart3 },
+    { id: 'knowledge' as AdminTab, label: 'Tri Thức AI', icon: BookOpen },
+    { id: 'feedback' as AdminTab, label: 'Phản Hồi', icon: ThumbsDown },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-stone-50 overflow-hidden relative">
-      {/* Header */}
-      <header className={`bg-white border-b border-stone-200 px-4 md:px-8 pt-6 pb-2 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.02)] z-10`}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-800 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-900/20">
-              <ShieldCheck size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-stone-900 tracking-tight uppercase" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Hệ thống Quản trị Sử Việt
-              </h2>
-              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em]">Control Panel • v2.0</p>
-            </div>
+    <div className="flex-1 flex h-full bg-[#f4f1ea] overflow-hidden relative">
+      {/* Collapsible Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isAdminSidebarOpen ? 280 : 72 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="bg-[#171717] border-r border-white/10 flex flex-col h-screen shrink-0 relative overflow-hidden z-25 text-amber-100"
+      >
+        <div className={`flex-1 flex flex-col min-h-0 ${isAdminSidebarOpen ? 'p-6' : 'p-3'} overflow-y-auto chatgpt-scrollbar`}>
+          {/* Logo & Toggle Header */}
+          <div className={`flex items-center ${isAdminSidebarOpen ? 'justify-between' : 'justify-center'} mb-8 shrink-0`}>
+            {isAdminSidebarOpen && (
+              <div className="flex items-center gap-3 cursor-pointer">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#7f1d1d] to-[#b45309] rounded-xl flex items-center justify-center text-amber-100 shadow-lg border border-amber-500/30 overflow-hidden shrink-0">
+                  {data.logo_url ? (
+                    <SecureImage 
+                      src={data.logo_url.startsWith('/') ? `${API_ROOT}${data.logo_url}` : data.logo_url} 
+                      alt="Logo" 
+                      className="w-full h-full object-cover" 
+                    />
+                  ) : (
+                    <span className="text-xl font-serif italic font-black">
+                      {data.site_title ? data.site_title.charAt(0) : '史'}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <h1 className="text-lg font-black text-white tracking-tighter uppercase leading-none italic font-serif">
+                    {data.site_title || 'Sử Việt'} Admin
+                  </h1>
+                  <p className="text-[8px] text-amber-500/60 font-bold uppercase tracking-[0.3em] mt-0.5">Quan phòng sự vụ</p>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                const next = !isAdminSidebarOpen;
+                setIsAdminSidebarOpen(next);
+                localStorage.setItem('isAdminSidebarOpen', String(next));
+              }}
+              className={`p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-lg transition-all ${!isAdminSidebarOpen ? 'mt-2' : ''}`}
+              title={isAdminSidebarOpen ? "Thu gọn" : "Mở rộng"}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isAdminSidebarOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
+
+          {/* Navigation Links */}
+          <nav className="space-y-1.5 shrink-0">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full group relative flex items-center ${isAdminSidebarOpen ? 'gap-3 px-4 py-3' : 'justify-center p-3'} rounded-2xl transition-all ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-amber-600 to-red-800 text-amber-100 font-bold shadow-md' 
+                      : 'text-stone-450 hover:bg-white/5 hover:text-white'
+                  }`}
+                  title={!isAdminSidebarOpen ? item.label : undefined}
+                >
+                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-amber-100' : 'text-stone-500 group-hover:text-stone-300'}`} />
+                  {isAdminSidebarOpen && <span className="text-[11px] uppercase font-sans font-semibold tracking-wider">{item.label}</span>}
+                  
+                  {isAdminSidebarOpen && isActive && (
+                    <motion.div 
+                      layoutId="adminDesktopActive"
+                      className="absolute left-0 w-1 h-6 bg-amber-400 rounded-r-full"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Back and Logout Actions in Sidebar */}
+        <div className={`mt-auto ${isAdminSidebarOpen ? 'p-4' : 'p-2'} border-t border-white/5 space-y-2`}>
+          {onViewChange && (
+            <button 
+              onClick={() => onViewChange('chat')}
+              className={`w-full flex items-center ${isAdminSidebarOpen ? 'gap-2 px-4 py-2.5 text-[11px] font-sans font-semibold uppercase tracking-wider' : 'justify-center p-2'} text-amber-200 hover:bg-white/5 rounded-xl transition-all`}
+              title="Quay lại Chat"
+            >
+              <ArrowLeft size={16} />
+              {isAdminSidebarOpen && <span>Quay lại Chat</span>}
+            </button>
+          )}
 
           {onLogout && (
             <button 
               onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-all active:scale-95"
+              className={`w-full flex items-center ${isAdminSidebarOpen ? 'gap-2 px-4 py-2.5 text-[11px] font-sans font-semibold uppercase tracking-wider' : 'justify-center p-2'} text-red-400 hover:bg-red-400/10 rounded-xl transition-all`}
+              title="Đăng xuất"
             >
               <LogOut size={16} />
-              Đăng xuất
+              {isAdminSidebarOpen && <span>Đăng xuất</span>}
             </button>
           )}
         </div>
+      </motion.aside>
 
-        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
-          {(['users', 'packages', 'history', 'payments', 'chatlogs', 'settings', 'logins', 'reports', 'knowledge', 'feedback'] as AdminTab[]).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap border ${
-                activeTab === tab 
-                  ? 'bg-red-800 text-white border-red-900 shadow-lg shadow-red-900/20 scale-105' 
-                  : 'bg-white text-stone-400 border-stone-100 hover:border-stone-300 hover:text-stone-600'
-              }`}
-            >
-              {tab === 'users' && <UsersIcon size={14} />}
-              {tab === 'packages' && <Box size={14} />}
-              {tab === 'history' && <HistoryIcon size={14} />}
-              {tab === 'payments' && <FileText size={14} />}
-              {tab === 'chatlogs' && <MessageSquare size={14} />}
-              {tab === 'settings' && <SettingsIcon size={14} />}
-              {tab === 'logins' && <LogIn size={14} />}
-              {tab === 'reports' && <BarChart3 size={14} />}
-              {tab === 'knowledge' && <BookOpen size={14} />}
-              {tab === 'feedback' && <ThumbsDown size={14} />}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Top Header */}
+        <header className="plaque-header px-6 md:px-8 py-5 shrink-0 z-10 flex items-center justify-between border-b border-[#b45309]/20 bg-gradient-to-r from-[#451a03] to-[#2c1609]">
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-xl md:text-2xl font-calligraphy font-bold text-amber-100 leading-normal">
+                Hệ Thống Quản Trị Sử Việt
+              </h2>
+              <p className="text-[9px] text-amber-500/80 font-sans font-black uppercase tracking-[0.25em] mt-1">
+                {navItems.find(i => i.id === activeTab)?.label || 'Quản trị'}
+              </p>
+            </div>
+          </div>
 
-              {tab === 'users' && 'Người Dùng'}
-              {tab === 'packages' && 'Gói Nạp'}
-              {tab === 'history' && 'Tiền Tệ'}
-              {tab === 'payments' && 'Hóa Đơn'}
-              {tab === 'chatlogs' && 'Lịch Sử Chat'}
-              {tab === 'settings' && 'Cấu Hình'}
-              {tab === 'logins' && 'Truy Cập'}
-              {tab === 'reports' && 'Báo Cáo'}
-              {tab === 'knowledge' && 'Tri Thức AI'}
-              {tab === 'feedback' && 'Phản Hồi'}
-            </button>
-          ))}
+          <div className="flex items-center gap-4 text-xs">
+            <span className="text-amber-200/50 hidden md:inline">Phiên làm việc quan phòng</span>
+            <span className="font-mono text-[#b45309] px-2.5 py-1 bg-amber-950/40 border border-amber-900/30 rounded-lg">
+              ADMIN: {user?.username || 'Quan trị viên'}
+            </span>
+          </div>
+        </header>
+
+        {/* Content Pane */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          {activeTab === 'dashboard' && (
+            <DashboardTab 
+              users={data.users}
+              payments={data.payments}
+              chatlogs={data.chatlogs}
+              logins={data.logins}
+              negativeFeedback={data.negativeFeedback}
+              onTabChange={setActiveTab}
+              llmName={data.llm_name}
+            />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsTab 
+              data={data}
+              onSave={handleSaveSettings}
+              onSync={handleSyncFromFile}
+              onChange={handleSettingChange}
+              onUploadLogo={async (file) => {
+                  try {
+                      const loadingToast = toast.loading('Đang tải lên logo...');
+                      const res = await api.adminUploadLogo(file);
+                      toast.dismiss(loadingToast);
+                      toast.success('Đã tải hình ảnh lên thành công.');
+                      setData((prev: any) => ({ ...prev, logo_url: res.logo_url }));
+                  } catch (err: any) {
+                      toast.error(err.message);
+                  }
+              }}
+              onUploadFavicon={async (file) => {
+                  try {
+                      const loadingToast = toast.loading('Đang tải lên favicon...');
+                      const res = await api.adminUploadLogo(file);
+                      toast.dismiss(loadingToast);
+                      toast.success('Đã tải favicon lên thành công.');
+                      setData((prev: any) => ({ ...prev, favicon_url: res.logo_url }));
+                  } catch (err: any) {
+                      toast.error(err.message);
+                  }
+              }}
+              onUploadBackground={async (file: File) => {
+                  try {
+                    const res = await api.adminUploadLogo(file);
+                    setData((prev: any) => ({
+                      ...prev,
+                      landing_bg: res.logo_url
+                    }));
+                    toast.success("Upload background landing thành công");
+                  } catch (err: any) {
+                    toast.error(err.message);
+                  }
+                }}
+                onUploadChatBackground={async (file: File) => {
+                  try {
+                    const res = await api.adminUploadLogo(file);
+                    setData((prev: any) => ({
+                      ...prev,
+                      chat_bg: res.logo_url
+                    }));
+                    toast.success("Upload background chat thành công");
+                  } catch (err: any) {
+                    toast.error(err.message);
+                  }
+                }}
+            />
+          )}
+
+          {activeTab === 'users' && (
+            <UsersTab 
+              users={data.users}
+              isLoading={isLoading}
+              onViewDetail={handleViewUserDetail}
+              onUpdateBalance={handleUpdateBalance}
+              onToggleAdmin={handleToggleAdmin}
+              onDeleteUser={handleDeleteUser}
+            />
+          )}
+
+          {activeTab === 'packages' && (
+            <PackagesTab 
+              packages={data.packages}
+              onCreatePackage={handleCreatePackage}
+              onUpdatePackage={handleUpdatePackage}
+              onDeletePackage={handleDeletePackage}
+            />
+          )}
+
+          {activeTab === 'history' && (
+            <HistoryTab history={data.history} />
+          )}
+
+          {activeTab === 'payments' && (
+            <PaymentsTab 
+              payments={data.payments}
+              paymentFilter={paymentFilter}
+              setPaymentFilter={setPaymentFilter}
+            />
+          )}
+
+          {activeTab === 'chatlogs' && (
+            <ChatLogsTab 
+              chatlogs={data.chatlogs}
+              onSelectChat={setSelectedChat}
+            />
+          )}
+
+          {activeTab === 'logins' && (
+            <LoginsTab logins={data.logins} />
+          )}
+
+          {activeTab === 'reports' && (
+            <ReportsTab reports={data.reports} />
+          )}
+          {activeTab === 'knowledge' && (
+            <KnowledgeTab  />
+          )}
+          {activeTab === 'feedback' && (
+            <FeedbackTab />
+          )}
         </div>
-      </header>
-
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8">
-        {activeTab === 'settings' && (
-          <SettingsTab 
-            data={data}
-            onSave={handleSaveSettings}
-            onSync={handleSyncFromFile}
-            onChange={handleSettingChange}
-            onUploadLogo={async (file) => {
-                try {
-                    const loadingToast = toast.loading('Đang tải lên logo...');
-                    const res = await api.adminUploadLogo(file);
-                    // 🔥 THÊM DÒNG NÀY (QUAN TRỌNG NHẤT)
-                    // await api.adminUpdateSettings({
-                    //   logo_url: res.logo_url
-                    // });
-
-                    toast.dismiss(loadingToast);
-                    toast.success('Đã tải hình ảnh lên thành công.');
-                    setData((prev: any) => ({ ...prev, logo_url: res.logo_url }));
-                } catch (err: any) {
-                    toast.error(err.message);
-                }
-            }}
-            onUploadFavicon={async (file) => {
-                try {
-                    const loadingToast = toast.loading('Đang tải lên favicon...');
-                    const res = await api.adminUploadLogo(file);
-                  //   await api.adminUpdateSettings({
-                  //   favicon_url: res.logo_url
-                  // });
-                    toast.dismiss(loadingToast);
-                    toast.success('Đã tải favicon lên thành công.');
-                    setData((prev: any) => ({ ...prev, favicon_url: res.logo_url }));
-                } catch (err: any) {
-                    toast.error(err.message);
-                }
-            }}
-            onUploadBackground={async (file: File) => {
-                try {
-                  const res = await api.adminUploadLogo(file);
-                  setData((prev: any) => ({
-                    ...prev,
-                    landing_bg: res.logo_url
-                  }));
-                  toast.success("Upload background landing thành công");
-                } catch (err: any) {
-                  toast.error(err.message);
-                }
-              }}
-              onUploadChatBackground={async (file: File) => {
-                try {
-                  const res = await api.adminUploadLogo(file);
-                  setData((prev: any) => ({
-                    ...prev,
-                    chat_bg: res.logo_url
-                  }));
-                  toast.success("Upload background chat thành công");
-                } catch (err: any) {
-                  toast.error(err.message);
-                }
-              }}
-          />
-        )}
-
-        {activeTab === 'users' && (
-          <UsersTab 
-            users={data.users}
-            isLoading={isLoading}
-            onViewDetail={handleViewUserDetail}
-            onUpdateBalance={handleUpdateBalance}
-            onToggleAdmin={handleToggleAdmin}
-            onDeleteUser={handleDeleteUser}
-          />
-        )}
-
-        {activeTab === 'packages' && (
-          <PackagesTab 
-            packages={data.packages}
-            onCreatePackage={handleCreatePackage}
-            onUpdatePackage={handleUpdatePackage}
-            onDeletePackage={handleDeletePackage}
-          />
-        )}
-
-        {activeTab === 'history' && (
-          <HistoryTab history={data.history} />
-        )}
-
-        {activeTab === 'payments' && (
-          <PaymentsTab 
-            payments={data.payments}
-            paymentFilter={paymentFilter}
-            setPaymentFilter={setPaymentFilter}
-          />
-        )}
-
-        {activeTab === 'chatlogs' && (
-          <ChatLogsTab 
-            chatlogs={data.chatlogs}
-            onSelectChat={setSelectedChat}
-          />
-        )}
-
-        {activeTab === 'logins' && (
-          <LoginsTab logins={data.logins} />
-        )}
-
-        {activeTab === 'reports' && (
-          <ReportsTab reports={data.reports} />
-        )}
-        {activeTab === 'knowledge' && (
-          <KnowledgeTab  />
-        )}
-        {activeTab === 'feedback' && (
-          <FeedbackTab />
-        )}
       </div>
 
       {/* Modals */}

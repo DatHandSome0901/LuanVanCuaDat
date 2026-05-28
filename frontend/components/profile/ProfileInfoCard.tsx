@@ -16,7 +16,7 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
   const [imgError, setImgError] = React.useState(false);
 
   return (
-    <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 p-6">
+    <div className="paper-texture scroll-border border-double border-4 border-amber-600/30 rounded-2xl shadow-md p-6 transition-all hover:border-amber-600/50">
       <div className="text-center mb-6">
           <div className="relative inline-block">
             {user.picture_url && !imgError ? (

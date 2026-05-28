@@ -1,18 +1,69 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Book, Shield, Crown, ScrollText, History } from 'lucide-react';
 
 interface EmptyChatStateProps {
   onSuggestClick: (q: string) => void;
 }
 
+// Icon Cờ Thần / Cờ Ngũ Sắc
+const IconCoThan = ({ className, size = 24 }: { className?: string; size?: number }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M4 2v20" strokeLinecap="round" />
+    <path d="M4 4h12l2 2l-2 2h-12" fill="currentColor" fillOpacity="0.2" />
+    <rect x="7" y="6" width="4" height="4" />
+    <rect x="5.5" y="4.5" width="7" height="7" />
+    <path d="M16 4v6M18 6v4" strokeLinecap="round" />
+  </svg>
+);
+
+// Icon Gươm Báu
+const IconGuomBau = ({ className, size = 24 }: { className?: string; size?: number }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M12 3v13M12 4v11" strokeLinecap="round" />
+    <path d="M8 15c1-0.5 2-1 4-1s3 0.5 4 1c0.5 0.5 0.5 1 0 1.5c-1 0.5-2 1-4 1s-3-0.5-4-1c-0.5-0.5-0.5-1 0-1.5z" fill="currentColor" fillOpacity="0.2" />
+    <path d="M12 16v4" strokeLinecap="round" />
+    <circle cx="12" cy="20.5" r="0.5" />
+  </svg>
+);
+
+// Icon Khiên Mây
+const IconKhienMay = ({ className, size = 24 }: { className?: string; size?: number }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="currentColor" fillOpacity="0.2" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 3v18M3 12h18" strokeDasharray="1 1" />
+  </svg>
+);
+
+// Icon Mũ Bình Thiên
+const IconMuBinhThien = ({ className, size = 24 }: { className?: string; size?: number }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <path d="M7 16h10v2H7z" fill="currentColor" fillOpacity="0.2" />
+    <path d="M4 10h16v1.5H4z" />
+    <path d="M9 11.5v4.5M15 11.5v4.5M12 11.5v4.5" />
+    <path d="M4.5 11.5v4M19.5 11.5v4" strokeLinecap="round" strokeDasharray="1 1" />
+    <circle cx="4.5" cy="16" r="0.5" fill="currentColor" />
+    <circle cx="19.5" cy="16" r="0.5" fill="currentColor" />
+  </svg>
+);
+
+// Icon Cuốn Thư
+const IconCuonThu = ({ className, size = 24 }: { className?: string; size?: number }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+    <rect x="3" y="4" width="2" height="16" rx="0.5" />
+    <rect x="19" y="4" width="2" height="16" rx="0.5" />
+    <path d="M5 6h14M5 18h14M5 9h14M5 12h10M5 15h12" strokeLinecap="round" />
+  </svg>
+);
+
 const suggestions = [
-  { text: "Trận Điện Biên Phủ", icon: History, color: "text-red-500", bg: "hover:bg-red-500/10", border: "group-hover:border-red-500/50", glow: "rgba(239, 68, 68, 0.4)" },
-  { text: "Sự tích Hồ Gươm", icon: Sparkles, color: "text-amber-500", bg: "hover:bg-amber-500/10", border: "group-hover:border-amber-500/50", glow: "rgba(245, 158, 11, 0.4)" },
-  { text: "Trần Hưng Đạo", icon: Shield, color: "text-blue-500", bg: "hover:bg-blue-500/10", border: "group-hover:border-blue-500/50", glow: "rgba(59, 130, 246, 0.4)" },
-  { text: "Vua Gia Long", icon: Crown, color: "text-yellow-500", bg: "hover:bg-yellow-500/10", border: "group-hover:border-yellow-500/50", glow: "rgba(234, 179, 8, 0.4)" },
-  { text: "Hai Bà Trưng", icon: ScrollText, color: "text-orange-500", bg: "hover:bg-orange-500/10", border: "group-hover:border-orange-500/50", glow: "rgba(249, 115, 22, 0.4)" },
-  { text: "Tuyên ngôn Độc lập", icon: Book, color: "text-emerald-500", bg: "hover:bg-emerald-500/10", border: "group-hover:border-emerald-500/50", glow: "rgba(16, 185, 129, 0.4)" },
+  { text: "Trận Điện Biên Phủ", icon: IconCoThan, color: "text-red-500", bg: "hover:bg-red-500/10", border: "group-hover:border-red-500/50", glow: "rgba(239, 68, 68, 0.4)" },
+  { text: "Sự tích Hồ Gươm", icon: IconGuomBau, color: "text-amber-500", bg: "hover:bg-amber-500/10", border: "group-hover:border-amber-500/50", glow: "rgba(245, 158, 11, 0.4)" },
+  { text: "Trần Hưng Đạo", icon: IconKhienMay, color: "text-blue-500", bg: "hover:bg-blue-500/10", border: "group-hover:border-blue-500/50", glow: "rgba(59, 130, 246, 0.4)" },
+  { text: "Vua Gia Long", icon: IconMuBinhThien, color: "text-yellow-500", bg: "hover:bg-yellow-500/10", border: "group-hover:border-yellow-500/50", glow: "rgba(234, 179, 8, 0.4)" },
+  { text: "Hai Bà Trưng", icon: IconCoThan, color: "text-orange-500", bg: "hover:bg-orange-500/10", border: "group-hover:border-orange-500/50", glow: "rgba(249, 115, 22, 0.4)" },
+  { text: "Tuyên ngôn Độc lập", icon: IconCuonThu, color: "text-emerald-500", bg: "hover:bg-emerald-500/10", border: "group-hover:border-emerald-500/50", glow: "rgba(16, 185, 129, 0.4)" },
 ];
 
 const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {

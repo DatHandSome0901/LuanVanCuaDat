@@ -70,14 +70,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-[100%] mx-auto w-full overflow-y-auto pb-24 md:pb-8">
-      <header className="mb-8 flex items-center gap-4 border-b border-stone-100 pb-6">
+    <div className="paper-texture motif-watermark p-4 md:p-8 max-w-[100%] mx-auto w-full overflow-y-auto pb-24 md:pb-8 border border-stone-200/50 rounded-3xl shadow-sm min-h-screen">
+      <header className="mb-8 flex items-center gap-4 border-b border-amber-600/20 pb-6">
         <div className="w-12 h-12 bg-red-800 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-red-900/20 shrink-0">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
+            <path d="M8 15a4 4 0 0 1 8 0v1H8v-1z" fill="currentColor" fillOpacity="0.2" />
+            <rect x="7" y="14" width="10" height="2" rx="0.5" />
+            <path d="M7 15H2.5c-1 0-1.5-.8-1-1.5c.3-.5 1-.7 2-.7H7" strokeLinecap="round" />
+            <path d="M17 15h4.5c1 0 1.5-.8 1-1.5c-.3-.5-1-.7-2-.7H17" strokeLinecap="round" />
+            <path d="M11 11h2v1h-2z" />
+            <path d="M10 10.5c1-1 3-1 4 0" strokeLinecap="round" />
+          </svg>
         </div>
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-stone-900 tracking-tight uppercase leading-none">Hồ Sơ Cá Nhân</h2>
-          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-1">Thông tin tài khoản • v1.0</p>
+          <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">Hồ Sơ Cá Nhân</h2>
+          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3">Thông tin tài khoản</p>
         </div>
       </header>
       
@@ -91,7 +98,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
 
           {/* UTILITIES (Admin Only) */}
           {!!user.is_admin && (
-            <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white/40 p-5 space-y-3">
+            <div className="paper-texture scroll-border border-double border-4 border-amber-600/30 rounded-2xl shadow-md p-5 space-y-3 transition-all hover:border-amber-600/50">
               <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-widest block">Tính năng & Tiện ích</h4>
               <div className="grid grid-cols-2 gap-3">
                 <button 

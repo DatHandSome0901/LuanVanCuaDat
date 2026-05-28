@@ -1,15 +1,19 @@
 import sqlite3
 import os
+import bcrypt
 
 db_path = "database.db"
 if os.path.exists(db_path):
     conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM settings")
-    rows = cursor.fetchall()
-    for row in rows:
-        print(f"{row['key']}: {row['value']}")
+    
+    # Hash password "admin123"
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw("admin123".encode('utf-8'), salt).decode('utf-8')
+    
+    cursor.execute("UPDATE users SET password = ? WHERE email = ?", (hashed, "admin@mail.com"))
+    conn.commit()
+    print("Admin password reset to: admin123")
     conn.close()
 else:
     print("Database not found")

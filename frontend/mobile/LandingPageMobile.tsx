@@ -210,7 +210,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
                 <>
                   <span className="text-2xl">⚔️</span>
                   <span className="text-xl font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
-                    {user ? "Tiếp tục" : "Bắt đầu ngay"}
+                    {user ? (user.is_admin ? "Dashboard" : "Tiếp tục") : "Bắt đầu ngay"}
                   </span>
                 </>
               )}

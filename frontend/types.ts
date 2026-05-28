@@ -158,4 +158,19 @@ export interface SiteConfig {
   landing_bg: string;
   chat_bg: string;
   favicon_url: string;
+  game_enabled?: number;
+  landing_hero_title?: string;
+  landing_hero_subtitle?: string;
+  landing_section_eras_title?: string;
+  landing_section_stats_title?: string;
+  landing_section_features_title?: string;
+  landing_eras_json?: string;
+  landing_footer_company?: string;
+  landing_footer_mst?: string;
+  landing_footer_representative?: string;
+  landing_footer_address?: string;
+  landing_footer_phone?: string;
+  landing_footer_about_us?: string;
+  landing_footer_terms?: string;
+  landing_footer_privacy?: string;
 }

@@ -68,3 +68,10 @@ utils/data_vector_new/
 scratch/
 frontend/test-results/
 utils/download/
+
+# Temporary scripts
+inspect_char.py
+inspect_output.txt
+normalize_to_nfc.py
+scratch_dump_settings.txt
+

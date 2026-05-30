@@ -12,10 +12,43 @@ import HistoryView from './components/HistoryView';
 import QAView from './components/QAView';
 import LandingPage from './components/LandingPage';
 import LandingPageMobile from './mobile/LandingPageMobile';
+import LanguageSelector from './components/LanguageSelector';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const App: React.FC = () => {
+// Language switcher floating button
+const LangSwitcherBtn: React.FC = () => {
+  const { language, setLanguage } = useLanguage();
+  return (
+    <button
+      onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+      title={language === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
+      className="fixed bottom-6 right-6 z-[200] w-12 h-12 rounded-full shadow-xl border-2 overflow-hidden hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
+      style={{ borderColor: 'rgba(180,130,40,0.5)' }}
+    >
+      {language === 'vi' ? (
+        // Show EN flag to switch to English
+        <svg viewBox="0 0 60 40" className="w-full h-full">
+          <rect width="60" height="40" fill="#012169" />
+          <path d="M0,0 L60,40 M60,0 L0,40" stroke="white" strokeWidth="6" />
+          <path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" strokeWidth="4" />
+          <path d="M30,0 V40 M0,20 H60" stroke="white" strokeWidth="10" />
+          <path d="M30,0 V40 M0,20 H60" stroke="#C8102E" strokeWidth="6" />
+        </svg>
+      ) : (
+        // Show VN flag to switch to Vietnamese
+        <svg viewBox="0 0 30 20" className="w-full h-full">
+          <rect width="30" height="20" fill="#da251d" />
+          <polygon points="15,4 11.47,14.85 20.73,8.15 9.27,8.15 18.53,14.85" fill="#ffff00" />
+        </svg>
+      )}
+    </button>
+  );
+};
+
+const AppInner: React.FC = () => {
+  const { hasChosen, setLanguage } = useLanguage();
   const isNative = Capacitor.isNativePlatform();
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -87,7 +120,19 @@ const App: React.FC = () => {
     landing_footer_mst: '',
     landing_footer_representative: '',
     landing_footer_address: '',
-    landing_footer_phone: ''
+    landing_footer_phone: '',
+    landing_footer_about_us: '',
+    landing_footer_terms: '',
+    landing_footer_privacy: '',
+    landing_hero_words: '',
+    landing_process_json: '',
+    landing_features_json: '',
+    landing_stats_json: '',
+    landing_highlights_json: '',
+    landing_contact_email: '',
+    landing_contact_zalo_num: '',
+    landing_contact_zalo_link: '',
+    landing_contact_fb_link: ''
   });
 
   const fetchSiteConfig = async () => {
@@ -135,7 +180,19 @@ const App: React.FC = () => {
         landing_footer_mst: config.landing_footer_mst || '',
         landing_footer_representative: config.landing_footer_representative || '',
         landing_footer_address: config.landing_footer_address || '',
-        landing_footer_phone: config.landing_footer_phone || ''
+        landing_footer_phone: config.landing_footer_phone || '',
+        landing_footer_about_us: config.landing_footer_about_us || '',
+        landing_footer_terms: config.landing_footer_terms || '',
+        landing_footer_privacy: config.landing_footer_privacy || '',
+        landing_hero_words: config.landing_hero_words || '',
+        landing_process_json: config.landing_process_json || '',
+        landing_features_json: config.landing_features_json || '',
+        landing_stats_json: config.landing_stats_json || '',
+        landing_highlights_json: config.landing_highlights_json || '',
+        landing_contact_email: config.landing_contact_email || '',
+        landing_contact_zalo_num: config.landing_contact_zalo_num || '',
+        landing_contact_zalo_link: config.landing_contact_zalo_link || '',
+        landing_contact_fb_link: config.landing_contact_fb_link || ''
       });
     } catch (err) {
       console.error("Load config lỗi:", err);
@@ -235,6 +292,12 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex h-screen ${currentView === 'landing' ? 'bg-black' : 'bg-[#f8f6f2]'} ${isNative ? 'is-native' : ''}`}>
+      {/* Language Selector Overlay - shown on first visit */}
+      <AnimatePresence>
+        {!hasChosen && (
+          <LanguageSelector onSelect={(lang) => setLanguage(lang)} />
+        )}
+      </AnimatePresence>
       {/* SIDEBAR */}
       <AnimatePresence>
         {currentView !== 'landing' && currentView !== 'admin' && (
@@ -297,8 +360,16 @@ const App: React.FC = () => {
         </div>
       </main>
       <Toaster position="top-right" />
+      {/* Floating language switcher button */}
+      <LangSwitcherBtn />
     </div>
   );
 };
+
+const App: React.FC = () => (
+  <LanguageProvider>
+    <AppInner />
+  </LanguageProvider>
+);
 
 export default App;

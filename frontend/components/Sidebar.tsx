@@ -4,6 +4,7 @@ import { API_ROOT } from '../api';
 import ConversationList from "./chat/ConversationList";
 import { motion, AnimatePresence } from 'framer-motion';
 import SecureImage from './SecureImage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const IconLanding = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -91,6 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   siteConfig, activeConversationId, onActiveConversationIdChange,
   isOpen, onToggle 
 }) => {
+  const { t } = useLanguage();
   const [imgError, setImgError] = React.useState(false);
   const [mobileImgError, setMobileImgError] = React.useState(false);
   
@@ -98,13 +100,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isNative = (window as any).Capacitor?.isNativePlatform?.() || false;
 
   const navItems = [
-    { id: 'landing' as View, label: 'Trang chủ', icon: IconLanding },
-    { id: 'chat' as View, label: 'Sử Việt', icon: IconChat },
-    { id: 'history' as View, label: 'Lịch sử', icon: IconHistory },
-    { id: 'new_chat' as View, label: 'Đoạn chat mới', icon: IconNewChat },
-    { id: 'payment' as View, label: 'Nạp Tiền', icon: IconPayment },
-    ...(user ? [{ id: 'qa' as View, label: 'Q&A Token', icon: IconQA }] : []),
-    ...(user?.is_admin ? [{ id: 'admin' as View, label: 'ADMIN', icon: IconAdmin }] : []),
+    { id: 'landing' as View, label: t.sidebar_home, icon: IconLanding },
+    { id: 'chat' as View, label: t.sidebar_chat, icon: IconChat },
+    { id: 'history' as View, label: t.sidebar_history, icon: IconHistory },
+    { id: 'new_chat' as View, label: t.sidebar_new_chat, icon: IconNewChat },
+    { id: 'payment' as View, label: t.sidebar_payment, icon: IconPayment },
+    ...(user ? [{ id: 'qa' as View, label: t.sidebar_qa, icon: IconQA }] : []),
+    ...(user?.is_admin ? [{ id: 'admin' as View, label: t.sidebar_admin, icon: IconAdmin }] : []),
   ];
 
   const handleNavClick = (id: View) => {
@@ -150,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <h1 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic font-serif">
                     {siteConfig?.site_title || 'Sử Việt AI'}
                   </h1>
-                  <p className="text-[8px] text-amber-500/60 font-bold uppercase tracking-[0.3em] mt-0.5">Tri thức ngàn năm</p>
+                  <p className="text-[8px] text-amber-500/60 font-bold uppercase tracking-[0.3em] mt-0.5">{t.sidebar_brand_subtext}</p>
                 </div>
               </div>
             )}
@@ -158,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button 
               onClick={onToggle}
               className={`p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-lg transition-all ${!isOpen ? 'mt-2' : ''}`}
-              title={isOpen ? "Thu gọn" : "Mở rộng"}
+              title={isOpen ? t.sidebar_collapse : t.sidebar_expand}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isOpen ? (
@@ -202,7 +204,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className={`mt-8 ${!isOpen ? 'items-center flex flex-col' : ''}`}>
               {isOpen && (
                 <div className="px-5 mb-4">
-                  <p className="text-[11px] font-black text-stone-500 uppercase tracking-widest opacity-40">Lịch sử hội thoại</p>
+                  <p className="text-[11px] font-black text-stone-500 uppercase tracking-widest opacity-40">{t.sidebar_history_title}</p>
                 </div>
               )}
               <div className={!isOpen ? 'hidden' : ''}>
@@ -278,7 +280,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                  Đăng xuất
+                  {t.sidebar_logout}
                 </button>
               ) : (
                 <button 
@@ -287,7 +289,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onLogout()
                   }}
                   className="w-full flex justify-center p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                  title="Đăng xuất"
+                  title={t.sidebar_logout}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -297,13 +299,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ) : (
             <div className={`p-2 text-center ${!isOpen ? 'flex flex-col items-center' : ''}`}>
-              {isOpen && <p className="text-xs text-stone-500 mb-2">Đăng nhập ngay</p>}
+              {isOpen && <p className="text-xs text-stone-500 mb-2">{t.sidebar_login_now}</p>}
               <button 
                 onClick={() => onViewChange('profile')}
                 className={`bg-red-800 text-white text-sm ${isOpen ? 'w-full py-2 px-4' : 'p-2'} rounded-lg font-medium hover:bg-red-900 transition-colors flex items-center justify-center`}
-                title="Bắt đầu ngay"
+                title={t.sidebar_start_now}
                 >
-                  {isOpen ? 'Bắt đầu ngay' : (
+                  {isOpen ? t.sidebar_start_now : (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
@@ -371,7 +373,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
           <span className={`text-[9px] font-black uppercase tracking-wider ${currentView === 'profile' ? 'opacity-100' : 'opacity-60'}`}>
-            {user ? 'Tôi' : 'Đăng nhập'}
+            {user ? t.sidebar_me : t.sidebar_login}
           </span>
           {currentView === 'profile' && (
             <motion.div 

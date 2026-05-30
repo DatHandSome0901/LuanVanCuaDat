@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ChatInputProps {
   input: string;
@@ -13,6 +14,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isLoading, 
   onSubmit,
 }) => {
+  const { t } = useLanguage();
   return (
     <footer className="p-4 md:p-8 bg-gradient-to-t from-black/20 to-transparent relative z-10">
       <div className="max-w-4xl mx-auto relative">
@@ -33,7 +35,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 }
               }
             }}
-            placeholder="Tìm hiểu sử thi Việt Nam..."
+            placeholder={t.chat_placeholder}
             rows={1}
             spellCheck={false}
             className="flex-1 bg-transparent border-none rounded-2xl py-3 px-4 focus:outline-none text-sm md:text-base text-[#451a03] font-medium placeholder-[#451a03]/40 resize-none min-h-[48px] overflow-y-auto"
@@ -60,7 +62,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         </div>
         
         <p className="text-[9px] text-center text-stone-400 mt-4 uppercase tracking-[0.2em] font-black opacity-50">
-          Thông tin mang tính chất tham khảo sử học
+          {t.chat_disclaimer}
         </p>
       </div>
     </footer>

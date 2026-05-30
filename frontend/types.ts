@@ -173,4 +173,13 @@ export interface SiteConfig {
   landing_footer_about_us?: string;
   landing_footer_terms?: string;
   landing_footer_privacy?: string;
+  landing_hero_words?: string;
+  landing_process_json?: string;
+  landing_features_json?: string;
+  landing_stats_json?: string;
+  landing_highlights_json?: string;
+  landing_contact_email?: string;
+  landing_contact_zalo_num?: string;
+  landing_contact_zalo_link?: string;
+  landing_contact_fb_link?: string;
 }

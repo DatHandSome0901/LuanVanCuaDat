@@ -559,6 +559,305 @@ QUESTION_BANK = [
 ]
 
 
+QA_TRANSLATIONS_EN = {
+    "bach_dang_938": {
+        "question": "Who led the Bach Dang victory in 938?",
+        "options": ["Ngo Quyen", "Dinh Bo Linh", "Le Hoan", "Tran Hung Dao"],
+        "explanation": "Ngo Quyen defeated the Southern Han army on the Bach Dang River in 938, starting a long era of independence.",
+    },
+    "van_lang_capital": {
+        "question": "Which of the following is commonly referred to as the capital of Van Lang?",
+        "options": ["Phong Chau", "Co Loa", "Hoa Lu", "Thang Long"],
+        "explanation": "Phong Chau, in modern-day Phu Tho, is associated with the Hung Kings era and the Van Lang state.",
+    },
+    "co_loa": {
+        "question": "Which historical figure is associated with Co Loa Citadel?",
+        "options": ["An Duong Vuong", "Ly Thuong Kiet", "Le Loi", "Quang Trung"],
+        "explanation": "An Duong Vuong established the Au Lac state and built the Co Loa capital.",
+    },
+    "hai_ba_trung_40": {
+        "question": "In which year did the rebellion of the Trung Sisters break out?",
+        "options": ["40 AD", "248 AD", "542 AD", "722 AD"],
+        "explanation": "The Trung Sisters' rebellion broke out in 40 AD against the domination of the Eastern Han Dynasty.",
+    },
+    "ba_trieu": {
+        "question": "Which army did Lady Trieu lead a rebellion against in the 3rd century?",
+        "options": ["Eastern Wu Dynasty", "Ming Dynasty", "Song Dynasty", "Qing Dynasty"],
+        "explanation": "Lady Trieu rebelled in 248 AD against the domination of the Eastern Wu Dynasty.",
+    },
+    "ly_bi_van_xuan": {
+        "question": "What national name did Ly Bi choose for our country after regaining autonomy?",
+        "options": ["Van Xuan", "Dai Co Viet", "Dai Viet", "Dai Ngu"],
+        "explanation": "Ly Bi ascended the throne as Ly Nam De and established the national name Van Xuan in the 6th century.",
+    },
+    "ding_bo_linh": {
+        "question": "What is Dinh Bo Linh famous for?",
+        "options": ["Defeating the 12 warlords", "Moving the capital to Thang Long", "Defeating the Qing army", "Writing Hich Tuong Si"],
+        "explanation": "Dinh Bo Linh unified the country after the rebellion of the 12 warlords and established the Dinh Dynasty.",
+    },
+    "dai_co_viet": {
+        "question": "Under which dynasty did the national name Dai Co Viet first appear?",
+        "options": ["Dinh Dynasty", "Ly Dynasty", "Tran Dynasty", "Nguyen Dynasty"],
+        "explanation": "Dinh Tien Hoang chose the national name Dai Co Viet after unifying the country.",
+    },
+    "le_hoan_tong_981": {
+        "question": "In which year did Le Hoan lead the resistance against the Song dynasty?",
+        "options": ["981", "938", "1077", "1288"],
+        "explanation": "In 981, Le Hoan led the military and people of Dai Co Viet to defeat the invasion of the Song Dynasty.",
+    },
+    "ly_cong_uan_doi_do": {
+        "question": "In which year did Ly Cong Uan move the capital from Hoa Lu to Dai La?",
+        "options": ["1010", "1009", "1075", "1226"],
+        "explanation": "In 1010, Ly Cong Uan issued the Royal Decree on the Transfer of the Capital and renamed Dai La to Thang Long.",
+    },
+    "ly_thuong_kiet": {
+        "question": "Which river did Ly Thuong Kiet build the defense line against the Song army on?",
+        "options": ["Nhu Nguyet River", "Bach Dang River", "Gianh River", "Huong River"],
+        "explanation": "The Nhu Nguyet River defense line was the crucial decisive point in the war against the Song in the 11th century.",
+    },
+    "nam_quoc_son_ha": {
+        "question": "Which war is the poem 'Nam Quoc Son Ha' associated with?",
+        "options": ["Song Dynasty War", "Yuan Dynasty War", "Ming Dynasty War", "Qing Dynasty War"],
+        "explanation": "The poem was recited in the context of the resistance against the Song Dynasty during the Ly Dynasty.",
+    },
+    "tran_hung_dao": {
+        "question": "Tran Hung Dao was the prominent general in the resistance against which army?",
+        "options": ["Mongol-Yuan Empire", "Ming Dynasty", "Qing Dynasty", "Siam"],
+        "explanation": "Tran Hung Dao was the supreme commander in the three resistance wars against the Mongol-Yuan Empire during the Tran Dynasty.",
+    },
+    "bach_dang_1288": {
+        "question": "Which dynasty did the Bach Dang victory of 1288 belong to?",
+        "options": ["Tran Dynasty", "Ly Dynasty", "Early Le Dynasty", "Tay Son Dynasty"],
+        "explanation": "In 1288, the army and people of the Tran Dynasty defeated the Mongol-Yuan army on the Bach Dang River.",
+    },
+    "hoi_nghi_dien_hong": {
+        "question": "What spirit did the Dien Hong Conference demonstrate during the Tran Dynasty?",
+        "options": ["Determination to fight foreign invaders", "Land reform", "Transfer of capital", "Holding the first national exam"],
+        "explanation": "The Dien Hong Conference demonstrated the unity and determination of all people to resist the Mongol-Yuan invasion.",
+    },
+    "ho_quy_ly": {
+        "question": "What national name did the Ho dynasty choose for our country?",
+        "options": ["Dai Ngu", "Dai Viet", "Van Xuan", "Dai Co Viet"],
+        "explanation": "After establishing the Ho dynasty, Ho Quy Ly named the country Dai Ngu.",
+    },
+    "le_loi_lam_son": {
+        "question": "Which rebellion against the Ming army did Le Loi lead?",
+        "options": ["Lam Son", "Tay Son", "Ba Dinh", "Yen The"],
+        "explanation": "The Lam Son uprising was led by Le Loi and successfully expelled the Ming occupiers.",
+    },
+    "nguyen_trai": {
+        "question": "Which historic document was authored by Nguyen Trai?",
+        "options": ["Binh Ngo Dai Cao", "Chieu Doi Do", "Hich Tuong Si", "Hoang Le Nhat Thong Chi"],
+        "explanation": "Binh Ngo Dai Cao was written by Nguyen Trai on behalf of Le Loi, declaring victory over the Ming.",
+    },
+    "le_thanh_tong_hong_duc": {
+        "question": "Which king is the Hong Duc Code associated with?",
+        "options": ["King Le Thanh Tong", "King Le Loi", "King Le Hoan", "King Le Chieu Thong"],
+        "explanation": "The Hong Duc Code is a landmark legislative achievement under the reign of King Le Thanh Tong.",
+    },
+    "tay_son": {
+        "question": "Which region was the Tay Son movement associated with three brothers from?",
+        "options": ["Binh Dinh", "Thanh Hoa", "Nghe An", "Thang Long"],
+        "explanation": "The Tay Son movement originated in the Tay Son region, Binh Dinh province.",
+    },
+    "quang_trung_1789": {
+        "question": "On which occasion did Emperor Quang Trung defeat the Qing army in 1789?",
+        "options": ["Ky Dau Lunar New Year", "Mau Than Lunar New Year", "Canh Ty Lunar New Year", "Dinh Dau Lunar New Year"],
+        "explanation": "The victory of Ngoc Hoi - Dong Da took place during the Ky Dau Lunar New Year in 1789.",
+    },
+    "ngoc_hoi_dong_da": {
+        "question": "The victory of Ngoc Hoi - Dong Da was a victory over which army?",
+        "options": ["Qing Dynasty", "Ming Dynasty", "Yuan Dynasty", "Siam"],
+        "explanation": "Ngoc Hoi - Dong Da was the decisive victory of Quang Trung over the invading Qing army.",
+    },
+    "rach_gam_xoai_mut": {
+        "question": "The battle of Rach Gam - Xoai Mut in 1785 was a victory over which army?",
+        "options": ["Siamese Army", "Qing Army", "French Army", "Ming Army"],
+        "explanation": "Nguyen Hue commanded the battle of Rach Gam - Xoai Mut, completely defeating the Siamese invasion in the South.",
+    },
+    "nha_nguyen_1802": {
+        "question": "By whom was the Nguyen dynasty founded in 1802?",
+        "options": ["Gia Long", "Minh Mang", "Tu Duc", "Bao Dai"],
+        "explanation": "Nguyen Anh ascended the throne as Emperor Gia Long in 1802, establishing the Nguyen Dynasty.",
+    },
+    "kinh_do_hue": {
+        "question": "Where was the capital of the Nguyen dynasty located?",
+        "options": ["Hue", "Thang Long", "Hoa Lu", "Co Loa"],
+        "explanation": "The Nguyen Dynasty selected Hue as its imperial capital throughout its reign.",
+    },
+    "phap_da_nang_1858": {
+        "question": "In which year did the French-Spanish alliance fire to invade Vietnam in Da Nang?",
+        "options": ["1858", "1884", "1945", "1802"],
+        "explanation": "On September 1, 1858, the French-Spanish joint force attacked Da Nang, beginning the invasion of Vietnam.",
+    },
+    "can_vuong": {
+        "question": "What was the main goal of the Can Vuong movement at the end of the 19th century?",
+        "options": ["Resist the French, support the King", "Transfer the capital", "Reform spelling and writing", "Open up trade"],
+        "explanation": "The Can Vuong movement called on patriotic scholars and citizens to resist French rule and support King Ham Nghi.",
+    },
+    "yen_the": {
+        "question": "Which leader was the Yen The uprising associated with?",
+        "options": ["Hoang Hoa Tham", "Phan Boi Chau", "Phan Chau Trinh", "Ton That Thuyet"],
+        "explanation": "Hoang Hoa Tham, also known as De Tham, was the legendary leader of the Yen The peasant uprising.",
+    },
+    "dang_cong_san_1930": {
+        "question": "In which year was the Communist Party of Vietnam established?",
+        "options": ["1930", "1945", "1954", "1975"],
+        "explanation": "The Communist Party of Vietnam was established on February 3, 1930.",
+    },
+    "cach_mang_thang_tam": {
+        "question": "In which year was the August Revolution successful?",
+        "options": ["1945", "1930", "1954", "1975"],
+        "explanation": "The success of the August Revolution in 1945 led to the founding of the Democratic Republic of Vietnam.",
+    },
+    "doc_lap_2_9": {
+        "question": "Where did President Ho Chi Minh read the Declaration of Independence on September 2, 1945?",
+        "options": ["Ba Dinh Square", "Nha Rong Harbor", "Dien Bien Phu", "Independence Palace"],
+        "explanation": "On September 2, 1945, President Ho Chi Minh read the Declaration of Independence at Ba Dinh Square in Hanoi.",
+    },
+    "dien_bien_phu_1954": {
+        "question": "In which year did the Dien Bien Phu victory take place?",
+        "options": ["1954", "1945", "1968", "1975"],
+        "explanation": "The victory of Dien Bien Phu in 1954 successfully concluded the resistance war against French colonialism.",
+    },
+    "tong_tien_cong_1975": {
+        "question": "On which day did the Ho Chi Minh Campaign achieve total victory?",
+        "options": ["April 30, 1975", "September 2, 1945", "May 7, 1954", "August 19, 1945"],
+        "explanation": "On April 30, 1975, the Ho Chi Minh Campaign achieved complete victory, reunifying the country.",
+    },
+    "nam_de_544": {
+        "question": "In which year did Ly Nam De ascend the throne as emperor and establish the Van Xuan state?",
+        "options": ["544", "542", "602", "938"],
+        "explanation": "In 544, after defeating the Liang occupying forces, Ly Bi ascended the throne as Emperor (Ly Nam De) and named the country Van Xuan.",
+    },
+    "khuc_thua_du_905": {
+        "question": "Who reclaimed the country's autonomy from the Tang dynasty in 905?",
+        "options": ["Khuc Thua Du", "Khuc Hao", "Khuc Thua My", "Duong Dinh Nghe"],
+        "explanation": "In 905, taking advantage of the Tang dynasty's decline, Khuc Thua Du seized Tong Binh, declared himself governor, and reclaimed autonomy.",
+    },
+    "le_chi_vien_1442": {
+        "question": "The Le Chi Vien case in 1442 is associated with the wrongful death of which historical figure?",
+        "options": ["Nguyen Trai", "Le Loi", "Tran Nguyen Han", "Pham Van Dong"],
+        "explanation": "The Le Chi Vien case (1442) led to the unjust execution of Nguyen Trai and his wife, Nguyen Thi Lo, along with three generations of their family.",
+    },
+    "ham_nghi_can_vuong": {
+        "question": "Which Nguyen dynasty king issued the Can Vuong decree calling on citizens to resist the French?",
+        "options": ["King Ham Nghi", "King Duy Tan", "King Thanh Thai", "King Dong Khanh"],
+        "explanation": "In 1885, after leaving Hue imperial citadel, King Ham Nghi issued the Can Vuong decree, calling on scholars and citizens to fight the French.",
+    },
+    "phan_boi_chau_dong_du": {
+        "question": "Which patriot initiated the Dong Du (Go East) movement at the beginning of the 20th century?",
+        "options": ["Phan Boi Chau", "Phan Chau Trinh", "Huynh Thuc Khang", "Nguyen Thai Hoc"],
+        "explanation": "The Dong Du movement (1905–1909) was initiated by Phan Boi Chau to send young Vietnamese students to study in Japan.",
+    },
+    "nguyen_ai_quoc_1919": {
+        "question": "In 1919, to which conference did Nguyen Ai Quoc send the Claims of the Annamese People?",
+        "options": ["Versailles Conference", "Geneva Conference", "Paris Conference", "Yalta Conference"],
+        "explanation": "Representing the Association of Annamese Patriots, Nguyen Ai Quoc sent the Claims to the Versailles Peace Conference in 1919.",
+    },
+    "mat_tran_viet_minh_1941": {
+        "question": "In which year was the League for the Independence of Vietnam (Viet Minh) founded?",
+        "options": ["1941", "1930", "1945", "1954"],
+        "explanation": "The Viet Minh Front was founded on May 19, 1941, during the 8th Central Committee Conference of the Party in Pac Bo, Cao Bang.",
+    },
+    "tran_phu_first_tbt": {
+        "question": "Who was the first General Secretary of the Communist Party of Indochina?",
+        "options": ["Tran Phu", "Nguyen Van Cu", "Ha Huy Tap", "Truong Chinh"],
+        "explanation": "Comrade Tran Phu was elected as the first General Secretary of the Indochinese Communist Party in October 1930.",
+    },
+    "vo_nguyen_giap_general": {
+        "question": "Which General was the Commander-in-Chief of the People's Army of Vietnam in the Dien Bien Phu campaign?",
+        "options": ["Vo Nguyen Giap", "Van Tien Dung", "Le Trong Tan", "Nguyen Chi Thanh"],
+        "explanation": "General Vo Nguyen Giap was the supreme commander of the historic Dien Bien Phu campaign in 1954.",
+    },
+    "kim_dong_leader": {
+        "question": "Who was the first leader of the Ho Chi Minh Young Pioneer Organization?",
+        "options": ["Kim Dong", "Vua A Dinh", "Le Van Tam", "Ko-pa Ko-long"],
+        "explanation": "Nong Văn Dền (alias Kim Dong) was the first leader of the Young Pioneer organization, established on May 15, 1941.",
+    },
+    "hiep_dinh_paris_1973": {
+        "question": "In which year was the Paris Peace Accords on ending the war and restoring peace in Vietnam signed?",
+        "options": ["1973", "1972", "1975", "1954"],
+        "explanation": "The Paris Peace Accords were signed on January 27, 1973, forcing US troops to withdraw completely from Vietnam.",
+    },
+    "vua_bao_dai_last": {
+        "question": "Who was the last emperor of the Vietnamese feudal dynasties?",
+        "options": ["Emperor Bao Dai", "Emperor Khai Dinh", "Emperor Tu Duc", "Emperor Ham Nghi"],
+        "explanation": "Emperor Bao Dai abdicated on August 30, 1945, ending the Nguyen Dynasty and the feudal regime of Vietnam.",
+    },
+    "tran_nhan_tong_zen": {
+        "question": "Which Tran dynasty emperor founded the Truc Lam Zen Sect of Yen Tu?",
+        "options": ["Tran Nhan Tong", "Tran Thai Tong", "Tran Thanh Tong", "Tran Anh Tong"],
+        "explanation": "After abdicating the throne, Tran Nhan Tong became a monk at Yen Tu Mountain and founded the Truc Lam Zen Sect.",
+    },
+    "le_loi_lake_sword": {
+        "question": "The legend of King Le Loi returning the magic sword to the Golden Turtle is associated with which location?",
+        "options": ["Sword Lake (Hoan Kiem Lake)", "West Lake", "Ba Be Lake", "Tri An Lake"],
+        "explanation": "The legend of Sword Lake is associated with Le Loi returning the Thuan Thien sword after expelling the Ming invaders.",
+    },
+    "binh_thu_yeu_luoc_author": {
+        "question": "Who compiled the famous military treatise 'Binh Thu Yeu Luoc' (Summary of Military Tactics)?",
+        "options": ["Tran Hung Dao", "Ly Thuong Kiet", "Le Loi", "Nguyen Hue"],
+        "explanation": "Binh Thu Yeu Luoc is a military tactics manual written by Hung Dao Vuong Tran Quoc Tuan to train soldiers.",
+    },
+    "ho_citadel_thanh_hoa": {
+        "question": "The Citadel of the Ho Dynasty (Tay Do Citadel) built by Ho Quy Ly is located in which province today?",
+        "options": ["Thanh Hoa", "Nghe An", "Ninh Binh", "Ha Tĩnh"],
+        "explanation": "The Ho Dynasty Citadel, a World Cultural Heritage site built in 1397, is located in Vinh Loc district, Thanh Hoa province.",
+    },
+    "quang_trung_up_1788": {
+        "question": "In which year did Nguyen Hue officially ascend the throne, adopting the reign name Quang Trung?",
+        "options": ["1788", "1789", "1785", "1802"],
+        "explanation": "In December 1788, Nguyen Hue ascended the throne at Bun Mountain (Hue) to gather legitimacy before marching North to defeat the Qing.",
+    },
+    "dong_kinh_nghia_thuc_1907": {
+        "question": "In which year was Dong Kinh Nghia Thuc (Tonkin Free School), a patriotic reform education movement, established?",
+        "options": ["1907", "1905", "1911", "1919"],
+        "explanation": "Dong Kinh Nghia Thuc was founded in March 1907 by patriotic scholars led by Luong Van Can and Nguyen Quyen.",
+    },
+    "xo_viet_nghe_tinh_period": {
+        "question": "In which period did the Xo Viet Nghe Tinh revolutionary movement take place?",
+        "options": ["1930 - 1931", "1936 - 1939", "1940 - 1941", "1945"],
+        "explanation": "The Xo Viet Nghe Tinh movement was the peak of our country's revolution in the 1930-1931 period against French colonialism.",
+    },
+    "nam_ky_flag_1940": {
+        "question": "Which 1940 uprising saw the first appearance of the red flag with a yellow star?",
+        "options": ["Nam Ky Uprising", "Bac Uprising", "Do Luong Mutiny", "Lam Son Uprising"],
+        "explanation": "The red flag with a five-pointed yellow star first appeared during the Nam Ky Uprising on November 23, 1940.",
+    },
+    "phan_chau_trinh_duy_tan": {
+        "question": "Which patriot initiated the Duy Tan movement in Central Vietnam at the beginning of the 20th century?",
+        "options": ["Phan Chau Trinh", "Phan Bội Châu", "Nguyễn Thái Học", "Hoàng Hoa Thám"],
+        "explanation": "The Duy Tan movement (1906-1908) with the slogan 'Raise the people's intellect, revive the people's spirit, enrich the people's livelihood' was led by Phan Chau Trinh.",
+    },
+    "gia_long_hoang_sa": {
+        "question": "By which action did King Gia Long consolidate sovereignty over the Hoang Sa (Paracel) and Truong Sa (Spratly) archipelagos?",
+        "options": ["Planting sovereignty flags and establishing the Hoang Sa flotilla", "Signing a treaty with France", "Establishing a protectorate", "Buying them from foreign merchants"],
+        "explanation": "The Nguyen Dynasty, starting from the Gia Long era, continuously consolidated record-keeping, sent the Hoang Sa flotilla to map and plant flags, asserting sovereignty.",
+    },
+    "le_van_huu_history": {
+        "question": "Who was the author of 'Dai Việt sử ký', our country's first national history compiled during the Tran dynasty?",
+        "options": ["Lê Văn Hưu", "Ngô Sĩ Liên", "Phan Phu Tiên", "Trần Trọng Kim"],
+        "explanation": "The historian Le Van Huu completed the first national history 'Dai Viet Su Ky' consisting of 30 volumes in 1272, presenting it to King Tran Thanh Tong.",
+    },
+    "y_lan_regent": {
+        "question": "Which Ly dynasty consort was famous for serving as regent twice to keep the country peaceful?",
+        "options": ["Imperial Consort Y Lan", "Empress Chiêu Thánh", "Dương Vân Nga", "Lady Y Lan"],
+        "explanation": "Imperial Consort Y Lan served as regent twice: once when King Ly Thánh Tông went to battle, and once when King Ly Nhân Tông was still a child.",
+    },
+    "chu_van_an_teacher": {
+        "question": "With which noble title was the teacher Chu Van An honored during the Tran Dynasty?",
+        "options": ["Teacher of Ten Thousand Generations", "First Scholar Teacher", "Prime Minister of Academy", "Founding Merit Lord"],
+        "explanation": "Chu Van An was an outstanding educator, honored as the 'Teacher of Ten Thousand Generations' of Vietnam.",
+    },
+    "nguyen_hien_youngest": {
+        "question": "Who was the youngest First Scholar (Trạng nguyên) in Vietnamese history (passing the exam at the age of 12)?",
+        "options": ["Nguyễn Hiền", "Lương Thế Vinh", "Mạc Đĩnh Chi", "Lê Văn Hưu"],
+        "explanation": "Nguyễn Hiền passed the First Scholar exam in the year Đinh Mùi (1247) under the reign of King Trần Thái Tông when he was only 12 years old.",
+    },
+}
+
+
 class AnswerPayload(BaseModel):
     question_key: str
     selected_index: int
@@ -580,7 +879,7 @@ def _question_public(question: dict) -> dict:
     }
 
 
-def _daily_questions(db: UserDB, user_id: int, question_date: date) -> list[dict]:
+def _daily_questions(db: UserDB, user_id: int, question_date: date, lang: Optional[str] = None) -> list[dict]:
     # 1. Tìm tất cả các câu hỏi đã trả lời trước ngày hôm nay
     db.cursor.execute(
         "SELECT DISTINCT question_key FROM qa_answers WHERE user_id = ? AND question_date < ?",
@@ -603,7 +902,29 @@ def _daily_questions(db: UserDB, user_id: int, question_date: date) -> list[dict
 
     for raw_question in bank[:DAILY_QUESTION_COUNT]:
         question = raw_question.copy()
-        option_pairs = list(enumerate(raw_question["options"]))
+        
+        # Translate first if lang == "en"
+        if lang == "en" and question["id"] in QA_TRANSLATIONS_EN:
+            translation = QA_TRANSLATIONS_EN[question["id"]]
+            question["question"] = translation["question"]
+            question["options"] = translation["options"]
+            question["explanation"] = translation["explanation"]
+            
+            # Translate era name
+            era_map = {
+                "Văn Lang - Âu Lạc": "Van Lang - Au Lac",
+                "Bắc thuộc": "Chinese Domination",
+                "Ngô - Đinh - Tiền Lê": "Ngo - Dinh - Early Le",
+                "Lý - Trần - Hồ": "Ly - Tran - Ho",
+                "Lê sơ": "Later Le & Division",
+                "Tây Sơn": "Tay Son",
+                "Nhà Nguyễn": "Nguyen Dynasty",
+                "Pháp thuộc": "French Domination",
+                "Hiện đại": "Modern Era"
+            }
+            question["era"] = era_map.get(question["era"], question["era"])
+
+        option_pairs = list(enumerate(question["options"]))
         rng.shuffle(option_pairs)
         question["options"] = [option for _, option in option_pairs]
         question["correct"] = next(
@@ -615,8 +936,8 @@ def _daily_questions(db: UserDB, user_id: int, question_date: date) -> list[dict
     return questions
 
 
-def _get_question_for_user(db: UserDB, user_id: int, question_date: date, question_key: str) -> Optional[dict]:
-    for question in _daily_questions(db, user_id, question_date):
+def _get_question_for_user(db: UserDB, user_id: int, question_date: date, question_key: str, lang: Optional[str] = None) -> Optional[dict]:
+    for question in _daily_questions(db, user_id, question_date, lang):
         if question["id"] == question_key:
             return question
     return None
@@ -866,7 +1187,7 @@ def claim_daily_checkin(user=Depends(get_current_user)):
 
 
 @router.get("/questions")
-def get_daily_questions(user=Depends(get_current_user)):
+def get_daily_questions(lang: Optional[str] = None, user=Depends(get_current_user)):
     db = UserDB()
     try:
         today = _today()
@@ -874,7 +1195,7 @@ def get_daily_questions(user=Depends(get_current_user)):
         answered = _answered_map(db, user["id"], today_key)
         questions = []
 
-        for question in _daily_questions(db, user["id"], today):
+        for question in _daily_questions(db, user["id"], today, lang):
             public_question = _question_public(question)
             answer = answered.get(question["id"])
             if answer:
@@ -899,7 +1220,7 @@ def get_daily_questions(user=Depends(get_current_user)):
 
 
 @router.post("/answer")
-def answer_question(payload: AnswerPayload, user=Depends(get_current_user)):
+def answer_question(payload: AnswerPayload, lang: Optional[str] = None, user=Depends(get_current_user)):
     db = UserDB()
     try:
         question_date = date.fromisoformat(payload.question_date) if payload.question_date else _today()
@@ -907,7 +1228,7 @@ def answer_question(payload: AnswerPayload, user=Depends(get_current_user)):
         if question_date != today:
             raise HTTPException(status_code=400, detail="Chỉ nhận thưởng cho bộ câu hỏi hôm nay.")
 
-        question = _get_question_for_user(db, user["id"], question_date, payload.question_key)
+        question = _get_question_for_user(db, user["id"], question_date, payload.question_key, lang)
         if not question:
             raise HTTPException(status_code=404, detail="Câu hỏi không thuộc thử thách hôm nay.")
 

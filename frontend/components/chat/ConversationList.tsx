@@ -8,6 +8,7 @@ import {
   Trash2, MoreVertical, History
 } from "lucide-react";
 import { updateConversation } from "../../api";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface Conversation {
   id: number;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false }) => {
+  const { t } = useLanguage();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; id: number } | null>(null);
@@ -75,10 +77,10 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
   const handlePin = async (id: number, currentStatus: boolean) => {
     try {
       await updateConversation(id, { is_pinned: !currentStatus });
-      toast.success(!currentStatus ? "Đã ghim hội thoại" : "Đã bỏ ghim");
+      toast.success(!currentStatus ? t.history_toast_pinned : t.history_toast_unpinned);
       loadConversations();
     } catch (err) {
-      toast.error("Không thể thực hiện thao tác");
+      toast.error(t.history_toast_pin_err);
     }
   };
 
@@ -88,9 +90,9 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
       await updateConversation(editingId, { title: editingTitle });
       setEditingId(null);
       loadConversations();
-      toast.success("Đã đổi tên");
+      toast.success(t.history_toast_renamed);
     } catch (err) {
-      toast.error("Lỗi khi đổi tên");
+      toast.error(t.history_toast_rename_err);
     }
   };
 
@@ -101,7 +103,7 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
         headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
       });
       if (res.ok) {
-        toast.success("Đã xóa hội thoại");
+        toast.success(t.history_toast_deleted);
         loadConversations();
         if (activeId === id) {
           localStorage.removeItem("conversation_id");
@@ -110,7 +112,7 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
         }
       }
     } catch (err) {
-      toast.error("Lỗi khi xóa");
+      toast.error(t.history_toast_delete_err);
     }
   };
 
@@ -149,7 +151,7 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
       ) : (
         <>
           <span className={`flex-1 truncate text-sm font-medium leading-tight py-0.5 ${dark ? 'text-inherit' : activeId === c.id ? 'text-red-950' : 'text-stone-800'}`}>
-            {c.title || "Cuộc trò chuyện mới"}
+            {c.title || t.history_new_chat}
           </span>
           
           <div className="flex items-center shrink-0 ml-1">
@@ -185,19 +187,19 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
     <div className="flex flex-col select-none px-1">
       {conversations.length === 0 ? (
         <div className="py-8 text-center px-4">
-          <p className="text-[10px] text-stone-500 font-medium italic opacity-50">Lịch sử trống</p>
+          <p className="text-[10px] text-stone-500 font-medium italic opacity-50">{t.history_empty}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {pinned.length > 0 && (
             <div>
-              <p className="px-3 mb-1 text-[10px] font-black text-stone-600 uppercase tracking-widest opacity-60">Đã ghim</p>
+              <p className="px-3 mb-1 text-[10px] font-black text-stone-600 uppercase tracking-widest opacity-60">{t.history_pinned}</p>
               <div className="space-y-px">{pinned.map(renderItem)}</div>
             </div>
           )}
           
           <div>
-            <p className="px-3 mb-1 text-[10px] font-black text-stone-600 uppercase tracking-widest opacity-60">Gần đây</p>
+            <p className="px-3 mb-1 text-[10px] font-black text-stone-600 uppercase tracking-widest opacity-60">{t.history_recent}</p>
             <div className="space-y-px">{others.map(renderItem)}</div>
           </div>
         </div>
@@ -234,9 +236,9 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
               }`}
             >
               {conversations.find(x => x.id === menu.id)?.is_pinned ? (
-                <><PinOff size={14} /> Bỏ ghim</>
+                <><PinOff size={14} /> {t.history_menu_unpin}</>
               ) : (
-                <><Pin size={14} /> Ghim hội thoại</>
+                <><Pin size={14} /> {t.history_menu_pin}</>
               )}
             </button>
             
@@ -255,7 +257,7 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
                   : 'text-stone-700 hover:bg-stone-100 hover:text-stone-950'
               }`}
             >
-              <Edit3 size={14} /> Đổi tên
+              <Edit3 size={14} /> {t.history_menu_rename}
             </button>
             
             <div className={`h-px my-1 mx-2 ${dark ? 'bg-white/5' : 'bg-stone-100'}`} />
@@ -267,7 +269,7 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
               }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all"
             >
-              <Trash2 size={14} /> Xóa hội thoại
+              <Trash2 size={14} /> {t.history_menu_delete}
             </button>
           </motion.div>
         )}
@@ -275,7 +277,7 @@ const ConversationList: React.FC<Props> = ({ onSelect, activeId, dark = false })
 
       <ConfirmModal
         open={deleteId !== null}
-        message="Xóa vĩnh viễn cuộc hội thoại này?"
+        message={t.history_delete_confirm}
         onConfirm={() => {
           if (deleteId !== null) handleDelete(deleteId);
           setDeleteId(null);

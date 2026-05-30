@@ -1,6 +1,7 @@
 import React from 'react';
 import { API_ROOT } from '../../api';
 import { Shield, User, Coins, Trash2, Edit2 } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface UsersTabProps {
   users: any[];
@@ -17,7 +18,6 @@ const AvatarImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
   const finalSrc = src.startsWith('/') ? `${API_ROOT}${src}` : src;
   return <img src={finalSrc} alt={alt} className="w-8 h-8 rounded-lg object-cover shadow-sm border border-amber-500/20" referrerPolicy="no-referrer" onError={() => setError(true)} />;
 };
-
 const UsersTab: React.FC<UsersTabProps> = ({ 
   users, 
   isLoading, 
@@ -26,37 +26,78 @@ const UsersTab: React.FC<UsersTabProps> = ({
   onToggleAdmin, 
   onDeleteUser 
 }) => {
+  const { language } = useLanguage();
+
+  const txt = {
+    vi: {
+      title: 'Danh Tịch Sĩ Tử Đăng Khoa',
+      subtitle: 'Đang ghi nhận {count} nhân sĩ',
+      col_scholar: 'Nhân Sĩ',
+      col_email: 'Địa Chỉ Liên Lạc (Email)',
+      col_tokens: 'Công Đức (Tokens)',
+      col_rank: 'Chức Tước',
+      col_action: 'Triều Đình Hành Sự',
+      searching: 'Đang tra cứu Tàng Kinh Các, xin nhân sĩ kiên tâm đợi...',
+      no_scholars: 'Không tìm thấy nhân sĩ nào...',
+      rank_admin: 'Quan Lại',
+      rank_user: 'Sĩ Tử',
+      action_detail: 'Bản Sớ',
+      action_gift: 'Tặng Tệ',
+      action_demote: 'Hạ Chức',
+      action_promote: 'Sắc Phong',
+      action_ban: 'Bãi Bỏ'
+    },
+    en: {
+      title: 'Register of Scholars',
+      subtitle: 'Recording {count} scholars',
+      col_scholar: 'Scholar',
+      col_email: 'Contact Email',
+      col_tokens: 'Merit Tokens',
+      col_rank: 'Rank & Title',
+      col_action: 'Court Actions',
+      searching: 'Searching library archives, please wait...',
+      no_scholars: 'No scholars found...',
+      rank_admin: 'Official',
+      rank_user: 'Scholar',
+      action_detail: 'Petition',
+      action_gift: 'Gift Tokens',
+      action_demote: 'Demote',
+      action_promote: 'Promote',
+      action_ban: 'Dismiss'
+    }
+  }[language === 'en' ? 'en' : 'vi'];
+
   return (
     <div className="paper-texture scroll-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in duration-300">
       <div className="px-6 py-4 bg-gradient-to-r from-[#451a03] to-[#2c1609] border-b border-amber-500/30 flex justify-between items-center">
         <h3 className="font-historical text-lg text-amber-100 flex items-center gap-2">
-          <span className="text-amber-400">📜</span> Danh Tịch Sĩ Tử Đăng Khoa
+          <span className="text-amber-400">📜</span> {txt.title}
         </h3>
-        <span className="text-xs text-amber-200/70 font-sans italic">Đang ghi nhận {users.length} nhân sĩ</span>
+        <span className="text-xs text-amber-200/70 font-sans italic">{txt.subtitle.replace('{count}', String(users.length))}</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-[#451a03]/20 text-[#7f1d1d] uppercase text-[10px] font-black tracking-widest border-b border-amber-800/10">
             <tr>
-              <th className="px-4 py-4 text-left font-historical">Nhân Sĩ</th>
-              <th className="px-4 py-4 text-left font-historical">Địa Chỉ Liên Lạc (Email)</th>
-              <th className="px-4 py-4 text-right font-historical">Công Đức (Tokens)</th>
-              <th className="px-4 py-4 text-center font-historical">Chức Tước</th>
-              <th className="px-4 py-4 text-center font-historical">Triều Đình Hành Sự</th>
+              <th className="px-4 py-4 text-left font-historical">{txt.col_scholar}</th>
+              <th className="px-4 py-4 text-left font-historical">{txt.col_email}</th>
+              <th className="px-4 py-4 text-right font-historical">{txt.col_tokens}</th>
+              <th className="px-4 py-4 text-center font-historical">{txt.col_rank}</th>
+              <th className="px-4 py-4 text-center font-historical">{txt.col_action}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#b45309]/10">
             {isLoading ? (
               <tr>
                 <td colSpan={5} className="text-center py-20 italic text-amber-900/60 font-serif">
-                  Đang tra cứu Tàng Kinh Các, xin nhân sĩ kiên tâm đợi...
+                  {txt.searching}
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-20 italic text-stone-400 font-serif">
-                  Không tìm thấy nhân sĩ nào...
+                  {txt.no_scholars}
                 </td>
               </tr>
             ) : (
@@ -96,11 +137,11 @@ const UsersTab: React.FC<UsersTabProps> = ({
                   <td className="px-4 py-3 text-center">
                     {u.is_admin ? (
                       <span className="inline-block px-3 py-1 bg-red-100 border border-red-600 text-red-700 rounded-sm text-[10px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[-2deg] border-double">
-                        印 Quan Lại
+                        印 {txt.rank_admin}
                       </span>
                     ) : (
                       <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-600/30 text-amber-800 rounded-sm text-[10px] font-bold uppercase tracking-wider font-historical">
-                        Sĩ Tử
+                        {txt.rank_user}
                       </span>
                     )}
                   </td>
@@ -113,7 +154,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
                         onClick={() => onViewDetail(u.id)} 
                         className="text-[10px] font-bold uppercase bg-[#451a03]/5 hover:bg-[#451a03]/10 text-[#451a03] border border-[#451a03]/20 px-2 py-1 rounded-lg transition-all hover-lift active:scale-95 shrink-0"
                       >
-                        Bản Sớ
+                        {txt.action_detail}
                       </button>
 
                       {/* Sửa dư */}
@@ -121,7 +162,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
                         onClick={() => onUpdateBalance(u.id, u.token_balance)} 
                         className="text-[10px] font-bold uppercase bg-amber-50 hover:bg-amber-100 text-[#b45309] border border-amber-400/40 px-2 py-1 rounded-lg transition-all hover-lift active:scale-95 shrink-0"
                       >
-                        Tặng Tệ
+                        {txt.action_gift}
                       </button>
                       
                       {/* Toggle Admin */}
@@ -133,7 +174,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
                           : 'bg-[#7f1d1d] text-amber-100 border border-red-900 hover:bg-red-900'
                         }`}
                       >
-                        {u.is_admin ? 'Hạ Chức' : 'Sắc Phong'}
+                        {u.is_admin ? txt.action_demote : txt.action_promote}
                       </button>
 
                       {/* Delete protection */}
@@ -142,7 +183,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
                           onClick={() => onDeleteUser(u.id)} 
                           className="text-[10px] font-bold uppercase bg-stone-100 hover:bg-red-600 hover:text-white text-stone-500 border border-stone-200 hover:border-red-700 px-2 py-1 rounded-lg transition-all hover-lift active:scale-95 shrink-0"
                         >
-                          Bãi Bỏ
+                          {txt.action_ban}
                         </button>
                       )}
                     </div>
@@ -155,6 +196,4 @@ const UsersTab: React.FC<UsersTabProps> = ({
       </div>
     </div>
   );
-};
-
-export default UsersTab;
+};export default UsersTab;

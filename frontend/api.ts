@@ -258,16 +258,18 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
-  async getQAQuestions(): Promise<QAQuestionsResponse> {
-    const response = await fetch(`${BASE_URL}/qa/questions`, {
+  async getQAQuestions(lang?: string): Promise<QAQuestionsResponse> {
+    const url = lang ? `${BASE_URL}/qa/questions?lang=${lang}` : `${BASE_URL}/qa/questions`;
+    const response = await fetch(url, {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Không thể tải câu hỏi Q&A');
     return response.json();
   },
 
-  async answerQAQuestion(payload: { question_key: string; selected_index: number; question_date?: string }): Promise<QAAnswerResponse> {
-    const response = await fetch(`${BASE_URL}/qa/answer`, {
+  async answerQAQuestion(payload: { question_key: string; selected_index: number; question_date?: string }, lang?: string): Promise<QAAnswerResponse> {
+    const url = lang ? `${BASE_URL}/qa/answer?lang=${lang}` : `${BASE_URL}/qa/answer`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         ...getHeaders(),

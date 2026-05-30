@@ -3,6 +3,7 @@ import { User, View } from '../types';
 import { api } from '../api';
 import toast from 'react-hot-toast';
 import { promptInput } from '../utils/swal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 import ProfileInfoCard from './profile/ProfileInfoCard';
 import ProfileHistoryTable from './profile/ProfileHistoryTable';
@@ -17,6 +18,7 @@ interface ProfileViewProps {
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen, onViewChange }) => {
+  const { t } = useLanguage();
   const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
@@ -40,11 +42,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
   }, []);
 
   const handleUpdateFullName = async () => {
-    const newName = await promptInput('Cập nhật Họ tên', 'Nhập họ tên mới của bạn:', user.full_name || '');
+    const newName = await promptInput(t.swal_update_name_title, t.swal_update_name_desc, user.full_name || '');
     if (newName) {
       try {
         await api.userProfileUpdate({ full_name: newName });
-        toast.success('Hồ sơ đã được cập nhật.');
+        toast.success(t.swal_profile_updated);
         if (onUpdateUser) {
            const updatedUser = { ...user, full_name: newName };
            onUpdateUser(updatedUser);
@@ -56,13 +58,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
   };
 
   const handleChangePassword = async () => {
-    const currentPassword = await promptInput('Đổi Mật Khẩu', 'Nhập mật khẩu hiện tại (bỏ trống nếu dùng Google):', '', 'password');
-    const newPassword = await promptInput('Đổi Mật Khẩu', 'Nhập mật khẩu mới (tối thiểu 6 ký tự):', '', 'password');
+    const currentPassword = await promptInput(t.swal_change_pwd_title, t.swal_change_pwd_current, '', 'password');
+    const newPassword = await promptInput(t.swal_change_pwd_title, t.swal_change_pwd_new, '', 'password');
     
     if (newPassword) {
       try {
         await api.userProfileUpdate({ current_password: currentPassword, new_password: newPassword });
-        toast.success('Mật khẩu đã được thay đổi thành công.');
+        toast.success(t.swal_pwd_changed);
       } catch (err: any) {
         toast.error(err.message);
       }
@@ -83,8 +85,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
           </svg>
         </div>
         <div>
-          <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">Hồ Sơ Cá Nhân</h2>
-          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3">Thông tin tài khoản</p>
+          <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">{t.profile_title}</h2>
+          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3">{t.profile_subtitle}</p>
         </div>
       </header>
       
@@ -99,14 +101,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
           {/* UTILITIES (Admin Only) */}
           {!!user.is_admin && (
             <div className="paper-texture scroll-border border-double border-4 border-amber-600/30 rounded-2xl shadow-md p-5 space-y-3 transition-all hover:border-amber-600/50">
-              <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-widest block">Tính năng & Tiện ích</h4>
+              <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-widest block">{t.profile_admin_feature}</h4>
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => onViewChange?.('admin')}
                   className="flex flex-col items-center justify-center p-3 bg-red-50 hover:bg-red-100/50 border border-red-200/20 rounded-xl text-red-900 transition-all active:scale-95 text-center"
                 >
                   <span className="text-xl mb-1">⚙️</span>
-                  <span className="text-[11px] font-bold">Quản trị</span>
+                  <span className="text-[11px] font-bold">{t.profile_admin_btn}</span>
                 </button>
               </div>
             </div>
@@ -122,7 +124,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                  </svg>
-                 Đăng xuất khỏi App
+                 {t.profile_logout_app}
                </button>
             </div>
           )}

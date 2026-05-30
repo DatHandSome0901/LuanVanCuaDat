@@ -1,6 +1,7 @@
 import React from 'react';
 import { PaymentPackage } from '../../types';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface PackageCardProps {
   pkg: PaymentPackage;
@@ -10,6 +11,7 @@ interface PackageCardProps {
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, index }) => {
+  const { t } = useLanguage();
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -25,7 +27,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, 
       {/* Popular Badge for middle package */}
       {pkg.tokens === 350 && (
         <div className="absolute top-0 right-0 bg-gradient-to-r from-[#7f1d1d] to-[#451a03] text-amber-100 text-[8px] font-historical font-black px-4 py-1.5 rounded-bl-xl uppercase tracking-widest shadow-md z-10 border-l border-b border-amber-500/40">
-          Phổ biến nhất
+          {t.pay_popular}
         </div>
       )}
 
@@ -40,7 +42,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, 
       {/* Tokens */}
       <div className="flex items-baseline gap-1 mb-5">
           <span className="text-4xl font-historical font-black text-amber-800">{pkg.tokens}</span>
-          <span className="text-amber-900/60 text-xs font-sans uppercase tracking-widest font-normal">Tệ</span>
+          <span className="text-amber-900/60 text-xs font-sans uppercase tracking-widest font-normal">{t.pay_currency}</span>
       </div>
       
       {/* Features list */}
@@ -49,13 +51,13 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, 
               <svg className="w-3.5 h-3.5 text-green-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
               </svg>
-              Không giới hạn thời hạn sử dụng
+              {t.pay_feature_unlimited}
           </p>
           <p className="flex items-center gap-2 group-hover:text-stone-700 transition-colors">
               <svg className="w-3.5 h-3.5 text-green-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
               </svg>
-              Tốc độ trả lời ưu tiên
+              {t.pay_feature_priority}
           </p>
       </div>
 
@@ -68,7 +70,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, 
         className="mt-auto w-full py-3.5 rounded-xl bg-gradient-to-r from-[#7f1d1d] to-[#451a03] hover:from-[#b45309] hover:to-[#7f1d1d] text-amber-100 font-historical font-black text-xs uppercase tracking-widest border border-amber-500/40 shadow-lg transition-all flex flex-col items-center group/btn relative overflow-hidden"
       >
         <span className="relative z-10 font-bold">{pkg.amount_vnd.toLocaleString('vi-VN')} VNĐ</span>
-        <span className="relative z-10 text-[8px] opacity-80 font-bold uppercase tracking-widest mt-0.5">Nạp ngay qua VietQR</span>
+        <span className="relative z-10 text-[8px] opacity-80 font-bold uppercase tracking-widest mt-0.5">{t.pay_vietqr}</span>
         <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500" />
       </motion.button>
     </motion.div>

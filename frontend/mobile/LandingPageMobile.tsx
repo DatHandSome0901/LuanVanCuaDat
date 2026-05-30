@@ -5,6 +5,7 @@ import { SiteConfig } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameModal } from "../components/GameModal";
 import SecureImage from "../components/SecureImage";
+import { useLanguage } from "../contexts/LanguageContext";
 
 
 type Props = {
@@ -13,24 +14,25 @@ type Props = {
   user?: any;
 };
 
-const texts = [
-  "Ngược dòng thời gian...",
-  "Khám phá hào khí dân tộc...",
-  "Tìm hiểu sử thi Việt Nam...",
-].map(s => s.normalize('NFC'));
-
-const heroes = [
-  "👑 Gia Long", "⚔️ Quang Trung", "🏹 Trần Hưng Đạo", "📜 Lý Thường Kiệt",
-  "🔥 Hai Bà Trưng", "🐉 Lạc Long Quân", "🌊 Âu Cơ", "🛡️ Ngô Quyền",
-  "🏯 Đinh Bộ Lĩnh", "📖 Lê Lợi", "🐘 Bà Triệu", "⚡ Phan Bội Châu",
-].map(s => s.normalize('NFC'));
-
 const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   const [displayText, setDisplayText] = useState("");
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [bubbles, setBubbles] = useState<any[]>([]);
   const [showGame, setShowGame] = useState(false);
+  const { t, language } = useLanguage();
+
+  const texts = [
+    t.mobile_text1,
+    t.mobile_text2,
+    t.mobile_text3
+  ].map(s => s.normalize('NFC'));
+
+  const heroes = [
+    t.mobile_hero_gialong, t.mobile_hero_quangtrung, t.mobile_hero_tranhungdao, t.mobile_hero_lythuongkiet,
+    t.mobile_hero_haibatrung, t.mobile_hero_laclongquan, t.mobile_hero_auco, t.mobile_hero_ngoquyen,
+    t.mobile_hero_dinhbolinh, t.mobile_hero_leloi, t.mobile_hero_batrieu, t.mobile_hero_phanboichau,
+  ].map(s => s.normalize('NFC'));
 
   useEffect(() => {
     let i = 0;
@@ -44,7 +46,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
       }
     }, 50);
     return () => clearInterval(typing);
-  }, [index]);
+  }, [index, texts]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,7 +60,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
       setBubbles(prev => [...prev.slice(-15), bubble]);
     }, 1200);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroes]);
 
   // Ưu tiên dùng URL đã được chuẩn hóa từ App.tsx
   const bypassNgrok = (url: string | undefined) => {
@@ -151,7 +153,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
                 className="w-20 h-20 rounded-[30px] border border-white/10 object-cover"
               />
             </motion.div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-red-900 text-[8px] font-black px-3 py-1 rounded-full shadow-xl border border-white/20 whitespace-nowrap">📜 TRIỀU ĐẠI VIỆT</div>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-red-900 text-[8px] font-black px-3 py-1 rounded-full shadow-xl border border-white/20 whitespace-nowrap">{t.mobile_tri_trieu_dai}</div>
           </div>
           
           <h1 className="text-[2.75rem] font-historical-premium tracking-tighter bg-gradient-to-b from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] leading-none italic">
@@ -174,7 +176,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
           <div className="flex items-center gap-4 opacity-50">
             <div className="h-px w-8 bg-amber-500/50" />
             <p className="text-amber-200 text-[10px] font-bold uppercase tracking-[0.3em]">
-              Hào Khí Ngàn Năm
+              {t.mobile_hao_khi}
             </p>
             <div className="h-px w-8 bg-amber-500/50" />
           </div>
@@ -210,7 +212,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
                 <>
                   <span className="text-2xl">⚔️</span>
                   <span className="text-xl font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
-                    {user ? (user.is_admin ? "Dashboard" : "Tiếp tục") : "Bắt đầu ngay"}
+                    {user ? (user.is_admin ? t.hero_cta_admin : t.hero_cta_continue) : t.nav_start}
                   </span>
                 </>
               )}
@@ -241,7 +243,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
             <div className="relative flex items-center justify-center gap-3">
               <span className="text-xl">🛡️</span>
               <span className="text-lg font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
-                Chơi Game (Demo)
+                {t.mobile_game}
               </span>
             </div>
             
@@ -255,7 +257,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
           
           <div className="flex flex-col items-center gap-1 opacity-40">
             <div className="text-[10px] text-amber-100 tracking-[0.4em] font-black uppercase">
-              Tri Tuệ Nhân Tạo
+              {t.mobile_tri_tue}
             </div>
             <div className="h-1 w-1 bg-amber-500 rounded-full" />
           </div>

@@ -1,6 +1,34 @@
 import React from 'react';
 import { Calendar, User, ArrowUpRight, ArrowDownLeft, FileText } from 'lucide-react';
 import { API_ROOT } from '../../api';
+import { useLanguage } from '../../contexts/LanguageContext';
+
+const localized = {
+  vi: {
+    title: "📜 Nhật Ký Lưu Chuyển Ngân Tệ",
+    subtitle: "Ghi nhận việc luân chuyển linh tệ trên triều đình",
+    col_time: "Điểm Thời Gian",
+    col_user: "Nhân Sĩ Cực Lạc",
+    col_type: "Hình Thức",
+    col_amount: "Số Lượng (Tệ)",
+    col_reason: "Sự Tích (Lý Do)",
+    empty_records: "Không tìm thấy ghi chép luân chuyển nào trong thư văn...",
+    type_in: "納 Thu Vực",
+    type_out: "支 Chi Xuất"
+  },
+  en: {
+    title: "📜 Currency Inflow & Outflow Log",
+    subtitle: "Record of currency circulation in the system",
+    col_time: "Timestamp",
+    col_user: "User",
+    col_type: "Transaction Type",
+    col_amount: "Amount (Tokens)",
+    col_reason: "Description (Reason)",
+    empty_records: "No transaction records found in the archive...",
+    type_in: "納 Inflow",
+    type_out: "支 Outflow"
+  }
+};
 
 const AvatarImage: React.FC<{ src?: string, alt: string }> = ({ src, alt }) => {
   const [error, setError] = React.useState(false);
@@ -28,31 +56,34 @@ interface HistoryTabProps {
 }
 
 const HistoryTab: React.FC<HistoryTabProps> = ({ history }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
+
   return (
     <div className="paper-texture scroll-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in pb-10">
       <div className="px-6 py-4 bg-gradient-to-r from-[#451a03] to-[#2c1609] border-b border-amber-500/30 flex justify-between items-center">
         <h3 className="font-historical text-lg text-amber-100 flex items-center gap-2">
-          <span>📜</span> {"Nhật Ký Lưu Chuyển Ngân Tệ".normalize('NFC')}
+          <span>📜</span> {tLocal.title}
         </h3>
-        <span className="text-xs text-amber-200/70 font-sans italic">{"Ghi nhận việc luân chuyển linh tệ trên triều đình".normalize('NFC')}</span>
+        <span className="text-xs text-amber-200/70 font-sans italic">{tLocal.subtitle}</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-[#451a03]/20 text-[#7f1d1d] uppercase text-[10px] font-black tracking-widest border-b border-amber-800/10">
             <tr>
-              <th className="px-6 py-5 text-left font-historical">{"Điểm Thời Gian".normalize('NFC')}</th>
-              <th className="px-6 py-5 text-left font-historical">{"Nhân Sĩ Cực Lạc".normalize('NFC')}</th>
-              <th className="px-6 py-5 text-center font-historical">{"Hình Thức".normalize('NFC')}</th>
-              <th className="px-6 py-5 text-right font-historical">{"Số Lượng (Tệ)".normalize('NFC')}</th>
-              <th className="px-6 py-5 text-left font-historical">{"Sự Tích (Lý Do)".normalize('NFC')}</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_time}</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_user}</th>
+              <th className="px-6 py-5 text-center font-historical">{tLocal.col_type}</th>
+              <th className="px-6 py-5 text-right font-historical">{tLocal.col_amount}</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_reason}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#b45309]/10">
             {history.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-20 italic text-amber-900/60 font-serif">
-                  {"Không tìm thấy ghi chép luân chuyển nào trong thư văn...".normalize('NFC')}
+                  {tLocal.empty_records}
                 </td>
               </tr>
             ) : (
@@ -72,7 +103,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({ history }) => {
                       <AvatarImage src={h.picture_url} alt={h.username} />
                       <div>
                         <span className="font-historical font-black text-[#7f1d1d]">{h.username}</span>
-                        <p className="text-[10px] text-stone-400 font-mono leading-none">{h.email}</p>
+                        <p className="text-[10px] text-stone-405 font-mono leading-none">{h.email}</p>
                       </div>
                     </div>
                   </td>
@@ -81,11 +112,11 @@ const HistoryTab: React.FC<HistoryTabProps> = ({ history }) => {
                   <td className="px-6 py-4 text-center">
                     {h.type === 'in' ? (
                       <span className="inline-flex items-center gap-0.5 px-2.5 py-0.5 bg-green-50 border border-green-600/30 text-green-700 rounded-sm text-[9px] font-black font-historical transform rotate-[-1deg]">
-                        <ArrowDownLeft size={10} /> {"納 Thu Vực".normalize('NFC')}
+                        <ArrowDownLeft size={10} /> {tLocal.type_in}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-0.5 px-2.5 py-0.5 bg-red-50 border border-red-600/30 text-red-700 rounded-sm text-[9px] font-black font-historical transform rotate-[1deg]">
-                        <ArrowUpRight size={10} /> {"支 Chi Xuất".normalize('NFC')}
+                        <ArrowUpRight size={10} /> {tLocal.type_out}
                       </span>
                     )}
                   </td>

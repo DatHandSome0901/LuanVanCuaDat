@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { api } from '../api';
 import { User } from '../types';
 import { Capacitor } from '@capacitor/core';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AuthViewProps {
   onSuccess: (user: User, token: string) => void;
 }
 
 const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ username: '', password: '', email: '' });
   const [error, setError] = useState('');
@@ -34,7 +36,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         onSuccess(loginRes.user, loginRes.access_token);
       }
     } catch (err: any) {
-      setError(err.message || 'Thao tác thất bại');
+      setError(err.message || t.auth_err_fail);
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +52,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         window.location.href = url;
       }
     } catch (err) {
-      setError('Không thể kết nối với Google');
+      setError(t.auth_err_google);
     }
   };
 
@@ -59,10 +61,10 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
       <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl shadow-stone-200/50 border border-stone-100 p-8">
         <div className="text-center mb-8">
             <h2 className="text-3xl font-serif font-bold text-red-950 mb-2">
-                {isLogin ? 'Chào mừng bạn trở lại' : 'Khám phá Sử Việt'}
+                {isLogin ? t.auth_login_title : t.auth_register_title}
             </h2>
             <p className="text-stone-500 italic text-sm">
-                {isLogin ? 'Hãy đăng nhập để tiếp tục hành trình tìm hiểu lịch sử.' : 'Tạo tài khoản để lưu lại những kiến thức quý báu.'}
+                {isLogin ? t.auth_login_subtitle : t.auth_register_subtitle}
             </p>
         </div>
 
@@ -75,7 +77,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
-              <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 px-1">Email</label>
+              <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 px-1">{t.auth_email_label}</label>
               <input
                 type="email"
                 required
@@ -87,7 +89,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             </div>
           )}
           <div>
-            <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 px-1">Tên đăng nhập</label>
+            <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 px-1">{t.auth_username_label}</label>
             <input
               type="text"
               required
@@ -98,7 +100,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 px-1">Mật khẩu</label>
+            <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 px-1">{t.auth_password_label}</label>
             <input
               type="password"
               required
@@ -114,13 +116,13 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             disabled={isLoading}
             className="w-full bg-red-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-800/20 hover:bg-red-900 active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            {isLoading ? 'Đang xử lý...' : isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
+            {isLoading ? t.auth_btn_processing : isLogin ? t.auth_btn_login : t.auth_btn_register}
           </button>
         </form>
 
         <div className="my-8 flex items-center gap-4 text-stone-300">
             <div className="h-px bg-stone-100 flex-1"></div>
-            <span className="text-xs uppercase tracking-widest font-bold">Hoặc</span>
+            <span className="text-xs uppercase tracking-widest font-bold">{t.auth_or}</span>
             <div className="h-px bg-stone-100 flex-1"></div>
         </div>
 
@@ -134,16 +136,16 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             <path fill="#4285F4" d="M5.22 14.53A7.14 7.14 0 0 1 4.5 12c0-.88.16-1.72.44-2.5l-3.71-2.88A11.93 11.93 0 0 0 0 12c0 2.45.74 4.73 2.01 6.63l3.21-2.1z"/>
             <path fill="#FBBC05" d="M12 4.5c1.76 0 3.34.6 4.58 1.78l3.43-3.43A11.95 11.95 0 0 0 12 0 11.94 11.94 0 0 0 1.44 6.62l3.78 2.91c.95-2.85 3.65-4.97 6.78-4.97z"/>
           </svg>
-          Tiếp tục với Google
+          {t.auth_google}
         </button>
 
         <p className="mt-8 text-center text-sm text-stone-500">
-          {isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
+          {isLogin ? t.auth_no_account : t.auth_has_account}
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="ml-1 text-red-800 font-bold hover:underline"
           >
-            {isLogin ? 'Đăng ký ngay' : 'Đăng nhập ngay'}
+            {isLogin ? t.auth_register_now : t.auth_login_now}
           </button>
         </p>
 
@@ -151,7 +153,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         {!Capacitor.isNativePlatform() && (
           <div className="mt-10 pt-8 border-t border-stone-100">
             <div className="text-center mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
-               Trải nghiệm tốt hơn trên Android
+               {t.auth_apk_title}
             </div>
             <a 
               href="https://rehydrate-doing-crust.ngrok-free.dev/download/apk" 
@@ -159,7 +161,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
               className="flex items-center justify-center gap-3 w-full py-4 bg-stone-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all active:scale-95"
             >
               <span className="text-xl">📲</span>
-              <span>Tải xuống bản App (APK)</span>
+              <span>{t.auth_apk_btn}</span>
             </a>
           </div>
         )}

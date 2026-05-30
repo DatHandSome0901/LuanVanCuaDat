@@ -1,5 +1,6 @@
 import React from 'react';
 import { API_ROOT } from '../../api';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface UserDetailModalProps {
   userDetail: any;
@@ -14,7 +15,41 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
   onEditUser,
   onViewChatDetail
 }) => {
+  const { language } = useLanguage();
   const [imgError, setImgError] = React.useState(false);
+
+  const txt = {
+    vi: {
+      title: 'Chi Tiết Người Dùng',
+      balance: 'Số dư hiện tại',
+      joined: 'Ngày tham gia',
+      fullName: 'Họ tên',
+      notUpdated: 'Chưa cập nhật',
+      edit: 'SỬA',
+      changePwd: 'Đổi Mật Khẩu Cho Người Dùng',
+      meritHistory: 'Biến động công đức',
+      noTransactions: 'Chưa có giao dịch nào.',
+      chatHistory: 'Nhật ký đàm đạo',
+      noChatHistory: 'Chưa có lịch sử chat.',
+      viewAnswer: 'Xem lời giải →',
+      close: 'Đóng Chi Tiết'
+    },
+    en: {
+      title: 'User Details',
+      balance: 'Current Balance',
+      joined: 'Joined Date',
+      fullName: 'Full Name',
+      notUpdated: 'Not updated',
+      edit: 'EDIT',
+      changePwd: 'Change Password for User',
+      meritHistory: 'Token Transactions',
+      noTransactions: 'No transactions yet.',
+      chatHistory: 'Discussion Log',
+      noChatHistory: 'No chat history.',
+      viewAnswer: 'View Answer →',
+      close: 'Close Details'
+    }
+  }[language === 'en' ? 'en' : 'vi'];
 
   return (
     <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -35,7 +70,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                   </div>
                 )}
                 <div>
-                    <h3 className="text-xl font-bold">Chi Tiết Người Dùng</h3>
+                    <h3 className="text-xl font-bold">{txt.title}</h3>
                     <p className="text-xs text-amber-200/60">{userDetail.user.email}</p>
                 </div>
             </div>
@@ -50,25 +85,25 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
             {/* Basic Info Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-stone-50 p-6 rounded-3xl border border-stone-100">
-                    <p className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-1">Số dư hiện tại</p>
+                    <p className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-1">{txt.balance}</p>
                     <p className="text-3xl font-black text-amber-600">{userDetail.user.token_balance.toFixed(2)} <span className="text-xs font-normal text-stone-400">Tokens</span></p>
                 </div>
                 <div className="bg-stone-50 p-6 rounded-3xl border border-stone-100">
-                    <p className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-1">Ngày tham gia</p>
+                    <p className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-1">{txt.joined}</p>
                     <p className="text-xl font-bold text-stone-800">{new Date(userDetail.user.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="bg-stone-50 p-6 rounded-3xl border border-stone-100">
-                    <p className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-1">Họ tên</p>
+                    <p className="text-[10px] font-black uppercase text-stone-400 tracking-widest mb-1">{txt.fullName}</p>
                     <div className="flex items-center justify-between">
-                        <p className="text-xl font-bold text-stone-800">{userDetail.user.full_name || 'Chưa cập nhật'}</p>
-                        <button onClick={() => onEditUser(userDetail.user.id, 'full_name', userDetail.user.full_name)} className="text-[10px] font-bold text-amber-600 hover:bg-amber-100 px-2 py-1 rounded">SỬA</button>
+                        <p className="text-xl font-bold text-stone-800">{userDetail.user.full_name || txt.notUpdated}</p>
+                        <button onClick={() => onEditUser(userDetail.user.id, 'full_name', userDetail.user.full_name)} className="text-[10px] font-bold text-amber-600 hover:bg-amber-100 px-2 py-1 rounded">{txt.edit}</button>
                     </div>
                 </div>
             </div>
 
             <div className="flex gap-4">
                  <button onClick={() => onEditUser(userDetail.user.id, 'password')} className="bg-white border border-stone-200 text-stone-700 px-6 py-2 rounded-2xl text-xs font-bold hover:bg-stone-50 transition-all shadow-sm">
-                    Đổi Mật Khẩu Cho Người Dùng
+                    {txt.changePwd}
                  </button>
             </div>
 
@@ -77,11 +112,11 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 <div>
                     <h4 className="text-sm font-black uppercase text-stone-800 mb-4 flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-amber-500 rounded-full"></span>
-                        Biến động công đức
+                        {txt.meritHistory}
                     </h4>
                     <div className="space-y-3">
                         {userDetail.token_history.length === 0 ? (
-                            <p className="text-xs text-stone-400 italic">Chưa có giao dịch nào.</p>
+                            <p className="text-xs text-stone-400 italic">{txt.noTransactions}</p>
                         ) : userDetail.token_history.slice(0, 10).map((h: any, i: number) => (
                             <div key={i} className="flex justify-between items-center bg-stone-50/50 p-3 rounded-xl text-xs border border-stone-100">
                                 <div>
@@ -100,17 +135,17 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
                 <div>
                     <h4 className="text-sm font-black uppercase text-stone-800 mb-4 flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-stone-800 rounded-full"></span>
-                        Nhật ký đàm đạo
+                        {txt.chatHistory}
                     </h4>
                     <div className="space-y-3">
                         {userDetail.chat_logs.length === 0 ? (
-                            <p className="text-xs text-stone-400 italic">Chưa có lịch sử chat.</p>
+                            <p className="text-xs text-stone-400 italic">{txt.noChatHistory}</p>
                         ) : userDetail.chat_logs.slice(0, 10).map((log: any, i: number) => (
                             <div key={i} className="bg-stone-50/50 p-3 rounded-xl border border-stone-100 cursor-pointer hover:bg-white transition-all shadow-sm group" onClick={() => onViewChatDetail(log)}>
                                 <p className="text-xs font-medium text-stone-800 line-clamp-2 italic">"{log.question}"</p>
                                 <div className="flex justify-between items-center mt-2">
                                     <span className="text-[10px] text-stone-400">{new Date(log.created_at).toLocaleDateString()}</span>
-                                    <span className="text-[10px] font-bold text-stone-300 group-hover:text-amber-600 transition-colors uppercase tracking-widest">Xem lời giải →</span>
+                                    <span className="text-[10px] font-bold text-stone-300 group-hover:text-amber-600 transition-colors uppercase tracking-widest">{txt.viewAnswer}</span>
                                 </div>
                             </div>
                         ))}
@@ -120,11 +155,10 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({
          </div>
 
          <div className="p-8 bg-stone-50 border-t border-stone-100 shrink-0">
-            <button onClick={onClose} className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all active:scale-95">Đóng Chi Tiết</button>
+            <button onClick={onClose} className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all active:scale-95">{txt.close}</button>
          </div>
       </div>
     </div>
-  );
-};
+  );};
 
 export default UserDetailModal;

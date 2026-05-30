@@ -1,6 +1,36 @@
 import React from 'react';
 import { Calendar, User, FileText, AlertCircle } from 'lucide-react';
 import { API_ROOT } from '../../api';
+import { useLanguage } from '../../contexts/LanguageContext';
+
+const localized = {
+  vi: {
+    title: "📜 Sổ Sách Phúc Tra Sai Sót (Báo Cáo Sự Cố)",
+    subtitle: "Ghi nhận các khiếu nại hoặc sự cố từ sĩ tử",
+    col_time: "Điểm Thời Gian",
+    col_user: "Nhân Sĩ Báo Cáo",
+    col_invoice: "Mã Hóa Đơn",
+    col_detail: "Chi Tiết Sự Việc (Mô Tả)",
+    col_status: "Trạng Thái Phúc Tra",
+    empty_records: "Khắp nơi bình yên, chưa ghi nhận sớ phúc tra sự cố nào...",
+    status_resolved: "已決 Đã Giải Quyết",
+    status_ignored: "罷 Bỏ Qua",
+    status_pending: "侍閱 Đang Xét"
+  },
+  en: {
+    title: "📜 Discrepancy Audits Ledger (Incident Reports)",
+    subtitle: "Record of disputes or system issues submitted by scholars",
+    col_time: "Timestamp",
+    col_user: "Reporter",
+    col_invoice: "Invoice ID",
+    col_detail: "Incident Details (Description)",
+    col_status: "Audit Status",
+    empty_records: "All quiet across the land, no incident reports found...",
+    status_resolved: "已決 Resolved",
+    status_ignored: "罷 Ignored",
+    status_pending: "侍閱 Under Review"
+  }
+};
 
 const AvatarImage: React.FC<{ src?: string, alt: string }> = ({ src, alt }) => {
   const [error, setError] = React.useState(false);
@@ -28,31 +58,34 @@ interface ReportsTabProps {
 }
 
 const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
+
   return (
     <div className="paper-texture scroll-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in pb-10">
       <div className="px-6 py-4 bg-gradient-to-r from-[#451a03] to-[#2c1609] border-b border-amber-500/30 flex justify-between items-center">
         <h3 className="font-historical text-lg text-amber-100 flex items-center gap-2">
-          <span>📜</span> Sổ Sách Phúc Tra Sai Sót (Báo Cáo Sự Cố)
+          <span>📜</span> {tLocal.title}
         </h3>
-        <span className="text-xs text-amber-200/70 font-sans italic">Ghi nhận các khiếu nại hoặc sự cố từ sĩ tử</span>
+        <span className="text-xs text-amber-200/70 font-sans italic">{tLocal.subtitle}</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-[#451a03]/20 text-[#7f1d1d] uppercase text-[10px] font-black tracking-widest border-b border-amber-800/10">
             <tr>
-              <th className="px-6 py-5 text-left font-historical">Điểm Thời Gian</th>
-              <th className="px-6 py-5 text-left font-historical">Nhân Sĩ Báo Cáo</th>
-              <th className="px-6 py-5 text-left font-historical">Mã Hóa Đơn</th>
-              <th className="px-6 py-5 text-left font-historical">Chi Tiết Sự Việc (Mô Tả)</th>
-              <th className="px-6 py-5 text-center font-historical">Trạng Thái Phúc Tra</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_time}</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_user}</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_invoice}</th>
+              <th className="px-6 py-5 text-left font-historical">{tLocal.col_detail}</th>
+              <th className="px-6 py-5 text-center font-historical">{tLocal.col_status}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#b45309]/10">
             {reports.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-20 italic text-amber-900/60 font-serif">
-                  Khắp nơi bình yên, chưa ghi nhận sớ phúc tra sự cố nào...
+                  {tLocal.empty_records}
                 </td>
               </tr>
             ) : (
@@ -72,7 +105,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
                       <AvatarImage src={rep.picture_url} alt={rep.username} />
                       <div>
                         <span className="font-historical font-black text-[#7f1d1d]">{rep.username}</span>
-                        <p className="text-[10px] text-stone-400 font-mono leading-none mt-0.5">{rep.email}</p>
+                        <p className="text-[10px] text-stone-405 font-mono leading-none mt-0.5">{rep.email}</p>
                       </div>
                     </div>
                   </td>
@@ -94,17 +127,17 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
                   <td className="px-6 py-4 text-center">
                     {rep.status === 'resolved' && (
                       <span className="inline-block px-3 py-1 bg-green-50 border-2 border-green-600 text-green-700 rounded-sm text-[9px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[-2deg] border-double">
-                        已決 Đã Giải Quyết
+                        {tLocal.status_resolved}
                       </span>
                     )}
                     {rep.status === 'ignored' && (
                       <span className="inline-block px-3 py-1 bg-stone-100 border border-stone-400 text-stone-500 rounded-sm text-[9px] font-black uppercase tracking-wider font-historical">
-                        罷 Bỏ Qua
+                        {tLocal.status_ignored}
                       </span>
                     )}
                     {rep.status !== 'resolved' && rep.status !== 'ignored' && (
                       <span className="inline-block px-3 py-1 bg-amber-50 border-2 border-amber-500 text-amber-700 rounded-sm text-[9px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[1deg] border-double">
-                        侍閱 Đang Xét
+                        {tLocal.status_pending}
                       </span>
                     )}
                   </td>

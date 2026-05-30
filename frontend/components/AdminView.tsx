@@ -9,6 +9,7 @@ import {
 import { confirmDestructive, promptInput, confirmAction, promptTokenAdjustment } from '../utils/swal';
 import { motion } from 'framer-motion';
 import SecureImage from './SecureImage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 import UsersTab from './admin/UsersTab';
 import PackagesTab from './admin/PackagesTab';
@@ -35,6 +36,7 @@ interface AdminViewProps {
 }
 
 const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen, onViewChange }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<AdminTab>(
     (localStorage.getItem('adminActiveTab') as AdminTab) || 'dashboard'
   );
@@ -79,14 +81,14 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   };
 
   const handleEditUser = async (userId: number, field: 'full_name' | 'password', currentVal?: string) => {
-    const title = field === 'full_name' ? 'Sửa Họ tên' : 'Đổi Mật khẩu';
-    const label = field === 'full_name' ? 'Nhập họ tên mới:' : 'Nhập mật khẩu mới (tối thiểu 6 ký tự):';
+    const title = field === 'full_name' ? t.admin_edit_name_title : t.admin_edit_pwd_title;
+    const label = field === 'full_name' ? t.admin_edit_name_label : t.admin_edit_pwd_label;
     
     const newVal = await promptInput(title, label, currentVal || '');
     if (newVal) {
         try {
             await api.adminUpdateUser(userId, { [field]: newVal });
-            toast.success('Cập nhật người dùng thành công.');
+            toast.success(t.admin_update_user_success);
             if (activeTab === 'users') fetchData();
             if (selectedUserDetail) handleViewUserDetail(userId);
         } catch (err: any) {
@@ -202,12 +204,12 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
 
   const handleUpdateBalance = async (userId: number, currentBalance: number) => {
     const targetUser = data.users.find((u: any) => u.id === userId);
-    const adjustment = await promptTokenAdjustment('Điều chỉnh số dư', targetUser?.username || 'N/A');
+    const adjustment = await promptTokenAdjustment(t.admin_adjust_bal_title, targetUser?.username || 'N/A');
     
     if (adjustment) {
       try {
         await api.adminUpdateUserBalance(userId, adjustment);
-        toast.success('Đã điều chỉnh số dư thành công.');
+        toast.success(t.admin_adjust_bal_success);
         fetchData();
         
         // Cập nhật state chung nếu admin tự thay đổi số dư của mình
@@ -225,15 +227,15 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
     // Basic frontend check, backend also enforces this
     const user = data.users.find((u: any) => u.id === userId);
     if (user?.is_admin) {
-        toast.error('Không thể xóa tài khoản Admin.');
+        toast.error(t.admin_delete_admin_err);
         return;
     }
 
-    const confirmed = await confirmDestructive('Xóa người dùng', 'Bạn có chắc muốn xóa người dùng này khỏi hệ thống?');
+    const confirmed = await confirmDestructive(t.admin_delete_user_title, t.admin_delete_user_desc);
     if (confirmed) {
       try {
         await api.adminDeleteUser(userId);
-        toast.success('Đã xóa người dùng khỏi hệ thống.');
+        toast.success(t.admin_delete_user_success);
         fetchData();
       } catch (err: any) {
         toast.error(err.message);
@@ -248,7 +250,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
         if (currentUserStr) {
             const currentUser = JSON.parse(currentUserStr);
             if (currentUser.id === userId && currentStatus) {
-                toast.error('Bạn không thể tự hạ cấp quyền Admin của chính mình.');
+                toast.error(t.admin_self_demote_err);
                 return;
             }
         }
@@ -256,16 +258,15 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
         console.error("Error checking current user", e);
     }
 
-    const action = currentStatus ? 'hạ cấp' : 'thăng cấp';
     const confirmed = await confirmAction(
-        `${currentStatus ? 'Hạ cấp' : 'Thăng cấp'} Admin`, 
-        `Bạn có chắc muốn ${action} người dùng này?`
+        currentStatus ? t.admin_demote_title : t.admin_promote_title, 
+        currentStatus ? t.admin_demote_desc : t.admin_promote_desc
     );
     
     if (confirmed) {
         try {
             await api.adminUpdateUser(userId, { is_admin: currentStatus ? 0 : 1 });
-            toast.success(`Đã ${action} thành công.`);
+            toast.success(currentStatus ? t.admin_demote_success : t.admin_promote_success);
             fetchData();
         } catch (err: any) {
             toast.error(err.message);
@@ -274,16 +275,16 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   };
 
   const handleCreatePackage = async () => {
-    const name = await promptInput('Tạo gói nạp', 'Tên gói:');
+    const name = await promptInput(t.admin_create_pkg_title, t.admin_pkg_name_label);
     if (!name) return;
-    const tokens = await promptInput('Tạo gói nạp', 'Số lượng tokens:');
+    const tokens = await promptInput(t.admin_create_pkg_title, t.admin_pkg_tokens_label);
     if (!tokens) return;
-    const amount = await promptInput('Tạo gói nạp', 'Số tiền (VNĐ):');
+    const amount = await promptInput(t.admin_create_pkg_title, t.admin_pkg_amount_label);
     
     if (name && tokens && amount) {
       try {
         await api.adminCreatePackage({ name, tokens: parseInt(tokens), amount_vnd: parseInt(amount) });
-        toast.success('Gói nạp mới đã được tạo.');
+        toast.success(t.admin_pkg_create_success);
         fetchData();
       } catch (err: any) {
         toast.error(err.message);
@@ -292,11 +293,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   };
 
   const handleDeletePackage = async (id: number) => {
-    const confirmed = await confirmDestructive('Xóa gói nạp', 'Bạn có chắc muốn xóa gói nạp này?');
+    const confirmed = await confirmDestructive(t.admin_pkg_delete_title, t.admin_pkg_delete_desc);
     if (confirmed) {
       try {
         await api.adminDeletePackage(id);
-        toast.success('Đã xóa gói nạp.');
+        toast.success(t.admin_pkg_delete_success);
         fetchData();
       } catch (err: any) {
         toast.error(err.message);
@@ -305,11 +306,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   };
 
   const handleUpdatePackage = async (pkg: any) => {
-    const name = await promptInput('Sửa gói nạp', 'Tên gói:', pkg.name);
+    const name = await promptInput(t.admin_pkg_edit_title, t.admin_pkg_name_label, pkg.name);
     if (!name) return;
-    const tokens = await promptInput('Sửa gói nạp', 'Số lượng tokens:', pkg.tokens.toString());
+    const tokens = await promptInput(t.admin_pkg_edit_title, t.admin_pkg_tokens_label, pkg.tokens.toString());
     if (!tokens) return;
-    const amount = await promptInput('Sửa gói nạp', 'Số tiền (VNĐ):', pkg.amount_vnd.toString());
+    const amount = await promptInput(t.admin_pkg_edit_title, t.admin_pkg_amount_label, pkg.amount_vnd.toString());
     
     if (name && tokens && amount) {
       try {
@@ -318,7 +319,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           tokens: parseInt(tokens), 
           amount_vnd: parseInt(amount) 
         });
-        toast.success('Gói nạp đã được cập nhật.');
+        toast.success(t.admin_pkg_update_success);
         fetchData();
       } catch (err: any) {
         toast.error(err.message);
@@ -359,7 +360,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
 
     try {
         await api.adminUpdateSettings(settings);
-        toast.success('Cấu hình hệ thống đã được cập nhật thành công.');
+        toast.success(t.admin_settings_update_success);
         
         // 🔥 Phát tín hiệu để App.tsx cập nhật lại siteConfig
         window.dispatchEvent(new Event('reload_site_config'));
@@ -372,11 +373,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
 
   const handleSyncFromFile = async () => {
     try {
-        const loadingToast = toast.loading('Đang lấy dữ liệu từ file HTML...');
+        const loadingToast = toast.loading(t.admin_settings_sync_loading);
         const res = await api.adminSyncFromHtml();
         setData((prev: any) => ({ ...prev, ...res }));
         toast.dismiss(loadingToast);
-        toast.success('Đã tải SEO từ file HTML vào giao diện.');
+        toast.success(t.admin_settings_sync_success);
     } catch (err: any) {
         toast.error(err.message);
     }
@@ -388,17 +389,17 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   };
 
   const navItems = [
-    { id: 'dashboard' as AdminTab, label: 'Tổng quan', icon: LayoutDashboard },
-    { id: 'users' as AdminTab, label: 'Người Dùng', icon: UsersIcon },
-    { id: 'packages' as AdminTab, label: 'Gói Nạp', icon: Box },
-    { id: 'history' as AdminTab, label: 'Tiền Tệ', icon: HistoryIcon },
-    { id: 'payments' as AdminTab, label: 'Hóa Đơn', icon: FileText },
-    { id: 'chatlogs' as AdminTab, label: 'Lịch Sử Chat', icon: MessageSquare },
-    { id: 'settings' as AdminTab, label: 'Cấu Hình', icon: SettingsIcon },
-    { id: 'logins' as AdminTab, label: 'Truy Cập', icon: LogIn },
-    { id: 'reports' as AdminTab, label: 'Báo Cáo', icon: BarChart3 },
-    { id: 'knowledge' as AdminTab, label: 'Tri Thức AI', icon: BookOpen },
-    { id: 'feedback' as AdminTab, label: 'Phản Hồi', icon: ThumbsDown },
+    { id: 'dashboard' as AdminTab, label: t.admin_nav_dashboard, icon: LayoutDashboard },
+    { id: 'users' as AdminTab, label: t.admin_nav_users, icon: UsersIcon },
+    { id: 'packages' as AdminTab, label: t.admin_nav_packages, icon: Box },
+    { id: 'history' as AdminTab, label: t.admin_nav_history, icon: HistoryIcon },
+    { id: 'payments' as AdminTab, label: t.admin_nav_payments, icon: FileText },
+    { id: 'chatlogs' as AdminTab, label: t.admin_nav_chatlogs, icon: MessageSquare },
+    { id: 'settings' as AdminTab, label: t.admin_nav_settings, icon: SettingsIcon },
+    { id: 'logins' as AdminTab, label: t.admin_nav_logins, icon: LogIn },
+    { id: 'reports' as AdminTab, label: t.admin_nav_reports, icon: BarChart3 },
+    { id: 'knowledge' as AdminTab, label: t.admin_nav_knowledge, icon: BookOpen },
+    { id: 'feedback' as AdminTab, label: t.admin_nav_feedback, icon: ThumbsDown },
   ];
 
   return (
@@ -432,7 +433,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
                   <h1 className="text-lg font-black text-white tracking-tighter uppercase leading-none italic font-serif">
                     {data.site_title || 'Sử Việt'} Admin
                   </h1>
-                  <p className="text-[8px] text-amber-500/60 font-bold uppercase tracking-[0.3em] mt-0.5">Quan phòng sự vụ</p>
+                  <p className="text-[8px] text-amber-500/60 font-bold uppercase tracking-[0.3em] mt-0.5">{t.admin_sidebar_motto}</p>
                 </div>
               </div>
             )}
@@ -444,7 +445,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
                 localStorage.setItem('isAdminSidebarOpen', String(next));
               }}
               className={`p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-lg transition-all ${!isAdminSidebarOpen ? 'mt-2' : ''}`}
-              title={isAdminSidebarOpen ? "Thu gọn" : "Mở rộng"}
+              title={isAdminSidebarOpen ? t.admin_sidebar_collapse : t.admin_sidebar_expand}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isAdminSidebarOpen ? (
@@ -492,10 +493,10 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
             <button 
               onClick={() => onViewChange('chat')}
               className={`w-full flex items-center ${isAdminSidebarOpen ? 'gap-2 px-4 py-2.5 text-[11px] font-sans font-semibold uppercase tracking-wider' : 'justify-center p-2'} text-amber-200 hover:bg-white/5 rounded-xl transition-all`}
-              title="Quay lại Chat"
+              title={t.admin_back_to_chat}
             >
               <ArrowLeft size={16} />
-              {isAdminSidebarOpen && <span>Quay lại Chat</span>}
+              {isAdminSidebarOpen && <span>{t.admin_back_to_chat}</span>}
             </button>
           )}
 
@@ -503,10 +504,10 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
             <button 
               onClick={onLogout}
               className={`w-full flex items-center ${isAdminSidebarOpen ? 'gap-2 px-4 py-2.5 text-[11px] font-sans font-semibold uppercase tracking-wider' : 'justify-center p-2'} text-red-400 hover:bg-red-400/10 rounded-xl transition-all`}
-              title="Đăng xuất"
+              title={t.admin_logout}
             >
               <LogOut size={16} />
-              {isAdminSidebarOpen && <span>Đăng xuất</span>}
+              {isAdminSidebarOpen && <span>{t.admin_logout}</span>}
             </button>
           )}
         </div>
@@ -519,7 +520,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           <div className="flex items-center gap-3">
             <div>
               <h2 className="text-xl md:text-2xl font-calligraphy font-bold text-amber-100 leading-normal">
-                Hệ Thống Quản Trị Sử Việt
+                {t.admin_header_title}
               </h2>
               <p className="text-[9px] text-amber-500/80 font-sans font-black uppercase tracking-[0.25em] mt-1">
                 {navItems.find(i => i.id === activeTab)?.label || 'Quản trị'}
@@ -528,9 +529,9 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           </div>
 
           <div className="flex items-center gap-4 text-xs">
-            <span className="text-amber-200/50 hidden md:inline">Phiên làm việc quan phòng</span>
+            <span className="text-amber-200/50 hidden md:inline">{t.admin_session_label}</span>
             <span className="font-mono text-[#b45309] px-2.5 py-1 bg-amber-950/40 border border-amber-900/30 rounded-lg">
-              ADMIN: {user?.username || 'Quan trị viên'}
+              {t.admin_role_label.replace('{name}', user?.username || 'Admin')}
             </span>
           </div>
         </header>
@@ -557,10 +558,10 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
               onChange={handleSettingChange}
               onUploadLogo={async (file) => {
                   try {
-                      const loadingToast = toast.loading('Đang tải lên logo...');
+                      const loadingToast = toast.loading(t.admin_upload_logo_loading);
                       const res = await api.adminUploadLogo(file);
                       toast.dismiss(loadingToast);
-                      toast.success('Đã tải hình ảnh lên thành công.');
+                      toast.success(t.admin_upload_logo_success);
                       setData((prev: any) => ({ ...prev, logo_url: res.logo_url }));
                   } catch (err: any) {
                       toast.error(err.message);
@@ -568,10 +569,10 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
               }}
               onUploadFavicon={async (file) => {
                   try {
-                      const loadingToast = toast.loading('Đang tải lên favicon...');
+                      const loadingToast = toast.loading(t.admin_upload_favicon_loading);
                       const res = await api.adminUploadLogo(file);
                       toast.dismiss(loadingToast);
-                      toast.success('Đã tải favicon lên thành công.');
+                      toast.success(t.admin_upload_favicon_success);
                       setData((prev: any) => ({ ...prev, favicon_url: res.logo_url }));
                   } catch (err: any) {
                       toast.error(err.message);
@@ -584,7 +585,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
                       ...prev,
                       landing_bg: res.logo_url
                     }));
-                    toast.success("Upload background landing thành công");
+                    toast.success(t.admin_upload_bg_landing_success);
                   } catch (err: any) {
                     toast.error(err.message);
                   }
@@ -596,7 +597,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
                       ...prev,
                       chat_bg: res.logo_url
                     }));
-                    toast.success("Upload background chat thành công");
+                    toast.success(t.admin_upload_bg_chat_success);
                   } catch (err: any) {
                     toast.error(err.message);
                   }

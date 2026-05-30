@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { api, API_ROOT } from '../api';
 import { QAQuestion, QAStatus, User, View } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const LeaderboardAvatar: React.FC<{ src: string; username: string }> = ({ src, username }) => {
   const [error, setError] = useState(false);
@@ -88,6 +89,7 @@ const fireMilestoneConfetti = () => {
 };
 
 const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) => {
+  const { t, language } = useLanguage();
   const [status, setStatus] = useState<QAStatus | null>(null);
   const [questions, setQuestions] = useState<QAQuestion[]>([]);
   const [questionDate, setQuestionDate] = useState('');
@@ -108,7 +110,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
   const loadQA = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getQAQuestions();
+      const data = await api.getQAQuestions(language);
       setQuestions(data.questions);
       setQuestionDate(data.question_date);
       setStatus(data.status);
@@ -120,10 +122,10 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         const boardData = await api.getQALeaderboard();
         setLeaderboard(boardData);
       } catch (boardErr) {
-        console.error("Lỗi khi tải bảng xếp hạng:", boardErr);
+        console.error(t.qa_load_board_err, boardErr);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Không thể tải Q&A');
+      toast.error(err.message || t.qa_load_err);
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +133,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
 
   useEffect(() => {
     loadQA();
-  }, []);
+  }, [language]);
 
   const handleCheckin = async () => {
     setIsCheckingIn(true);
@@ -142,13 +144,13 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
 
       if (data.awards.length > 0) {
         const total = data.awards.reduce((sum, award) => sum + award.amount, 0);
-        toast.success(`Điểm danh thành công: +${total} token`);
+        toast.success(t.qa_checkin_success.replace('{total}', total.toString()));
         fireConfetti();
       } else {
-        toast('Bạn đã điểm danh hôm nay rồi.');
+        toast(t.qa_checkin_already);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Điểm danh thất bại');
+      toast.error(err.message || t.qa_checkin_fail);
     } finally {
       setIsCheckingIn(false);
     }
@@ -163,7 +165,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         question_key: question.question_key,
         selected_index: selectedIndex,
         question_date: questionDate
-      });
+      }, language);
 
       setQuestions((prev) =>
         prev.map((item) =>
@@ -184,7 +186,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
       onBalanceUpdate(data.new_balance);
 
       if (data.is_correct) {
-        toast.success('Chính xác!');
+        toast.success(t.qa_correct);
         fireConfetti();
         try {
           const boardData = await api.getQALeaderboard();
@@ -193,18 +195,18 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
           console.error(boardErr);
         }
       } else {
-        toast.error('Chưa đúng rồi.');
+        toast.error(t.qa_incorrect);
       }
 
       if (data.rewards.length > 0) {
         const total = data.rewards.reduce((sum, reward) => sum + reward.amount, 0);
-        toast.success(`Mốc thưởng Q&A: +${total} token`);
+        toast.success(t.qa_milestone_reward.replace('{total}', total.toString()));
         setTimeout(() => {
           fireMilestoneConfetti();
         }, 400);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Không thể gửi câu trả lời');
+      toast.error(err.message || t.qa_answer_fail);
     } finally {
       setAnsweringKey(null);
     }
@@ -226,7 +228,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
       <div className="min-h-full flex items-center justify-center p-8 bg-stone-50/50">
         <div className="flex flex-col items-center gap-3 text-stone-500 font-bold">
           <Loader2 className="w-10 h-10 animate-spin text-red-800" />
-          <span className="text-sm tracking-wide">Đang mở Sử Quán Q&A...</span>
+          <span className="text-sm tracking-wide">{t.qa_loading}</span>
         </div>
       </div>
     );
@@ -272,12 +274,12 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
           </div>
           <div>
             <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">
-              Sử Quán Q&A
+              {t.qa_title}
             </h2>
             <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3.5 flex items-center gap-1.5">
-              <span>Hỏi đáp lịch sử Việt Nam</span>
+              <span>{t.qa_subtitle1}</span>
               <span className="inline-block w-1 h-1 rounded-full bg-stone-300"></span>
-              <span className="text-red-800">Nhận token miễn phí hằng ngày</span>
+              <span className="text-red-800">{t.qa_subtitle2}</span>
             </p>
           </div>
         </div>
@@ -291,7 +293,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
             史
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest font-black text-amber-600">Số dư tài khoản</p>
+            <p className="text-[10px] uppercase tracking-widest font-black text-amber-600">{t.qa_balance}</p>
             <p className="text-2xl font-black leading-tight text-amber-900">{currentBalance.toFixed(2)} <span className="text-xs font-bold">token</span></p>
           </div>
         </motion.div>
@@ -311,14 +313,14 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-stone-400">Điểm danh hôm nay</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-stone-400">{t.qa_checkin_today}</p>
               <h3 className="mt-2 text-3xl font-black text-stone-900 flex items-baseline gap-1">
                 +{status?.checkin.reward_today || 0}
                 <span className="text-xs font-bold text-stone-500 uppercase">token</span>
               </h3>
               <div className="mt-2.5 flex items-center gap-1.5 bg-red-50 text-red-800 px-2.5 py-1 rounded-lg text-xs font-bold w-fit">
                 <Flame className="w-3.5 h-3.5 fill-red-800" />
-                Chuỗi hiện tại: {status?.checkin.streak_count || 0} ngày
+                {t.qa_streak_count.replace('{streak}', (status?.checkin.streak_count || 0).toString())}
               </div>
             </div>
             <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-800 group-hover:scale-110 transition-transform">
@@ -336,12 +338,12 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
           >
             {isCheckingIn ? (
               <span className="flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" /> Đang nhận...
+                <Loader2 className="w-4 h-4 animate-spin" /> {t.qa_claiming}
               </span>
             ) : status?.checkin.claimed ? (
-              'Đã nhận hôm nay'
+              t.qa_claimed_today
             ) : (
-              'Nhận điểm danh'
+              t.qa_claim_btn
             )}
           </button>
         </motion.div>
@@ -353,13 +355,13 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-stone-400">Tiến độ Q&A hôm nay</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-stone-400">{t.qa_progress_today}</p>
               <h3 className="mt-2 text-3xl font-black text-stone-900">
                 {status?.quiz.correct_today || 0}/{status?.quiz.total_today || 0}
-                <span className="text-xs font-bold text-stone-500 uppercase ml-1">Đúng</span>
+                <span className="text-xs font-bold text-stone-500 uppercase ml-1">{t.qa_correct_count}</span>
               </h3>
               <p className="mt-2 text-xs font-semibold text-stone-500">
-                Đã trả lời {status?.quiz.answered_today || 0} / {status?.quiz.total_today || 5} câu hỏi
+                {t.qa_answered_progress.replace('{answered}', (status?.quiz.answered_today || 0).toString()).replace('{total}', (status?.quiz.total_today || 5).toString())}
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
@@ -388,10 +390,10 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-stone-400">Mốc thưởng đặc biệt</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-stone-400">{t.qa_milestone_title}</p>
               <h3 className="mt-2 text-3xl font-black text-stone-900 flex items-baseline gap-1">
                 Quiz
-                <span className="text-xs font-bold text-stone-500 uppercase">Hôm nay</span>
+                <span className="text-xs font-bold text-stone-500 uppercase">{t.qa_milestone_today}</span>
               </h3>
             </div>
             <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform">
@@ -412,10 +414,10 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                 >
                   <span className="font-bold flex items-center gap-1.5">
                     {claimed ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> : <Award className="w-4 h-4 text-stone-400 shrink-0" />}
-                    {milestone.target} câu đúng
+                    {t.qa_milestone_target.replace('{target}', milestone.target.toString())}
                   </span>
                   <span className={`font-black ${claimed ? 'text-emerald-700' : 'text-amber-700'}`}>
-                    {claimed ? 'Đã nhận' : `+${milestone.amount} token`}
+                    {claimed ? t.qa_milestone_claimed : `+${milestone.amount} token`}
                   </span>
                 </div>
               );
@@ -441,13 +443,13 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                 <div>
                   <div className="mb-6 flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-red-50 border border-red-100 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-red-800">
-                      Câu {activeIndex + 1}/{questions.length}
+                      {t.qa_question_num.replace('{num}', (activeIndex + 1).toString()).replace('{total}', questions.length.toString())}
                     </span>
                     <span className="rounded-full bg-amber-50 border border-amber-100 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-amber-700">
                       {activeQuestion.era}
                     </span>
                     <span className={`rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-wider ${difficultyColor[activeQuestion.difficulty] || 'bg-stone-100 text-stone-600'}`}>
-                      {difficultyLabel[activeQuestion.difficulty] || activeQuestion.difficulty}
+                      {{ easy: t.qa_diff_easy, medium: t.qa_diff_medium, hard: t.qa_diff_hard }[activeQuestion.difficulty] || activeQuestion.difficulty}
                     </span>
                   </div>
 
@@ -517,7 +519,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                       className="mt-6 flex items-center gap-2 text-sm font-black text-amber-700 bg-amber-50 border border-amber-100/60 rounded-xl px-4 py-3 w-fit"
                     >
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Sử Quán Agent đang chấm đáp án...
+                      {t.qa_agent_grading}
                     </motion.div>
                   )}
                 </div>
@@ -532,7 +534,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                   >
                     <div className="flex items-center gap-2 text-amber-800">
                       <Sparkles className="w-4 h-4" />
-                      <p className="text-[11px] font-black uppercase tracking-widest">Giải thích lịch sử</p>
+                      <p className="text-[11px] font-black uppercase tracking-widest">{t.qa_explanation_title}</p>
                     </div>
                     <p className="mt-2 text-sm font-semibold leading-relaxed text-stone-700">
                       {activeQuestion.explanation}
@@ -543,7 +545,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                       onClick={goNextOpen}
                       className="mt-5 rounded-xl bg-stone-900 hover:bg-red-800 px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-colors flex items-center gap-1.5 shadow-md shadow-stone-900/10"
                     >
-                      Câu tiếp theo <ChevronRight className="w-4 h-4" />
+                      {t.qa_next_btn} <ChevronRight className="w-4 h-4" />
                     </motion.button>
                   </motion.div>
                 )}
@@ -551,7 +553,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
             ) : (
               <div className="py-20 flex flex-col items-center justify-center text-stone-400 font-bold text-center">
                 <Trophy className="w-14 h-14 text-stone-300 mb-3" />
-                <p>Chưa có câu hỏi hôm nay.</p>
+                <p>{t.qa_empty_questions}</p>
               </div>
             )}
           </AnimatePresence>
@@ -562,7 +564,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
           <div>
             <div className="mb-5 flex items-center gap-2 border-b border-stone-100 pb-3">
               <Trophy className="w-5 h-5 text-amber-600" />
-              <h3 className="font-black text-stone-950 text-base">Bộ câu hỏi hôm nay</h3>
+              <h3 className="font-black text-stone-950 text-base">{t.qa_sidebar_title}</h3>
             </div>
 
             <div className="space-y-2.5">
@@ -586,7 +588,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                       <div className="min-w-0">
                         <p className="truncate text-xs font-black text-stone-800">{question.era}</p>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mt-0.5">
-                          {question.answered ? (question.is_correct ? 'Đúng' : 'Chưa đúng') : 'Chưa trả lời'}
+                          {question.answered ? (question.is_correct ? t.qa_correct_count : t.qa_incorrect) : t.qa_unanswered}
                         </p>
                       </div>
                     </div>
@@ -607,10 +609,10 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
           <div className="mt-8 rounded-2xl border border-stone-100 bg-stone-50/50 p-4">
             <div className="flex items-center gap-2 text-stone-900">
               <Flame className="w-5 h-5 text-red-600 fill-red-50" />
-              <span className="font-black text-sm">Thưởng chuỗi ngày</span>
+              <span className="font-black text-sm">{t.qa_streak_reward_title}</span>
             </div>
             <p className="mt-2 text-xs font-semibold leading-relaxed text-stone-500">
-              Điểm danh liên tục mỗi 7 ngày để nhận quà tặng đặc biệt <span className="text-red-800 font-bold">+10 token</span>!
+              {t.qa_streak_reward_desc}
             </p>
           </div>
         </aside>
@@ -627,8 +629,8 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
               <Trophy className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-stone-900 text-lg uppercase tracking-tight">Bảng Xếp Hạng Đại Cát</h3>
-              <p className="text-[11px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">Xếp hạng Q&A theo tuần • Thưởng lớn cho Top 3</p>
+              <h3 className="font-black text-stone-900 text-lg uppercase tracking-tight">{t.qa_leaderboard_title}</h3>
+              <p className="text-[11px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">{t.qa_leaderboard_subtitle}</p>
             </div>
           </div>
 
@@ -640,7 +642,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                 : 'text-stone-400 hover:text-stone-600'
                 }`}
             >
-              Tuần này
+              {t.qa_tab_this_week}
             </button>
             <button
               onClick={() => setActiveLeaderboardTab('last')}
@@ -649,7 +651,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                 : 'text-stone-400 hover:text-stone-600'
                 }`}
             >
-              Tuần trước (Vinh danh)
+              {t.qa_tab_last_week}
             </button>
           </div>
         </div>
@@ -659,23 +661,23 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
             {activeLeaderboardTab === 'current' ? (
               <div>
                 <div className="bg-amber-50/50 border border-amber-100/50 rounded-xl px-4 py-3 text-xs font-semibold text-amber-900 mb-4 flex items-center justify-between">
-                  <span>Tuần này: <strong>{new Date(leaderboard.current_week.start_date).toLocaleDateString()}</strong> đến <strong>{new Date(leaderboard.current_week.end_date).toLocaleDateString()}</strong></span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg">Cập nhật liên tục</span>
+                  <span>{t.qa_week_duration.replace('{start}', new Date(leaderboard.current_week.start_date).toLocaleDateString()).replace('{end}', new Date(leaderboard.current_week.end_date).toLocaleDateString())}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg">{t.qa_live_update}</span>
                 </div>
 
                 {leaderboard.current_week.board.length === 0 ? (
                   <div className="py-8 text-center text-stone-400 font-bold text-xs italic">
-                    Chưa có sử gia nào trả lời đúng câu hỏi trong tuần này. Hãy là người đầu tiên!
+                    {t.qa_empty_leaderboard}
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-stone-100 text-[10px] font-black uppercase text-stone-400 tracking-wider">
-                          <th className="pb-3 text-center w-12">Hạng</th>
-                          <th className="pb-3">Sử gia</th>
-                          <th className="pb-3 text-center">Đúng tuần này</th>
-                          <th className="pb-3 text-right">Mức thưởng dự kiến</th>
+                          <th className="pb-3 text-center w-12">{t.qa_col_rank}</th>
+                          <th className="pb-3">{t.qa_col_user}</th>
+                          <th className="pb-3 text-center">{t.qa_col_correct}</th>
+                          <th className="pb-3 text-right">{t.qa_col_estimated_reward}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -700,12 +702,12 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                                   <LeaderboardAvatar src={row.picture_url} username={row.username} />
                                   <div>
                                     <p className="text-xs font-black text-stone-900">{row.full_name || row.username}</p>
-                                    <p className="text-[10px] text-stone-400">@{row.username} {row.user_id === user.id && <span className="text-red-800 font-bold">(Bạn)</span>}</p>
+                                    <p className="text-[10px] text-stone-400">@{row.username} {row.user_id === user.id && <span className="text-red-800 font-bold">{t.qa_you}</span>}</p>
                                   </div>
                                 </div>
                               </td>
                               <td className="py-4 text-center font-bold text-xs text-stone-800">
-                                {row.correct_count} câu
+                                {row.correct_count} {t.qa_question_unit}
                               </td>
                               <td className={`py-4 text-right text-xs ${rewardColor}`}>
                                 {rewardText}
@@ -721,22 +723,22 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
             ) : (
               <div>
                 <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-xl px-4 py-3 text-xs font-semibold text-emerald-950 mb-4 flex items-center justify-between">
-                  <span>Tuần trước: <strong>{new Date(leaderboard.last_week.start_date).toLocaleDateString()}</strong> đến <strong>{new Date(leaderboard.last_week.end_date).toLocaleDateString()}</strong></span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg">Đã phát thưởng tự động</span>
+                  <span>{t.qa_prev_week_duration.replace('{start}', new Date(leaderboard.last_week.start_date).toLocaleDateString()).replace('{end}', new Date(leaderboard.last_week.end_date).toLocaleDateString())}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg">{t.qa_auto_rewarded}</span>
                 </div>
 
                 {leaderboard.last_week.board.length === 0 ? (
                   <div className="py-8 text-center text-stone-400 font-bold text-xs italic">
-                    Không có người chiến thắng tuần trước.
+                    {t.qa_empty_last_week}
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-stone-100 text-[10px] font-black uppercase text-stone-400 tracking-wider">
-                          <th className="pb-3 text-center w-12">Hạng</th>
-                          <th className="pb-3">Sử gia</th>
-                          <th className="pb-3 text-right">Phần thưởng đã nhận</th>
+                          <th className="pb-3 text-center w-12">{t.qa_col_rank}</th>
+                          <th className="pb-3">{t.qa_col_user}</th>
+                          <th className="pb-3 text-right">{t.qa_col_reward_received}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -759,7 +761,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
                                   <LeaderboardAvatar src={row.picture_url} username={row.username} />
                                   <div>
                                     <p className="text-xs font-black text-stone-900">{row.full_name || row.username}</p>
-                                    <p className="text-[10px] text-stone-400">@{row.username} {row.user_id === user.id && <span className="text-red-800 font-bold">(Bạn)</span>}</p>
+                                    <p className="text-[10px] text-stone-400">@{row.username} {row.user_id === user.id && <span className="text-red-800 font-bold">{t.qa_you}</span>}</p>
                                   </div>
                                 </div>
                               </td>
@@ -779,7 +781,7 @@ const QAView: React.FC<QAViewProps> = ({ user, onBalanceUpdate, onNavigate }) =>
         ) : (
           <div className="py-8 text-center text-stone-400 font-bold text-xs flex flex-col items-center gap-2">
             <Loader2 className="w-6 h-6 animate-spin text-red-800" />
-            Đang tải dữ liệu bảng xếp hạng...
+            {t.qa_leaderboard_loading}
           </div>
         )}
       </motion.section>

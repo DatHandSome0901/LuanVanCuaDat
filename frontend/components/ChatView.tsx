@@ -11,6 +11,7 @@ import ChatInput from './chat/ChatInput';
 import EmptyChatState from './chat/EmptyChatState';
 import SourceModal from './chat/SourceModal';
 import SecureImage from './SecureImage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ChatViewProps {
   user: User | null;
@@ -30,6 +31,7 @@ const ChatView: React.FC<ChatViewProps> = ({
   siteConfig,
   isSidebarOpen,
 }) => {
+  const { t } = useLanguage();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isStreamingActive, setIsStreamingActive] = useState(false); // true while SSE tokens are flowing
@@ -361,6 +363,7 @@ const ChatView: React.FC<ChatViewProps> = ({
         body: JSON.stringify({
           question: questionToSend,
           conversation_id: convId,
+          language_instruction: t.llm_language_instruction,
         }),
       });
 

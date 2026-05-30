@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface EmptyChatStateProps {
   onSuggestClick: (q: string) => void;
@@ -67,6 +68,20 @@ const suggestions = [
 ];
 
 const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {
+  const { t } = useLanguage();
+  let suggestions: Array<{ text: string; icon: any; color: string; bg: string; border: string; glow: string }> = [];
+  try {
+    const raw = JSON.parse(t.chat_suggestions);
+    const colors = [
+      { color: "text-red-500", bg: "hover:bg-red-500/10", border: "group-hover:border-red-500/50", glow: "rgba(239,68,68,0.4)", icon: IconCoThan },
+      { color: "text-amber-500", bg: "hover:bg-amber-500/10", border: "group-hover:border-amber-500/50", glow: "rgba(245,158,11,0.4)", icon: IconGuomBau },
+      { color: "text-blue-500", bg: "hover:bg-blue-500/10", border: "group-hover:border-blue-500/50", glow: "rgba(59,130,246,0.4)", icon: IconKhienMay },
+      { color: "text-yellow-500", bg: "hover:bg-yellow-500/10", border: "group-hover:border-yellow-500/50", glow: "rgba(234,179,8,0.4)", icon: IconMuBinhThien },
+      { color: "text-orange-500", bg: "hover:bg-orange-500/10", border: "group-hover:border-orange-500/50", glow: "rgba(249,115,22,0.4)", icon: IconCoThan },
+      { color: "text-emerald-500", bg: "hover:bg-emerald-500/10", border: "group-hover:border-emerald-500/50", glow: "rgba(16,185,129,0.4)", icon: IconCuonThu },
+    ];
+    suggestions = raw.map((s: any, i: number) => ({ ...colors[i % colors.length], text: s.text }));
+  } catch { }
   return (
     <div className="h-full flex flex-col items-center justify-center text-center max-w-4xl mx-auto py-8 md:py-16 px-4 md:px-8 relative overflow-hidden">
       
@@ -91,7 +106,7 @@ const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {
         className="relative mb-6 md:mb-10"
       >
         <h3 className="text-3xl md:text-7xl font-historical-premium text-white px-4 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] mb-2 md:mb-8 italic tracking-wide">
-          {"Dân ta phải biết sử ta".normalize('NFC')}
+          {t.chat_empty_title}
         </h3>
         <div className="flex items-center justify-center gap-4 md:gap-8">
           <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent flex-1 w-12 md:w-40" />
@@ -103,7 +118,7 @@ const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {
       </motion.div>
 
       <p className="text-amber-50/90 text-xs md:text-xl mb-8 md:mb-16 max-w-[320px] md:max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-md">
-        {"Khám phá hào khí ngàn năm và những vị anh hùng đã làm nên hồn thiêng sông núi Việt Nam.".normalize('NFC')}
+        {t.chat_empty_subtitle}
       </p>
 
       {/* SUGGESTION CHIPS - Premium Grid */}
@@ -137,10 +152,10 @@ const EmptyChatState: React.FC<EmptyChatStateProps> = ({ onSuggestClick }) => {
               
               <div className="flex flex-col">
                 <span className="text-[11px] md:text-base font-bold text-white group-hover:text-amber-200 transition-colors tracking-tight leading-tight">
-                  {suggest.text.normalize('NFC')}
+                  {suggest.text}
                 </span>
                 <span className="hidden md:block text-[9px] text-white/40 uppercase tracking-widest mt-1 group-hover:text-white/60 transition-colors">
-                  Khám phá ngay
+                  {t.chat_suggest_label}
                 </span>
               </div>
             </motion.button>

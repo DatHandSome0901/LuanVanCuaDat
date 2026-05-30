@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface PaymentReportModalProps {
   onClose: () => void;
 }
 
 const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ onClose }) => {
+  const { t } = useLanguage();
   const [reportNote, setReportNote] = useState('');
   const [reportPaymentId, setReportPaymentId] = useState('');
 
   const handleSubmit = async () => {
     if (!reportPaymentId || !reportNote.trim()) {
-      toast.error('Vui lòng điền đầy đủ thông tin.');
+      toast.error(t.pay_report_missing_info);
       return;
     }
-    const loadingToast = toast.loading('Đang gửi tâm nguyện...');
+    const loadingToast = toast.loading(t.pay_report_sending_toast);
     try {
       await api.createPaymentReport(parseInt(reportPaymentId), reportNote);
-      toast.success('Gửi thành công! Admin sẽ kiểm tra sớm.');
+      toast.success(t.pay_report_success);
       onClose();
     } catch (err: any) {
-      toast.error(err.message || 'Không thể gửi báo cáo');
+      toast.error(err.message || t.pay_report_err);
     } finally {
       toast.dismiss(loadingToast);
     }
@@ -39,25 +41,25 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ onClose }) => {
               </svg>
           </button>
 
-          <h3 className="text-2xl font-serif font-bold text-amber-900 mb-2">Báo Cáo Sự Cố</h3>
-          <p className="text-stone-400 text-[10px] uppercase tracking-widest font-black mb-8 px-1">Tâm nguyện của bạn sẽ được giải quyết sớm</p>
+          <h3 className="text-2xl font-serif font-bold text-amber-900 mb-2">{t.pay_report_title}</h3>
+          <p className="text-stone-400 text-[10px] uppercase tracking-widest font-black mb-8 px-1">{t.pay_report_subtitle}</p>
 
           <div className="space-y-6">
              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 block mb-2 px-1">Mã đơn hàng (ID)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 block mb-2 px-1">{t.pay_report_order_id}</label>
                 <input 
                   type="number"
-                  placeholder="Ví dụ: 7"
+                  placeholder={t.pay_report_placeholder_id}
                   className="w-full bg-stone-50 border border-stone-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-amber-500 transition-all font-mono"
                   value={reportPaymentId}
                   onChange={(e) => setReportPaymentId(e.target.value)}
                 />
              </div>
              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 block mb-2 px-1">Mô tả chi tiết</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 block mb-2 px-1">{t.pay_report_desc}</label>
                 <textarea 
                   rows={3}
-                  placeholder="Mô tả sự cố bạn gặp phải..."
+                  placeholder={t.pay_report_placeholder_desc}
                   className="w-full bg-stone-50 border border-stone-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-amber-500 transition-all"
                   value={reportNote}
                   onChange={(e) => setReportNote(e.target.value)}
@@ -68,7 +70,7 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ onClose }) => {
                 onClick={handleSubmit}
                 className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all active:scale-95"
              >
-                Gửi Báo Cáo
+                {t.pay_report_submit}
              </button>
           </div>
        </div>

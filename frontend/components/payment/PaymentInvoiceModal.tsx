@@ -2,6 +2,7 @@ import React from 'react';
 import { PaymentInvoice } from '../../types';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface PaymentInvoiceModalProps {
   invoice: PaymentInvoice;
@@ -16,19 +17,20 @@ const PaymentInvoiceModal: React.FC<PaymentInvoiceModalProps> = ({
   onSuccess,
   statusMsg 
 }) => {
+  const { t } = useLanguage();
   const handleCheck = async () => {
-    const loadingToast = toast.loading('Đang kiểm tra giao dịch...');
+    const loadingToast = toast.loading(t.pay_checking_toast);
     try {
       const res = await api.getPaymentStatus(invoice.payment_id);
       if (res.status === 'completed') {
-        toast.success('Hệ thống đã ghi nhận công đức!');
+        toast.success(t.pay_check_success_toast);
         // Trigger reload in parent
         onSuccess(res.tokens);
       } else {
-        toast.error('Giao dịch chưa được tìm thấy hoặc đang xử lý.', { icon: '⏳' });
+        toast.error(t.pay_check_not_found_toast, { icon: '⏳' });
       }
     } catch (err) {
-      toast.error('Lỗi khi kiểm tra thanh toán');
+      toast.error(t.pay_check_err);
     } finally {
       toast.dismiss(loadingToast);
     }
@@ -46,8 +48,8 @@ const PaymentInvoiceModal: React.FC<PaymentInvoiceModalProps> = ({
             </svg>
         </button>
         
-        <h3 className="text-xl font-bold text-amber-900 mb-1">Thanh Toán</h3>
-        <p className="text-xs text-stone-400 mb-6 font-serif italic">"Gieo hạt lành, tâm an yên"</p>
+        <h3 className="text-xl font-bold text-amber-900 mb-1">{t.pay_invoice_title}</h3>
+        <p className="text-xs text-stone-400 mb-6 font-serif italic">{t.pay_invoice_motto}</p>
         
         <div className="bg-stone-50 p-4 rounded-2xl mb-6 inline-block shadow-inner">
             <img src={invoice.qr_url} alt="QR Code" className="w-full h-auto rounded-lg" />
@@ -55,15 +57,15 @@ const PaymentInvoiceModal: React.FC<PaymentInvoiceModalProps> = ({
 
         <div className="text-left space-y-2 mb-6 text-sm">
             <div className="flex justify-between">
-                <span className="text-stone-400">Mã đơn hàng:</span>
+                <span className="text-stone-400">{t.pay_invoice_id}</span>
                 <span className="font-bold text-stone-800">#{invoice.payment_id}</span>
             </div>
             <div className="flex justify-between">
-                <span className="text-stone-400">Số tiền:</span>
+                <span className="text-stone-400">{t.pay_invoice_amount}</span>
                 <span className="font-bold text-stone-800">{invoice.amount_vnd.toLocaleString('vi-VN')} VNĐ</span>
             </div>
             <div className="flex justify-between">
-                <span className="text-stone-400">Nội dung:</span>
+                <span className="text-stone-400">{t.pay_invoice_note}</span>
                 <span className="font-bold text-amber-600">{invoice.note}</span>
             </div>
         </div>
@@ -73,7 +75,7 @@ const PaymentInvoiceModal: React.FC<PaymentInvoiceModalProps> = ({
             onClick={handleCheck}
             className="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-700 transition-all shadow-lg active:scale-95"
           >
-            Kiểm tra thanh toán
+            {t.pay_invoice_check_btn}
           </button>
         </div>
         

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import { API_ROOT } from "../api";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
@@ -19,55 +20,63 @@ type Props = {
 // --- Subcomponents ---
 
 // Header
-const Navbar = ({ logoUrl, siteTitle, onStart, user, onPlayGame, gameEnabled }: any) => (
+const Navbar = ({ logoUrl, siteTitle, onStart, user, onPlayGame, gameEnabled }: any) => {
+  const { t } = useLanguage();
+  return (
   <nav className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-white/20 shadow-[0_4px_30px_rgba(0,0,0,0.03)] transition-all">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
       <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-stone-200 group-hover:shadow-md transition-shadow">
-          <SecureImage
-            src={logoUrl || "/default.jpg"}
-            alt="Logo"
-            className="w-full h-full object-cover"
-          />
+          <SecureImage src={logoUrl || "/default.jpg"} alt="Logo" className="w-full h-full object-cover" />
         </div>
         <span className="font-historical-premium text-xl font-bold text-stone-900 group-hover:text-red-800 transition-colors">{siteTitle}</span>
       </div>
       <div className="hidden md:flex items-center gap-1.5 bg-stone-100/80 p-1.5 rounded-full border border-stone-200/60 shadow-inner">
-        <a href="#features" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">Tính năng</a>
-        <a href="#eras" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">Triều đại</a>
-        <a href="#stats" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">Thống kê</a>
+        <a href="#features" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">{t.nav_features}</a>
+        <a href="#eras" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">{t.nav_eras}</a>
+        <a href="#stats" className="px-5 py-2 text-sm font-bold text-stone-600 hover:text-red-800 hover:bg-white rounded-full transition-all hover:shadow-sm">{t.nav_stats}</a>
         {(gameEnabled !== 0 && gameEnabled !== false && gameEnabled !== '0') && (
-          <button 
-            onClick={onPlayGame} 
-            className="px-5 py-2 text-sm font-extrabold text-white bg-gradient-to-r from-red-800 to-amber-600 hover:from-red-900 hover:to-amber-700 rounded-full transition-all hover:shadow-[0_2px_8px_rgba(153,27,27,0.3)] hover:-translate-y-0.5 active:scale-95 duration-200"
-          >
-            Chơi Game ⚔️
+          <button onClick={onPlayGame} className="px-5 py-2 text-sm font-extrabold text-white bg-gradient-to-r from-red-800 to-amber-600 hover:from-red-900 hover:to-amber-700 rounded-full transition-all hover:shadow-[0_2px_8px_rgba(153,27,27,0.3)] hover:-translate-y-0.5 active:scale-95 duration-200">
+            {t.nav_play_game}
           </button>
         )}
       </div>
       <div>
         {user ? (
           <div className="flex items-center gap-4">
-            <span className="font-bold text-stone-800 hidden lg:block text-sm">Xin chào, <span className="text-red-800">{user.full_name || user.username}</span>! 👋</span>
+            <span className="font-bold text-stone-800 hidden lg:block text-sm">{t.nav_hello} <span className="text-red-800">{user.full_name || user.username}</span>! 👋</span>
             <button onClick={onStart} className="px-6 py-2.5 bg-gradient-to-r from-red-800 to-red-900 text-white font-bold rounded-full transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(153,27,27,0.4)] flex items-center gap-2 text-sm hover:-translate-y-0.5 active:scale-95">
-              {user.is_admin ? "Dashboard" : "Vào Chat"} <ChevronRight size={16} />
+              {user.is_admin ? t.nav_dashboard : t.nav_enter_chat} <ChevronRight size={16} />
             </button>
           </div>
         ) : (
           <button onClick={onStart} className="px-6 py-2.5 bg-gradient-to-r from-red-800 to-red-900 text-white font-bold rounded-full transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(153,27,27,0.4)] flex items-center gap-2 text-sm hover:-translate-y-0.5 active:scale-95">
-            Bắt đầu <ChevronRight size={16} />
+            {t.nav_start} <ChevronRight size={16} />
           </button>
         )}
       </div>
     </div>
   </nav>
-);
+  );
+};
 
 // Hero
 const HeroSection = ({ onStart, user, heroTitle, heroSubtitle, heroWords }: any) => {
-  const words = heroWords && heroWords.trim() 
-    ? heroWords.split(',').map((w: string) => w.trim()).filter(Boolean) 
-    : ["Lịch Sử Việt Nam", "Văn Hoá Dân Tộc", "Trí Tuệ Cha Ông", "Hào Khí Đông A"];
+  const { t, language } = useLanguage();
+
+  let displayTitle = heroTitle || '';
+  if (!displayTitle || (language === 'en' && displayTitle.trim() === 'Khám phá tinh hoa')) {
+    displayTitle = t.hero_default_title;
+  }
+
+  let displaySubtitle = heroSubtitle || '';
+  if (!displaySubtitle || (language === 'en' && displaySubtitle.trim() === 'Hỏi đáp, tra cứu và tìm hiểu kiến thức lịch sử chính xác thông qua sức mạnh của Trí Tuệ Nhân Tạo. Nền tảng học tập toàn diện cho mọi thế hệ.')) {
+    displaySubtitle = t.hero_default_subtitle;
+  }
+
+  const words = heroWords && heroWords.trim() && (language !== 'en' || heroWords.trim() !== 'Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A')
+    ? heroWords.split(',').map((w: string) => w.trim()).filter(Boolean)
+    : t.hero_default_words.split(',').map((w: string) => w.trim());
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {
@@ -87,7 +96,7 @@ const HeroSection = ({ onStart, user, heroTitle, heroSubtitle, heroWords }: any)
         <div className="lg:w-1/2 text-center lg:text-left">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-historical-premium font-bold text-stone-900 leading-normal mb-6 min-h-[140px] md:min-h-[160px] lg:min-h-[180px]">
-              {heroTitle || 'Khám phá tinh hoa'} <br />
+              {displayTitle} <br />
               <AnimatePresence mode="wait">
                 <motion.span
                   key={index}
@@ -102,11 +111,11 @@ const HeroSection = ({ onStart, user, heroTitle, heroSubtitle, heroWords }: any)
               </AnimatePresence>
             </h1>
             <p className="text-lg md:text-xl text-stone-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              {heroSubtitle || "Hỏi đáp, tra cứu và tìm hiểu kiến thức lịch sử chính xác thông qua sức mạnh của Trí Tuệ Nhân Tạo. Nền tảng học tập toàn diện cho mọi thế hệ."}
+              {displaySubtitle}
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <button onClick={onStart} className="px-8 py-4 w-full sm:w-auto bg-gradient-to-r from-red-800 to-red-900 text-white font-bold rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(153,27,27,0.4)] hover:shadow-[0_0_30px_rgba(153,27,27,0.6)] flex items-center justify-center gap-2 text-lg group hover:-translate-y-1 active:scale-95">
-                {user ? (user.is_admin ? 'Vào Dashboard' : 'Tiếp tục trò chuyện') : 'Trải nghiệm ngay'}
+                {user ? (user.is_admin ? t.hero_cta_admin : t.hero_cta_continue) : t.hero_cta_explore}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -118,7 +127,7 @@ const HeroSection = ({ onStart, user, heroTitle, heroSubtitle, heroWords }: any)
                   </div>
                 ))}
               </div>
-              <span>Hơn 10,000+ người đang sử dụng</span>
+              <span>{t.hero_users_label}</span>
             </div>
           </motion.div>
         </div>
@@ -140,10 +149,17 @@ const HeroSection = ({ onStart, user, heroTitle, heroSubtitle, heroWords }: any)
 
 // Process
 const ProcessSection = ({ sectionTitle, processJson }: any) => {
+  const { t, language } = useLanguage();
+
+  let displayTitle = sectionTitle || '';
+  if (!displayTitle || (language === 'en' && displayTitle.trim() === 'Một nền tảng vận hành xuyên suốt')) {
+    displayTitle = t.process_default_title;
+  }
+
   const defaultSteps = [
-    { icon: <MessageCircle size={32} />, title: "Hỏi đáp AI", desc: "Tương tác tự nhiên với AI để tra cứu mọi thông tin lịch sử.", color: "text-red-800", bg: "bg-red-50/90", border: "border-red-100" },
-    { icon: <Search size={32} />, title: "Tìm kiếm thông minh", desc: "Trích xuất thông tin nhanh chóng từ kho tài liệu khổng lồ.", color: "text-amber-600", bg: "bg-amber-50/90", border: "border-amber-100" },
-    { icon: <ShieldCheck size={32} />, title: "Xác thực nguồn gốc", desc: "Mọi thông tin đều được tham chiếu rõ ràng từ sử liệu uy tín.", color: "text-emerald-700", bg: "bg-emerald-50/90", border: "border-emerald-100" }
+    { icon: <MessageCircle size={32} />, title: t.process_step1_title, desc: t.process_step1_desc, color: "text-red-800", bg: "bg-red-50/90", border: "border-red-100" },
+    { icon: <Search size={32} />, title: t.process_step2_title, desc: t.process_step2_desc, color: "text-amber-600", bg: "bg-amber-50/90", border: "border-amber-100" },
+    { icon: <ShieldCheck size={32} />, title: t.process_step3_title, desc: t.process_step3_desc, color: "text-emerald-700", bg: "bg-emerald-50/90", border: "border-emerald-100" }
   ];
 
   let steps = defaultSteps;
@@ -171,12 +187,10 @@ const ProcessSection = ({ sectionTitle, processJson }: any) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-20">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl md:text-5xl font-historical-premium font-bold text-stone-900 mb-6">
-            {sectionTitle || (
-              <>Một nền tảng vận hành <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-800 to-amber-600">xuyên suốt</span></>
-            )}
+            {displayTitle}
           </motion.h2>
           <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-lg md:text-xl text-stone-600 max-w-2xl mx-auto leading-relaxed">
-            Tối ưu hóa hành trình khám phá và tiếp thu kiến thức lịch sử thông qua quy trình đơn giản, thông minh.
+            {t.process_default_subtitle}
           </motion.p>
         </div>
         <div className="relative">
@@ -211,37 +225,30 @@ const ProcessSection = ({ sectionTitle, processJson }: any) => {
   )
 };
 
-// Features
 const FeaturesSection = ({ onStart, sectionTitle, featuresJson }: any) => {
   const [activeTab, setActiveTab] = useState(0);
+  const { t, language } = useLanguage();
+
+  let displayTitle = sectionTitle || '';
+  if (!displayTitle || (language === 'en' && displayTitle.trim() === 'Giải pháp toàn diện cho hành trình học tập')) {
+    displayTitle = t.features_default_title;
+  }
 
   const defaultTabs = [
     {
-      tab: "Cho Học Sinh",
-      title: "Trợ thủ ôn tập thông minh",
-      points: [
-        "Tóm tắt sự kiện lịch sử ngắn gọn, dễ hiểu.",
-        "Giải đáp câu hỏi trắc nghiệm và tự luận.",
-        "Hệ thống hóa kiến thức theo sơ đồ tư duy."
-      ]
+      tab: t.features_tab1,
+      title: t.features_tab1_title,
+      points: [t.features_tab1_p1, t.features_tab1_p2, t.features_tab1_p3]
     },
     {
-      tab: "Cho Giáo Viên",
-      title: "Công cụ hỗ trợ giảng dạy",
-      points: [
-        "Tạo giáo án và câu hỏi ôn tập tự động.",
-        "Trích xuất tư liệu lịch sử làm phong phú bài giảng.",
-        "So sánh, đối chiếu các nguồn sử liệu khác nhau."
-      ]
+      tab: t.features_tab2,
+      title: t.features_tab2_title,
+      points: [t.features_tab2_p1, t.features_tab2_p2, t.features_tab2_p3]
     },
     {
-      tab: "Cho Nhà Nghiên Cứu",
-      title: "Tra cứu chuyên sâu",
-      points: [
-        "Tiếp cận kho tàng văn bản cổ và phân tích chi tiết.",
-        "Hỗ trợ đối chiếu dữ liệu lịch sử độ chính xác cao.",
-        "Khám phá các góc khuất lịch sử ít người biết đến."
-      ]
+      tab: t.features_tab3,
+      title: t.features_tab3_title,
+      points: [t.features_tab3_p1, t.features_tab3_p2, t.features_tab3_p3]
     }
   ];
 
@@ -263,9 +270,7 @@ const FeaturesSection = ({ onStart, sectionTitle, featuresJson }: any) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-historical-premium font-bold text-stone-900 mb-4">
-            {sectionTitle || (
-              <>Giải pháp toàn diện cho <span className="text-amber-600">hành trình học tập</span></>
-            )}
+            {displayTitle}
           </h2>
         </div>
 
@@ -306,7 +311,7 @@ const FeaturesSection = ({ onStart, sectionTitle, featuresJson }: any) => {
                     ))}
                   </ul>
                   <button onClick={onStart} className="mt-8 px-8 py-3 bg-white border-2 border-red-800 text-red-800 hover:bg-red-800 hover:text-white rounded-full font-bold transition-all duration-300 hover:shadow-[0_0_15px_rgba(153,27,27,0.3)] hover:-translate-y-1 active:scale-95 group flex items-center gap-2">
-                    Khám phá ngay <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    {t.features_explore_btn} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                 </motion.div>
               </AnimatePresence>
@@ -329,16 +334,22 @@ const FeaturesSection = ({ onStart, sectionTitle, featuresJson }: any) => {
 // Eras Section
 const ErasSection = ({ sectionTitle, erasData }: any) => {
   const [activeEra, setActiveEra] = useState<number | null>(null);
+  const { t, language } = useLanguage();
+
+  let displayTitle = sectionTitle || '';
+  if (!displayTitle || (language === 'en' && (displayTitle.trim() === 'Thời Kỳ Lịch Sử Việt Nam' || displayTitle.trim() === ''))) {
+    displayTitle = t.eras_default_title;
+  }
 
   const defaultEras = [
-    { title: "Vần Lang - Âu Lạc", time: "2879 TCN - 207 TCN", image: "url('/images/era_hong_bang.png')", color: "from-red-900/90 to-stone-900/95", summary: "Thời kỳ bình minh của dân tộc với truyền thuyết con Rồng cháu Tiên, 18 đời Hùng Vương dựng nước và cuộc kháng chiến chống quân Tần của Thục Phán An Dương Vương. Nền văn hóa Đông Sơn rực rỡ với trống đồng là biểu tượng vĩ đại." },
-    { title: "Bắc Thuộc", time: "207 TCN - 938 SCN", image: "url('/images/era_bac_thuoc.png')", color: "from-stone-800/90 to-stone-900/95", summary: "Kéo dài hơn 1000 năm đau thương nhưng vô cùng oanh liệt. Bắt đầu từ khi Triệu Đà thôn tính Âu Lạc đến chiến thắng Bạch Đằng lịch sử. Nổi bật với các cuộc khởi nghĩa bất khuất của Hai Bà Trưng, Bà Triệu, Lý Bí." },
-    { title: "Ngô - Đinh - Tiền Lê", time: "938 - 1009", image: "url('/images/era_ngo_dinh_le.png')", color: "from-stone-700/90 to-stone-900/95", summary: "Giai đoạn đặt nền móng vững chắc cho kỷ nguyên độc lập tự chủ. Ngô Quyền xưng vương, Đinh Bộ Lĩnh dẹp loạn 12 sứ quân lập ra nước Đại Cồ Việt, Lê Hoàn đánh Tống bình Chiêm bảo vệ bờ cõi." },
-    { title: "Lý - Trần - Hồ", time: "1009 - 1407", image: "url('/images/era_doc_lap.png')", color: "from-amber-900/90 to-stone-900/95", summary: "Kỷ nguyên phát triển rực rỡ nhất của nền văn minh Đại Việt. Đời Lý dời đô về Thăng Long. Đời Trần ba lần đánh tan đế quốc Mông Nguyên hùng mạnh nhất thế giới. Đời Hồ nổi bật với những cải cách táo bạo." },
-    { title: "Lê Sơ & Phân Tranh", time: "1428 - 1788", image: "url('/images/era_le_trinh_nguyen.png')", color: "from-stone-800/90 to-stone-900/95", summary: "Bắt đầu bằng chiến thắng quân Minh hiển hách của Lê Lợi. Thời Lê Thánh Tông chứng kiến sự phồn thịnh tột bậc. Sau đó là sự suy vi dẫn đến thời kỳ Trịnh - Nguyễn phân tranh dai dẳng." },
-    { title: "Tây Sơn & Nhà Nguyễn", time: "1788 - 1884", image: "url('/images/era_tay_son_nguyen.png')", color: "from-red-950/90 to-stone-900/95", summary: "Khởi nghĩa nông dân Tây Sơn như vũ bão dẹp thù trong giặc ngoài (đánh tan quân Xiêm, quân Thanh), vua Quang Trung lên ngôi. Sau đó Nguyễn Ánh thống nhất đất nước, lập ra triều Nguyễn đóng đô ở Huế." },
-    { title: "Pháp Thuộc", time: "1884 - 1945", image: "url('/images/era_phap_thuoc.png')", color: "from-stone-900/90 to-black/95", summary: "Thực dân Pháp xâm lược và biến Việt Nam thành thuộc địa. Thời kỳ đau thương nhưng cũng là lúc các phong trào yêu nước, các tư tưởng tiến bộ phương Tây du nhập dọn đường cho Cách mạng." },
-    { title: "Hiện Đại", time: "1945 - Nay", image: "url('/images/era_hien_dai.png')", color: "from-blue-900/90 to-stone-900/95", summary: "Bắt đầu từ Cách mạng tháng Tám (1945), khai sinh nước Việt Nam Dân Chủ Cộng Hòa. Trải qua 2 cuộc kháng chiến chống Pháp và chống Mỹ gian khổ, Việt Nam hoàn toàn độc lập và bước vào kỷ nguyên đổi mới." },
+    { title: t.era1_title, time: t.era1_time, image: "url('/images/era_hong_bang.png')", color: "from-red-900/90 to-stone-900/95", summary: t.era1_summary },
+    { title: t.era2_title, time: t.era2_time, image: "url('/images/era_bac_thuoc.png')", color: "from-stone-800/90 to-stone-900/95", summary: t.era2_summary },
+    { title: t.era3_title, time: t.era3_time, image: "url('/images/era_ngo_dinh_le.png')", color: "from-stone-700/90 to-stone-900/95", summary: t.era3_summary },
+    { title: t.era4_title, time: t.era4_time, image: "url('/images/era_doc_lap.png')", color: "from-amber-900/90 to-stone-900/95", summary: t.era4_summary },
+    { title: t.era5_title, time: t.era5_time, image: "url('/images/era_le_trinh_nguyen.png')", color: "from-stone-800/90 to-stone-900/95", summary: t.era5_summary },
+    { title: t.era6_title, time: t.era6_time, image: "url('/images/era_tay_son_nguyen.png')", color: "from-red-950/90 to-stone-900/95", summary: t.era6_summary },
+    { title: t.era7_title, time: t.era7_time, image: "url('/images/era_phap_thuoc.png')", color: "from-stone-900/90 to-black/95", summary: t.era7_summary },
+    { title: t.era8_title, time: t.era8_time, image: "url('/images/era_hien_dai.png')", color: "from-blue-900/90 to-stone-900/95", summary: t.era8_summary },
   ];
 
   const eras = erasData && erasData.length > 0 ? erasData : defaultEras;
@@ -364,11 +375,9 @@ const ErasSection = ({ sectionTitle, erasData }: any) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-historical-premium font-bold mb-4">
-            {sectionTitle || (
-              <>Nền tảng toàn diện <span className="text-amber-500">đáp ứng mọi thời kỳ</span></>
-            )}
+            {displayTitle}
           </h2>
-          <p className="text-stone-400 max-w-2xl mx-auto">Khám phá chiều dài lịch sử hàng ngàn năm của dân tộc thông qua các bộ dữ liệu được hệ thống hóa chuyên sâu.</p>
+          <p className="text-stone-400 max-w-2xl mx-auto">{t.eras_subtitle}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {eras.map((era: any, idx: number) => (
@@ -411,7 +420,7 @@ const ErasSection = ({ sectionTitle, erasData }: any) => {
                   {eras[activeEra].summary}
                 </p>
                 <button onClick={() => setActiveEra(null)} className="px-10 py-3 bg-red-800 text-white rounded-full font-bold hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(153,27,27,0.4)] hover:scale-105 active:scale-95">
-                  Đã hiểu
+                  {t.eras_understood}
                 </button>
               </div>
             </motion.div>
@@ -422,13 +431,25 @@ const ErasSection = ({ sectionTitle, erasData }: any) => {
   );
 };
 
-// Stats
 const StatsSection = ({ sectionTitle, statsJson, highlightsJson }: any) => {
+  const { t, language } = useLanguage();
+
+  let displayTitle: React.ReactNode = sectionTitle || '';
+  if (!displayTitle || (language === 'en' && displayTitle === 'Tại sao nên chọn Sử Việt AI?')) {
+    displayTitle = (
+      <>Why choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-800 to-amber-700">Sử Việt AI?</span></>
+    );
+  } else if (!sectionTitle) {
+    displayTitle = (
+      <>Tại sao nên chọn <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-800 to-amber-700">Sử Việt AI?</span></>
+    );
+  }
+
   const defaultStats = [
-    { num: 50000, suffix: "+", label: "Người dùng tin tưởng", icon: <Users size={24} className="text-blue-600" /> },
-    { num: 1000000, suffix: "+", label: "Câu hỏi được giải đáp", icon: <MessageCircle size={24} className="text-red-600" /> },
-    { num: 99.8, suffix: "%", label: "Độ chính xác dữ liệu", icon: <ShieldCheck size={24} className="text-emerald-600" /> },
-    { num: 24, suffix: "/7", label: "Hỗ trợ tra cứu", icon: <Clock size={24} className="text-amber-600" /> }
+    { num: 50000, suffix: "+", label: t.stats_s1_label, icon: <Users size={24} className="text-blue-600" /> },
+    { num: 1000000, suffix: "+", label: t.stats_s2_label, icon: <MessageCircle size={24} className="text-red-600" /> },
+    { num: 99.8, suffix: "%", label: t.stats_s3_label, icon: <ShieldCheck size={24} className="text-emerald-600" /> },
+    { num: 24, suffix: "/7", label: t.stats_s4_label, icon: <Clock size={24} className="text-amber-600" /> }
   ];
 
   let stats = defaultStats;
@@ -451,9 +472,9 @@ const StatsSection = ({ sectionTitle, statsJson, highlightsJson }: any) => {
   }
 
   const defaultHighlights = [
-    { title: "Dữ liệu chuẩn xác", desc: "Mọi câu trả lời được tham chiếu từ các bộ sử liệu chính thống như Đại Việt Sử Ký Toàn Thư, Khâm Định Việt Sử Thông Giám Cương Mục." },
-    { title: "AI Thông Minh", desc: "Công nghệ RAG tiên tiến giúp hiểu chính xác ngữ cảnh văn hóa Việt, phản hồi ngay lập tức với ngôn từ trau chuốt, tinh tế." },
-    { title: "Đa thiết bị", desc: "Thiết kế đáp ứng hoàn hảo cho cả Web, Android và iOS. Giao diện tối giản, tập trung tối đa vào trải nghiệm đọc và học." }
+    { title: t.stats_h1_title, desc: t.stats_h1_desc },
+    { title: t.stats_h2_title, desc: t.stats_h2_desc },
+    { title: t.stats_h3_title, desc: t.stats_h3_desc }
   ];
 
   let highlights = defaultHighlights;
@@ -474,11 +495,9 @@ const StatsSection = ({ sectionTitle, statsJson, highlightsJson }: any) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-20">
-          <motion.span initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-red-800 font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Thống kê ấn tượng</motion.span>
+          <motion.span initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-red-800 font-bold tracking-[0.2em] uppercase text-xs mb-4 block">{t.stats_label}</motion.span>
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl md:text-5xl font-historical-premium font-bold text-stone-900 mb-6">
-            {sectionTitle || (
-              <>Tại sao nên chọn <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-800 to-amber-700">Sử Việt AI?</span></>
-            )}
+            {displayTitle}
           </motion.h2>
         </div>
 
@@ -514,8 +533,8 @@ const StatsSection = ({ sectionTitle, statsJson, highlightsJson }: any) => {
             <h3 className="text-2xl font-bold font-historical-premium text-stone-900 mb-4">{highlights[0]?.title}</h3>
             <p className="text-stone-600 leading-relaxed mb-8">{highlights[0]?.desc}</p>
             <div className="flex gap-3">
-              <span className="px-4 py-1.5 bg-stone-100 text-stone-800 text-xs rounded-full font-bold border border-stone-200">Chính thống</span>
-              <span className="px-4 py-1.5 bg-red-50 text-red-800 text-xs rounded-full font-bold border border-red-100">Cập nhật</span>
+              <span className="px-4 py-1.5 bg-stone-100 text-stone-800 text-xs rounded-full font-bold border border-stone-200">{t.stats_h1_tag1}</span>
+              <span className="px-4 py-1.5 bg-red-50 text-red-800 text-xs rounded-full font-bold border border-red-100">{t.stats_h1_tag2}</span>
             </div>
           </motion.div>
 
@@ -527,8 +546,8 @@ const StatsSection = ({ sectionTitle, statsJson, highlightsJson }: any) => {
             <h3 className="text-2xl font-bold font-historical-premium mb-4">{highlights[1]?.title}</h3>
             <p className="text-white/80 leading-relaxed mb-8">{highlights[1]?.desc}</p>
             <ul className="space-y-4 text-sm font-medium">
-              <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400" /> Phản hồi tức thì trong 1 giây</li>
-              <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400" /> Am hiểu ngôn ngữ cổ học</li>
+              <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400" /> {t.stats_h2_li1}</li>
+              <li className="flex gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10"><ShieldCheck size={20} className="text-amber-400" /> {t.stats_h2_li2}</li>
             </ul>
           </motion.div>
 
@@ -539,7 +558,7 @@ const StatsSection = ({ sectionTitle, statsJson, highlightsJson }: any) => {
             <h3 className="text-2xl font-bold font-historical-premium text-stone-900 mb-4">{highlights[2]?.title}</h3>
             <p className="text-stone-600 leading-relaxed mb-8">{highlights[2]?.desc}</p>
             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-100 text-stone-500 font-bold text-xs uppercase tracking-widest text-center">
-              Hỗ trợ Web • Mobile App • Tablet
+              {t.stats_h3_platforms}
             </div>
           </motion.div>
         </div>
@@ -578,55 +597,66 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 };
 
 
-// CTA
-const CTASection = ({ onStart, user }: any) => (
+const CTASection = ({ onStart, user }: any) => {
+  const { t } = useLanguage();
+  return (
   <section className="py-24 relative px-4 sm:px-6 lg:px-8">
     <div className="max-w-6xl mx-auto relative group">
-      {/* Dynamic Background Glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 to-amber-600/30 rounded-[3rem] blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
-
       <div className="relative bg-gradient-to-br from-stone-900 via-red-950 to-stone-950 rounded-[3rem] p-12 md:p-24 shadow-[0_20px_50px_rgba(153,27,27,0.3)] overflow-hidden text-center text-white border border-white/10">
-        {/* Abstract decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
           <div className="absolute top-0 left-0 w-64 h-64 border-8 border-white rounded-full -ml-32 -mt-32"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 border-8 border-white rounded-full -mr-48 -mb-48"></div>
         </div>
-
         <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="relative z-10 max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-historical-premium font-bold mb-8 leading-tight">
             {user ? (
-              <>Tiếp tục hành trình học sử, <span className="text-amber-500 underline decoration-red-800 underline-offset-8">{user.full_name || user.username}</span>!</>
+              <>{t.cta_continue} <span className="text-amber-500 underline decoration-red-800 underline-offset-8">{user.full_name || user.username}</span>!</>
             ) : (
-              <>Hào khí dân tộc trong tầm tay <span className="text-amber-500">của bạn</span></>
+              t.cta_heading_guest
             )}
           </h2>
-          <p className="text-xl text-stone-300 mb-12 leading-relaxed max-w-2xl mx-auto">
-            Gia nhập cộng đồng 50,000+ người Việt đang khám phá cội nguồn dân tộc mỗi ngày cùng AI Chatbot Lịch sử.
-          </p>
+          <p className="text-xl text-stone-300 mb-12 leading-relaxed max-w-2xl mx-auto">{t.cta_subtext}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button onClick={onStart} className="px-12 py-5 bg-gradient-to-r from-red-800 to-red-600 text-white font-bold rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(153,27,27,0.5)] hover:shadow-[0_0_40px_rgba(153,27,27,0.7)] text-xl flex items-center gap-3 hover:-translate-y-1 active:scale-95 group">
-              {user ? (user.is_admin ? 'Vào Dashboard' : 'Vào Trò Chuyện') : 'Khám Phá Miễn Phí'}
+              {user ? (user.is_admin ? t.cta_btn_admin : t.cta_btn_chat) : t.cta_btn_guest}
               <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </button>
             <div className="flex -space-x-3 items-center ml-4">
               {[1, 2, 3, 4, 5].map(i => (
                 <img key={i} src={`https://i.pravatar.cc/100?img=${i + 20}`} className="w-10 h-10 rounded-full border-2 border-stone-900 shadow-lg" alt="User Avatar" />
               ))}
-              <div className="ml-6 text-stone-400 font-bold text-sm">+50k Users</div>
+              <div className="ml-6 text-stone-400 font-bold text-sm">{t.cta_users_label}</div>
             </div>
           </div>
         </motion.div>
       </div>
     </div>
   </section>
-);
+  );
+};
 
 // Footer
 const Footer = ({ onOpenModal, siteConfig }: { onOpenModal: (type: 'about' | 'terms' | 'privacy' | 'contact') => void, siteConfig?: any }) => {
-  const company = siteConfig?.landing_footer_company || "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG";
+  const { t, language } = useLanguage();
+  
+  let company = siteConfig?.landing_footer_company || "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG";
+  if (language === 'en' && (!siteConfig?.landing_footer_company || siteConfig.landing_footer_company.trim() === "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG")) {
+    company = t.footer_company_name;
+  }
+
   const mst = siteConfig?.landing_footer_mst || "1801526082";
-  const representative = siteConfig?.landing_footer_representative || "NGÔ HỒ ANH KHÔI";
-  const address = siteConfig?.landing_footer_address || "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ";
+
+  let representative = siteConfig?.landing_footer_representative || "NGÔ HỒ ANH KHÔI";
+  if (language === 'en' && (!siteConfig?.landing_footer_representative || siteConfig.landing_footer_representative.trim() === "NGÔ HỒ ANH KHÔI")) {
+    representative = t.footer_representative_value;
+  }
+
+  let address = siteConfig?.landing_footer_address || "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ";
+  if (language === 'en' && (!siteConfig?.landing_footer_address || siteConfig.landing_footer_address.trim() === "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ")) {
+    address = t.footer_address_value;
+  }
+
   const phone = siteConfig?.landing_footer_phone || "0916 416 409";
   const cleanPhone = phone.replace(/\s+/g, '');
 
@@ -640,41 +670,39 @@ const Footer = ({ onOpenModal, siteConfig }: { onOpenModal: (type: 'about' | 'te
               {siteConfig?.site_title || "Sử Việt AI"}
             </div>
             <h3 className="text-stone-900 font-bold mb-2 uppercase">{company}</h3>
-            <p className="text-stone-600 text-sm leading-relaxed mb-4 pr-4">
-              Chuyên cung cấp giải pháp công nghệ kỹ thuật cao và xuất nhập khẩu các mặt hàng công nghệ tiên tiến.
-            </p>
+            <p className="text-stone-600 text-sm leading-relaxed mb-4 pr-4">{t.footer_company_desc}</p>
             <div className="text-stone-600 text-sm space-y-2">
-              <p><strong>MST:</strong> {mst}</p>
-              <p><strong>Đại diện:</strong> {representative}</p>
+              <p><strong>{t.footer_mst}</strong> {mst}</p>
+              <p><strong>{t.footer_rep}</strong> {representative}</p>
             </div>
           </div>
 
           {/* Cột 2: Liên kết */}
           <div className="md:col-span-3">
-            <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">Liên kết nhanh</h4>
+            <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">{t.footer_quick_links}</h4>
             <ul className="space-y-3 text-sm font-medium text-stone-500">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('about'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> Về chúng tôi</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> Điều khoản dịch vụ</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> Chính sách bảo mật</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('about'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_about_link}</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_terms_link}</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_privacy_link}</a></li>
             </ul>
           </div>
 
           {/* Cột 3: Liên hệ */}
           <div className="md:col-span-4">
-            <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">Kết nối với chúng tôi</h4>
+            <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">{t.footer_connect}</h4>
             <p className="text-stone-600 text-sm leading-relaxed mb-4">
-              <strong>Địa chỉ:</strong> {address}
+              <strong>{t.footer_address_label}</strong> {address}
             </p>
             <p className="text-stone-600 text-sm mb-6 flex items-center gap-2">
-              <strong>Hotline:</strong> <a href={`tel:${cleanPhone}`} className="text-red-700 font-bold hover:underline text-lg">{phone}</a>
+              <strong>{t.footer_hotline_label}</strong> <a href={`tel:${cleanPhone}`} className="text-red-700 font-bold hover:underline text-lg">{phone}</a>
             </p>
             <a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('contact'); }} className="inline-flex items-center gap-2 px-6 py-3 bg-stone-900 hover:bg-red-800 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg cursor-pointer">
-              <MessageCircle size={18} /> Liên hệ hỗ trợ
+              <MessageCircle size={18} /> {t.footer_contact_btn}
             </a>
           </div>
         </div>
         <div className="text-center text-stone-400 text-sm pt-8 border-t border-stone-100 flex items-center justify-center gap-2">
-          © 2026 Bản quyền thuộc về AI Chatbot Lịch sử Việt Nam.
+          {t.footer_copyright}
         </div>
       </div>
     </footer>
@@ -685,6 +713,21 @@ const Footer = ({ onOpenModal, siteConfig }: { onOpenModal: (type: 'about' | 'te
 const LandingPage: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   const [activeModal, setActiveModal] = useState<'about' | 'terms' | 'privacy' | 'contact' | null>(null);
   const [showGame, setShowGame] = useState(false);
+  const { t, language } = useLanguage();
+
+  const company = language === 'en' && (!siteConfig?.landing_footer_company || siteConfig?.landing_footer_company.trim() === "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG")
+    ? t.footer_company_name
+    : (siteConfig?.landing_footer_company || "CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG");
+
+  const mst = siteConfig?.landing_footer_mst || "1801526082";
+
+  const representative = language === 'en' && (!siteConfig?.landing_footer_representative || siteConfig?.landing_footer_representative.trim() === "NGÔ HỒ ANH KHÔI")
+    ? t.footer_representative_value
+    : (siteConfig?.landing_footer_representative || "NGÔ HỒ ANH KHÔI");
+
+  const address = language === 'en' && (!siteConfig?.landing_footer_address || siteConfig?.landing_footer_address.trim() === "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ")
+    ? t.footer_address_value
+    : (siteConfig?.landing_footer_address || "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ");
 
   const logoUrl =
     siteConfig?.logo_url &&
@@ -770,7 +813,7 @@ const LandingPage: React.FC<Props> = ({ siteConfig, onStart, user }) => {
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
               <div className="flex justify-between items-center p-6 border-b border-stone-100 bg-stone-50/50">
                 <h3 className="text-xl font-bold font-historical-premium text-stone-900">
-                  {activeModal === 'about' ? 'Về Chúng Tôi' : activeModal === 'terms' ? 'Điều Khoản Dịch Vụ' : activeModal === 'privacy' ? 'Chính Sách Bảo Mật' : 'Thông Tin Liên Hệ'}
+                  {activeModal === 'about' ? t.modal_about_title : activeModal === 'terms' ? t.modal_terms_title : activeModal === 'privacy' ? t.modal_privacy_title : t.modal_contact_title}
                 </h3>
                 <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-600 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -782,45 +825,39 @@ const LandingPage: React.FC<Props> = ({ siteConfig, onStart, user }) => {
                     <div className="text-center mb-8">
                       <div className="w-20 h-20 bg-red-800 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl font-historical-premium font-bold">史</div>
                       <h2 className="text-2xl font-bold text-stone-900">Sử Việt AI</h2>
-                      <p className="text-stone-500">Nền tảng học tập Lịch Sử bằng AI tiên phong</p>
+                      <p className="text-stone-500">{t.modal_about_platform}</p>
                     </div>
                     <div className="space-y-6 text-stone-600 leading-relaxed">
-                      <p className="whitespace-pre-line">{siteConfig?.landing_footer_about_us || "Sử Việt AI được xây dựng và phát triển bởi CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động."}</p>
+                      <p className="whitespace-pre-line font-medium text-stone-700">
+                        {language === 'en' && (!siteConfig?.landing_footer_about_us || siteConfig?.landing_footer_about_us.trim().startsWith("Sử Việt AI được xây dựng"))
+                          ? t.footer_about_us_value
+                          : (siteConfig?.landing_footer_about_us || t.footer_about_us_value)
+                        }
+                      </p>
                       <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 space-y-3 text-sm">
-                        <h4 className="font-bold text-stone-900 text-base mb-2">Thông tin công ty</h4>
-                        <p><strong>Tên pháp lý:</strong> {siteConfig?.landing_footer_company || "CÔNG TY TNHH MỘT THÀNH VIÊN CÔNG NGHỆ KỸ THUẬT TIÊN PHONG"}</p>
-                        <p><strong>Mã số thuế:</strong> {siteConfig?.landing_footer_mst || "1801526082"}</p>
-                        <p><strong>Người đại diện:</strong> {siteConfig?.landing_footer_representative || "NGÔ HỒ ANH KHÔI"}</p>
-                        <p><strong>Địa chỉ:</strong> {siteConfig?.landing_footer_address || "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ"}</p>
+                        <h4 className="font-bold text-stone-900 text-base mb-2">{t.modal_about_info_title}</h4>
+                        <p><strong>{t.modal_about_legal_name}</strong> {company}</p>
+                        <p><strong>{t.modal_about_tax_code}</strong> {mst}</p>
+                        <p><strong>{t.modal_about_rep}</strong> {representative}</p>
+                        <p><strong>{t.modal_about_address}</strong> {address}</p>
                       </div>
                     </div>
                   </>
                 )}
                 {activeModal === 'terms' && (
                   <div className="space-y-6 text-stone-600 leading-relaxed whitespace-pre-line">
-                    {siteConfig?.landing_footer_terms || `1. Chấp nhận điều khoản
-Bằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.
-
-2. Quyền và trách nhiệm người dùng
-Bạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.
-
-3. Giới hạn trách nhiệm
-Mặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.
-
-4. Bản quyền
-Toàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức.`}
+                    {language === 'en' && (!siteConfig?.landing_footer_terms || siteConfig?.landing_footer_terms.trim().startsWith("1. Chấp nhận điều khoản"))
+                      ? t.footer_terms_value
+                      : (siteConfig?.landing_footer_terms || t.footer_terms_value)
+                    }
                   </div>
                 )}
                 {activeModal === 'privacy' && (
                   <div className="space-y-6 text-stone-600 leading-relaxed whitespace-pre-line">
-                    {siteConfig?.landing_footer_privacy || `1. Thu thập thông tin
-Chúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.
-
-2. Bảo mật dữ liệu
-Tất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.
-
-3. Quyền kiểm soát của người dùng
-Bạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản.`}
+                    {language === 'en' && (!siteConfig?.landing_footer_privacy || siteConfig?.landing_footer_privacy.trim().startsWith("1. Thu thập thông tin"))
+                      ? t.footer_privacy_value
+                      : (siteConfig?.landing_footer_privacy || t.footer_privacy_value)
+                    }
                   </div>
                 )}
                 {activeModal === 'contact' && (
@@ -828,8 +865,8 @@ Bạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa 
                     <div className="w-16 h-16 bg-red-800 text-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                       <MessageCircle size={28} />
                     </div>
-                    <h2 className="text-2xl font-bold text-stone-900 mb-2">Liên hệ với chúng tôi</h2>
-                    <p className="mb-8 text-stone-500">Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy liên hệ qua các kênh dưới đây:</p>
+                    <h2 className="text-2xl font-bold text-stone-900 mb-2">{t.modal_contact_btn_label}</h2>
+                    <p className="mb-8 text-stone-500">{t.modal_contact_subtitle}</p>
 
                     <div className="grid gap-4 max-w-sm mx-auto text-left">
                       <a href={`mailto:${siteConfig?.landing_contact_email || "nguyenquocdat888888@gmail.com"}`} className="flex items-center gap-4 p-4 rounded-2xl border border-stone-200 hover:border-red-800 hover:bg-red-50 transition-all group">
@@ -857,7 +894,7 @@ Bạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa 
                           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
                         </div>
                         <div>
-                          <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">Cộng đồng</p>
+                          <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">{language === 'en' ? 'Community' : 'Cộng đồng'}</p>
                           <p className="font-bold text-stone-800 text-sm">Facebook</p>
                         </div>
                       </a>

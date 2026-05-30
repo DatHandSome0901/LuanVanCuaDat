@@ -4,6 +4,94 @@ import {
   Activity, ArrowRight, TrendingUp, AlertTriangle, UserCheck
 } from 'lucide-react';
 import { API_ROOT } from '../../api';
+import { useLanguage } from '../../contexts/LanguageContext';
+
+const localized = {
+  vi: {
+    anonymous_user: 'Sĩ tử ẩn danh',
+    collapse_memo: 'Thu gọn tấu chương',
+    read_more_memo: 'Đọc thêm tấu chương',
+    reason: 'Lý do',
+    revenue_chart_title: '📈 Ngân Khố Doanh Thu (7 Ngày Qua)',
+    unit_vnd: 'Đơn vị: VNĐ',
+    chat_traffic_title: '💬 Tần Suất Đàm Luận (7 Ngày Qua)',
+    unit_chats: 'Đơn vị: Lượt chat',
+    chats_unit: 'Lượt đàm luận',
+    summary_title: 'Ngự Tiền Khái Lược',
+    admin_system: 'Hệ Thống Quản Trị Sử Việt',
+    quote: '"Dân ta phải biết sử ta, cho tường gốc tích nước nhà Việt Nam." Giám sát hoạt động tri thức, quản lý sĩ tử đăng khoa và thống kê ngân khố quốc gia.',
+    admin_role: 'Hộ Bộ (Quản trị)',
+    admin_count: '{count} Quan lại',
+    llm_provider: 'Nhà Cung Cấp LLM',
+    total_scholars: 'Sĩ Tử Đăng Khoa',
+    commoners: 'Thường dân',
+    view_details: 'Xem tấu chương',
+    state_treasury: 'Ngân Khố Quốc Gia',
+    audit_treasury: 'Kê khai ngân quỹ',
+    dialogues: 'Thư Tịch Đối Thoại',
+    audit_dialogues: 'Tra cứu thư văn',
+    online_now: 'Trực Tuyến Đương Thời',
+    chatting_now: 'Đang đàm luận',
+    supervise: 'Giám sát',
+    recent_treasury: 'Ngân Khố Mới Nhận (Thu Chi Gần Đây)',
+    view_all: 'Xem tất cả',
+    no_transactions: 'Chưa có giao dịch nạp tệ nào...',
+    feedback_box: 'Hòm Thư Tấu Góp Ý',
+    handle_feedback: 'Xử lý sớ tấu',
+    no_feedback: 'Khắp nơi thái bình thịnh trị. Chưa nhận được tấu chương phản hồi tiêu cực nào.',
+    shortcuts: 'Lối Tắt Hành Sự',
+    court_settings: 'Thiết Lập Triều Đình',
+    ai_knowledge: 'Phê Phán Tri Thức AI',
+    treasury_packages: 'Quốc Khố Gói Nạp',
+    recent_logins: 'Sĩ Tử Đăng Nhập Gần Đây',
+    no_logins: 'Chưa ghi nhận sĩ tử nào truy cập...',
+    just_now: 'Vừa xong',
+    question: 'Câu hỏi',
+    answer: 'Trả lời',
+  },
+  en: {
+    anonymous_user: 'Anonymous Scholar',
+    collapse_memo: 'Collapse document',
+    read_more_memo: 'Read more document',
+    reason: 'Reason',
+    revenue_chart_title: '📈 Treasury Revenue (Last 7 Days)',
+    unit_vnd: 'Unit: VND',
+    chat_traffic_title: '💬 Dialogue Frequency (Last 7 Days)',
+    unit_chats: 'Unit: Chats',
+    chats_unit: 'Chats',
+    summary_title: 'Imperial Briefing',
+    admin_system: 'Vietnamese History Admin System',
+    quote: '"Our people must know our history, to understand the roots of our country Vietnam." Monitor knowledge activities, manage scholars, and audit the state treasury.',
+    admin_role: 'Board of Ministry (Admin)',
+    admin_count: '{count} Officials',
+    llm_provider: 'LLM Provider',
+    total_scholars: 'Enrolled Scholars',
+    commoners: 'Commoners',
+    view_details: 'View reports',
+    state_treasury: 'State Treasury',
+    audit_treasury: 'Audit Treasury',
+    dialogues: 'Dialogue Records',
+    audit_dialogues: 'Audit Documents',
+    online_now: 'Online Scholars',
+    chatting_now: 'Discussing',
+    supervise: 'Supervise',
+    recent_treasury: 'Recent Treasury Inflow',
+    view_all: 'View all',
+    no_transactions: 'No transaction history available...',
+    feedback_box: 'Feedback Mailbox',
+    handle_feedback: 'Handle feedback',
+    no_feedback: 'Peace reigns across the land. No negative feedback reports received.',
+    shortcuts: 'Administrative Shortcuts',
+    court_settings: 'Court Settings',
+    ai_knowledge: 'Review AI Knowledge',
+    treasury_packages: 'Treasury Packages',
+    recent_logins: 'Recent Scholar Logins',
+    no_logins: 'No scholar access recorded...',
+    just_now: 'Just now',
+    question: 'Question',
+    answer: 'Answer',
+  }
+};
 
 interface DashboardTabProps {
   users: any[];
@@ -43,6 +131,8 @@ const UserAvatar: React.FC<{ username?: string, email?: string, pictureUrl?: str
 
 // Collapsible Feedback Item Component
 const FeedbackItem: React.FC<{ fb: any }> = ({ fb }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
   const [expanded, setExpanded] = React.useState(false);
   const maxLength = 100;
   const isLong = fb.answer && fb.answer.length > maxLength;
@@ -53,15 +143,15 @@ const FeedbackItem: React.FC<{ fb: any }> = ({ fb }) => {
   return (
     <div className="p-3.5 bg-amber-50/50 rounded-xl border border-amber-250/20 flex flex-col gap-1 text-xs hover:border-amber-400/40 transition-colors">
       <div className="flex justify-between items-center mb-1">
-        <span className="font-historical font-black text-amber-900">{fb.username || 'Sĩ tử ẩn danh'}</span>
+        <span className="font-historical font-black text-amber-900">{fb.username || tLocal.anonymous_user}</span>
         <span className="text-[9px] text-stone-400 font-mono">{new Date(fb.created_at).toLocaleString()}</span>
       </div>
       <p className="text-stone-600 font-serif italic mb-0.5">
-        <strong className="text-amber-800">Câu hỏi:</strong> "{fb.question}"
+        <strong className="text-amber-800">{tLocal.question}:</strong> "{fb.question}"
       </p>
       <div>
         <p className="text-stone-750 font-serif leading-relaxed">
-          <strong className="text-red-800 font-historical font-black">Trả lời:</strong> {displayText}
+          <strong className="text-red-800 font-historical font-black">{tLocal.answer}:</strong> {displayText}
         </p>
         {isLong && (
           <button
@@ -69,13 +159,13 @@ const FeedbackItem: React.FC<{ fb: any }> = ({ fb }) => {
             onClick={() => setExpanded(!expanded)}
             className="text-[9px] text-[#b45309] font-historical font-black uppercase tracking-widest mt-1.5 hover:underline flex items-center gap-0.5"
           >
-            {expanded ? 'Thu gọn tấu chương' : 'Đọc thêm tấu chương'}
+            {expanded ? tLocal.collapse_memo : tLocal.read_more_memo}
           </button>
         )}
       </div>
       {fb.feedback_note && (
         <p className="text-stone-500 font-serif border-l-2 border-red-300/60 pl-2 mt-1.5 italic">
-          <strong>Lý do:</strong> {fb.feedback_note}
+          <strong>{tLocal.reason}:</strong> {fb.feedback_note}
         </p>
       )}
     </div>
@@ -87,6 +177,8 @@ const FeedbackItem: React.FC<{ fb: any }> = ({ fb }) => {
 // ==========================================
 
 const RevenueChart: React.FC<{ data: { date: string; amount: number }[] }> = ({ data }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
   const width = 500;
@@ -116,9 +208,9 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[] }> = ({ 
     <div className="relative paper-texture scroll-border rounded-2xl p-6 shadow-md border border-amber-800/10">
       <div className="flex justify-between items-center mb-4">
         <h4 className="font-historical text-[#7f1d1d] text-sm font-black flex items-center gap-1.5">
-          📈 Ngân Khố Doanh Thu (7 Ngày Qua)
+          {tLocal.revenue_chart_title}
         </h4>
-        <span className="text-[10px] text-stone-400 font-mono">Đơn vị: VNĐ</span>
+        <span className="text-[10px] text-stone-400 font-mono">{tLocal.unit_vnd}</span>
       </div>
 
       <div className="w-full overflow-x-auto scrollbar-hide">
@@ -184,8 +276,8 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[] }> = ({ 
       {/* Floating Tooltip inside container */}
       {hoveredPoint !== null && (
         <div className="absolute top-4 right-6 bg-[#171717]/95 border border-amber-500/30 text-amber-100 px-3 py-1.5 rounded-xl shadow-xl text-[10px] pointer-events-none transition-all duration-150 z-10 font-mono">
-          <p className="text-amber-500 font-bold">{new Date(points[hoveredPoint].date).toLocaleDateString('vi-VN')}</p>
-          <p className="text-white text-xs mt-0.5">{points[hoveredPoint].val.toLocaleString()} VNĐ</p>
+          <p className="text-amber-500 font-bold">{new Date(points[hoveredPoint].date).toLocaleDateString(language === 'en' ? 'en-US' : 'vi-VN')}</p>
+          <p className="text-white text-xs mt-0.5">{points[hoveredPoint].val.toLocaleString()} {{ vi: 'VNĐ', en: 'VND' }[language] || 'VND'}</p>
         </div>
       )}
     </div>
@@ -193,6 +285,8 @@ const RevenueChart: React.FC<{ data: { date: string; amount: number }[] }> = ({ 
 };
 
 const ChatTrafficChart: React.FC<{ data: { date: string; count: number }[] }> = ({ data }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
 
   const width = 500;
@@ -210,9 +304,9 @@ const ChatTrafficChart: React.FC<{ data: { date: string; count: number }[] }> = 
     <div className="relative paper-texture scroll-border rounded-2xl p-6 shadow-md border border-amber-800/10">
       <div className="flex justify-between items-center mb-4">
         <h4 className="font-historical text-[#7f1d1d] text-sm font-black flex items-center gap-1.5">
-          💬 Tần Suất Đàm Luận (7 Ngày Qua)
+          {tLocal.chat_traffic_title}
         </h4>
-        <span className="text-[10px] text-stone-400 font-mono">Đơn vị: Lượt chat</span>
+        <span className="text-[10px] text-stone-400 font-mono">{tLocal.unit_chats}</span>
       </div>
 
       <div className="w-full overflow-x-auto scrollbar-hide">
@@ -281,8 +375,8 @@ const ChatTrafficChart: React.FC<{ data: { date: string; count: number }[] }> = 
       {/* Floating Tooltip inside container */}
       {hoveredBar !== null && (
         <div className="absolute top-4 right-6 bg-[#171717]/95 border border-amber-500/30 text-amber-100 px-3 py-1.5 rounded-xl shadow-xl text-[10px] pointer-events-none transition-all duration-150 z-10 font-mono">
-          <p className="text-amber-500 font-bold">{new Date(data[hoveredBar].date).toLocaleDateString('vi-VN')}</p>
-          <p className="text-white text-xs mt-0.5">{data[hoveredBar].count} Lượt đàm luận</p>
+          <p className="text-amber-500 font-bold">{new Date(data[hoveredBar].date).toLocaleDateString(language === 'en' ? 'en-US' : 'vi-VN')}</p>
+          <p className="text-white text-xs mt-0.5">{data[hoveredBar].count} {tLocal.chats_unit}</p>
         </div>
       )}
     </div>
@@ -298,6 +392,9 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
   onTabChange,
   llmName = 'openai'
 }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
+
   // Tính toán số liệu
   const totalUsers = users.length;
   const adminCount = users.filter((u: any) => u.is_admin).length;
@@ -415,22 +512,22 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
 
         <div className="relative z-10 max-w-2xl">
           <span className="px-3 py-1 bg-amber-500/20 border border-amber-400/30 rounded-full text-xs font-historical font-black uppercase tracking-[0.2em] text-amber-300">
-            Ngự Tiền Khái Lược
+            {tLocal.summary_title}
           </span>
           <h1 className="text-3xl md:text-4xl font-black font-historical text-amber-100 tracking-tight mt-3">
-            Hệ Thống Quản Trị Sử Việt
+            {tLocal.admin_system}
           </h1>
           <p className="text-amber-100/70 text-sm mt-2 font-sans italic">
-            "Dân ta phải biết sử ta, cho tường gốc tích nước nhà Việt Nam." Giám sát hoạt động tri thức, quản lý sĩ tử đăng khoa và thống kê ngân khố quốc gia.
+            {tLocal.quote}
           </p>
 
           <div className="flex flex-wrap gap-4 mt-6">
             <div className="bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/5">
-              <p className="text-[9px] text-amber-200/60 uppercase tracking-widest font-historical font-black">Hộ Bộ (Quản trị)</p>
-              <p className="text-base font-black text-amber-300 font-historical">{adminCount} Quan lại</p>
+              <p className="text-[9px] text-amber-200/60 uppercase tracking-widest font-historical font-black">{tLocal.admin_role}</p>
+              <p className="text-base font-black text-amber-300 font-historical">{tLocal.admin_count.replace('{count}', String(adminCount))}</p>
             </div>
             <div className="bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/5">
-              <p className="text-[9px] text-amber-200/60 uppercase tracking-widest font-historical font-black">Nhà Cung Cấp LLM</p>
+              <p className="text-[9px] text-amber-200/60 uppercase tracking-widest font-historical font-black">{tLocal.llm_provider}</p>
               <p className="text-base font-black text-amber-300 uppercase tracking-wider font-mono">{llmName}</p>
             </div>
           </div>
@@ -443,7 +540,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">Sĩ Tử Đăng Khoa</p>
+              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">{tLocal.total_scholars}</p>
               <h3 className="text-2xl font-black font-historical text-[#7f1d1d] mt-1">{totalUsers.toLocaleString()}</h3>
             </div>
             <div className="p-2.5 bg-red-50 text-[#7f1d1d] rounded-xl border border-red-100">
@@ -451,12 +548,12 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
-            <span className="text-stone-500 font-serif">Thường dân: <strong className="text-stone-700 font-bold">{regularUsersCount}</strong></span>
+            <span className="text-stone-500 font-serif">{tLocal.commoners} <strong className="text-stone-700 font-bold">{regularUsersCount}</strong></span>
             <button
               onClick={() => onTabChange('users')}
               className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
             >
-              Xem tấu chương <ArrowRight size={12} />
+              {tLocal.view_details} <ArrowRight size={12} />
             </button>
           </div>
         </div>
@@ -465,7 +562,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">Ngân Khố Quốc Gia</p>
+              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">{tLocal.state_treasury}</p>
               <h3 className="text-2xl font-black font-historical text-amber-850 mt-1">{totalRevenue.toLocaleString()} đ</h3>
             </div>
             <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-100">
@@ -478,7 +575,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
               onClick={() => onTabChange('payments')}
               className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
             >
-              Kê khai ngân quỹ <ArrowRight size={12} />
+              {tLocal.audit_treasury} <ArrowRight size={12} />
             </button>
           </div>
         </div>
@@ -487,7 +584,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">Thư Tịch Đối Thoại</p>
+              <p className="text-[9px] text-stone-405 font-historical font-black uppercase tracking-wider">{tLocal.dialogues}</p>
               <h3 className="text-2xl font-black font-historical text-[#7f1d1d] mt-1">{totalChatMessages.toLocaleString()}</h3>
             </div>
             <div className="p-2.5 bg-red-50 text-[#7f1d1d] rounded-xl border border-red-100">
@@ -495,12 +592,12 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
-            <span className="text-stone-500 font-serif">Lịch sử đàm luận</span>
+            <span className="text-stone-500 font-serif">{tLocal.dialogues}</span>
             <button
               onClick={() => onTabChange('chatlogs')}
               className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
             >
-              Tra cứu thư văn <ArrowRight size={12} />
+              {tLocal.audit_dialogues} <ArrowRight size={12} />
             </button>
           </div>
         </div>
@@ -509,7 +606,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">Trực Tuyến Đương Thời</p>
+              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">{tLocal.online_now}</p>
               <h3 className="text-2xl font-black font-historical text-green-700 mt-1">{activeUsersTodayCount}</h3>
             </div>
             <div className="p-2.5 bg-green-50 text-green-700 rounded-xl border border-green-100">
@@ -519,13 +616,13 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
             <span className="text-stone-500 font-serif flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
-              Đang đàm luận
+              {tLocal.chatting_now}
             </span>
             <button
               onClick={() => onTabChange('logins')}
               className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
             >
-              Giám sát <ArrowRight size={12} />
+              {tLocal.supervise} <ArrowRight size={12} />
             </button>
           </div>
         </div>
@@ -548,19 +645,19 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             <div className="px-6 py-4 bg-amber-50/40 border-b border-amber-800/10 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-5 bg-[#7f1d1d] rounded-full"></span>
-                <h3 className="font-historical text-[#7f1d1d] text-base font-black">Ngân Khố Mới Nhận (Thu Chi Gần Đây)</h3>
+                <h3 className="font-historical text-[#7f1d1d] text-base font-black">{tLocal.recent_treasury}</h3>
               </div>
               <button
                 onClick={() => onTabChange('payments')}
                 className="text-xs text-[#b45309] font-historical font-black flex items-center gap-0.5 hover:underline"
               >
-                Xem tất cả ({payments.length})
+                {tLocal.view_all} ({payments.length})
               </button>
             </div>
 
             <div className="divide-y divide-amber-800/10">
               {recentTransactions.length === 0 ? (
-                <p className="p-6 text-center text-xs text-stone-450 italic font-serif">Chưa có giao dịch nạp tệ nào...</p>
+                <p className="p-6 text-center text-xs text-stone-450 italic font-serif">{tLocal.no_transactions}</p>
               ) : (
                 recentTransactions.map((tx: any) => (
                   <div key={tx.id} className="p-4 hover:bg-amber-50/20 transition-colors flex items-center justify-between">
@@ -569,7 +666,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                       <UserAvatar username={tx.username} email={tx.email} pictureUrl={tx.picture_url || tx.avatar_url} />
                       <div>
                         <p className="text-xs font-historical font-black text-[#7f1d1d]">{tx.username}</p>
-                        <p className="text-[10px] text-stone-400 font-mono">{tx.email}</p>
+                        <p className="text-[10px] text-stone-405 font-mono">{tx.email}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -588,21 +685,21 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-5 bg-[#7f1d1d] rounded-full"></span>
                 <h3 className="font-historical text-[#7f1d1d] text-base font-black flex items-center gap-1.5">
-                  Hòm Thư Tấu Góp Ý <span className="text-xs font-sans px-2 py-0.5 bg-red-100 text-[#7f1d1d] rounded-full font-black">{negativeFeedback.length}</span>
+                  {tLocal.feedback_box} <span className="text-xs font-sans px-2 py-0.5 bg-red-100 text-[#7f1d1d] rounded-full font-black">{negativeFeedback.length}</span>
                 </h3>
               </div>
               <button
                 onClick={() => onTabChange('feedback')}
                 className="text-xs text-[#b45309] font-historical font-black flex items-center gap-0.5 hover:underline"
               >
-                Xử lý sớ tấu <ArrowRight size={12} />
+                {tLocal.handle_feedback} <ArrowRight size={12} />
               </button>
             </div>
 
             <div className="divide-y divide-amber-800/10 p-2 space-y-2">
               {negativeFeedback.length === 0 ? (
                 <div className="p-6 text-center text-xs text-stone-450 italic font-serif">
-                  Khắp nơi thái bình thịnh trị. Chưa nhận được tấu chương phản hồi tiêu cực nào.
+                  {tLocal.no_feedback}
                 </div>
               ) : (
                 negativeFeedback.slice(0, 3).map((fb: any) => (
@@ -618,7 +715,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
           {/* Lối tắt hành động */}
           <div className="paper-texture scroll-border rounded-2xl p-6 shadow-md border border-stone-200">
             <h3 className="font-historical text-[#7f1d1d] text-base font-black border-b border-amber-800/10 pb-3 mb-4">
-              Lối Tắt Hành Sự
+              {tLocal.shortcuts}
             </h3>
             <div className="grid grid-cols-1 gap-3">
               <button
@@ -629,7 +726,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                   <div className="w-8 h-8 rounded-lg bg-red-50 text-[#7f1d1d] flex items-center justify-center border border-red-100 shrink-0">
                     <ShieldCheck size={14} />
                   </div>
-                  <span className="text-xs font-historical font-black text-amber-900">Thiết Lập Triều Đình</span>
+                  <span className="text-xs font-historical font-black text-amber-900">{tLocal.court_settings}</span>
                 </div>
                 <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -642,7 +739,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                   <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100 shrink-0">
                     <UserCheck size={14} />
                   </div>
-                  <span className="text-xs font-historical font-black text-amber-900">Phê Phán Tri Thức AI</span>
+                  <span className="text-xs font-historical font-black text-amber-900">{tLocal.ai_knowledge}</span>
                 </div>
                 <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -655,7 +752,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                   <div className="w-8 h-8 rounded-lg bg-green-50 text-green-700 flex items-center justify-center border border-green-100 shrink-0">
                     <TrendingUp size={14} />
                   </div>
-                  <span className="text-xs font-historical font-black text-amber-900">Quốc Khố Gói Nạp</span>
+                  <span className="text-xs font-historical font-black text-amber-900">{tLocal.treasury_packages}</span>
                 </div>
                 <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -665,13 +762,13 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
           {/* Trạng sĩ đăng nhập */}
           <div className="paper-texture scroll-border rounded-2xl shadow-md border border-amber-850/10 overflow-hidden">
             <div className="px-5 py-4 bg-amber-50/40 border-b border-amber-800/10 flex justify-between items-center">
-              <h3 className="font-historical text-[#7f1d1d] text-sm font-black">Sĩ Tử Đăng Nhập Gần Đây</h3>
+              <h3 className="font-historical text-[#7f1d1d] text-sm font-black">{tLocal.recent_logins}</h3>
               <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
             </div>
 
             <div className="p-4 space-y-4">
               {recentLogins.length === 0 ? (
-                <p className="text-center text-xs text-stone-450 italic font-serif py-4">Chưa ghi nhận sĩ tử nào truy cập...</p>
+                <p className="text-center text-xs text-stone-450 italic font-serif py-4">{tLocal.no_logins}</p>
               ) : (
                 recentLogins.map((lg: any, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 text-xs border-b border-amber-800/5 pb-2.5 last:border-0 last:pb-0">
@@ -681,7 +778,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                       <p className="text-[9px] text-stone-400 font-mono truncate">IP: {lg.ip_address || '127.0.0.1'}</p>
                     </div>
                     <span className="text-[9px] text-stone-405 font-serif italic whitespace-nowrap">
-                      {lg.login_time ? new Date(lg.login_time).toLocaleTimeString() : 'Vừa xong'}
+                      {lg.login_time ? new Date(lg.login_time).toLocaleTimeString() : tLocal.just_now}
                     </span>
                   </div>
                 ))

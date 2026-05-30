@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { api } from '../../api';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SettingsTabProps {
   data: any;
@@ -27,7 +28,7 @@ interface EraCard {
   summary: string;
 }
 
-const defaultEras: EraCard[] = [
+const defaultErasVi: EraCard[] = [
   { title: "Văn Lang - Âu Lạc", time: "2879 TCN - 207 TCN", image: "/images/era_hong_bang.png", color: "from-red-900/90 to-stone-900/95", summary: "Thời kỳ bình minh của dân tộc với truyền thuyết con Rồng cháu Tiên, 18 đời Hùng Vương dựng nước và cuộc kháng chiến chống quân Tần của Thục Phán An Dương Vương. Nền văn hóa Đông Sơn rực rỡ với trống đồng là biểu tượng vĩ đại." },
   { title: "Bắc Thuộc", time: "207 TCN - 938 SCN", image: "/images/era_bac_thuoc.png", color: "from-stone-800/90 to-stone-900/95", summary: "Kéo dài hơn 1000 năm đau thương nhưng vô cùng oanh liệt. Bắt đầu từ khi Triệu Đà thôn tính Âu Lạc đến chiến thắng Bạch Đằng lịch sử. Nổi bật với các cuộc khởi nghĩa bất khuất của Hai Bà Trưng, Bà Triệu, Lý Bí." },
   { title: "Ngô - Đinh - Tiền Lê", time: "938 - 1009", image: "/images/era_ngo_dinh_le.png", color: "from-stone-700/90 to-stone-900/95", summary: "Giai đoạn đặt nền móng vững chắc cho kỷ nguyên độc lập tự chủ. Ngô Quyền xưng vương, Đinh Bộ Lĩnh dẹp loạn 12 sứ quân lập ra nước Đại Cồ Việt, Lê Hoàn đánh Tống bình Chiêm bảo vệ bờ cõi." },
@@ -38,13 +39,30 @@ const defaultEras: EraCard[] = [
   { title: "Hiện Đại", time: "1945 - Nay", image: "/images/era_hien_dai.png", color: "from-blue-900/90 to-stone-900/95", summary: "Bắt đầu từ Cách mạng tháng Tám (1945), khai sinh nước Việt Nam Dân Chủ Cộng Hòa. Trải qua 2 cuộc kháng chiến chống Pháp và chống Mỹ gian khổ, Việt Nam hoàn toàn độc lập và bước vào kỷ nguyên đổi mới." },
 ];
 
-const defaultProcessSteps = [
+const defaultErasEn: EraCard[] = [
+  { title: "Van Lang - Au Lac", time: "2879 BC - 207 BC", image: "/images/era_hong_bang.png", color: "from-red-900/90 to-stone-900/95", summary: "The dawn of the nation with the legend of Dragon and Fairy descendants, 18 generations of Hung Kings building the country, and the resistance against the Qin army by Thuc Phan An Duong Vuong. The brilliant Dong Son culture symbolized by the great bronze drum." },
+  { title: "Chinese Domination", time: "207 BC - 938 AD", image: "/images/era_bac_thuoc.png", color: "from-stone-800/90 to-stone-900/95", summary: "Lasting over 1000 years of sorrow but immense heroism. Starting from Zhao Tuo annexing Au Lac to the historic Bach Dang victory. Marked by the unyielding rebellions of the Trung Sisters, Lady Trieu, and Ly Bi." },
+  { title: "Ngo - Dinh - Early Le", time: "938 - 1009", image: "/images/era_ngo_dinh_le.png", color: "from-stone-700/90 to-stone-900/95", summary: "The period establishing a solid foundation for the era of independence and autonomy. Ngo Quyen declared himself king, Dinh Bo Linh suppressed the 12 warlords to form Dai Co Viet, and Le Hoan defeated the Song and pacified the Champa." },
+  { title: "Ly - Tran - Ho", time: "1009 - 1407", image: "/images/era_doc_lap.png", color: "from-amber-900/90 to-stone-900/95", summary: "The most brilliant development era of the Dai Viet civilization. The Ly dynasty moved the capital to Thang Long. The Tran dynasty defeated the world's most powerful Mongol-Yuan empire three times. The Ho dynasty noted for bold reforms." },
+  { title: "Later Le & Division", time: "1428 - 1788", image: "/images/era_le_trinh_nguyen.png", color: "from-stone-800/90 to-stone-900/95", summary: "Began with Le Loi's glorious victory over the Ming. The reign of Le Thanh Tong witnessed peak prosperity, followed by decline leading to the persistent Trinh-Nguyen conflict." },
+  { title: "Tay Son & Nguyen Dynasty", time: "1788 - 1884", image: "/images/era_tay_son_nguyen.png", color: "from-red-950/90 to-stone-900/95", summary: "The Tay Son peasant rebellion swept away internal enemies and external invaders (Siam and Qing), crowning Emperor Quang Trung. Later, Nguyen Anh unified the country, founding the Nguyen dynasty in Hue." },
+  { title: "French Colonialism", time: "1884 - 1945", image: "/images/era_phap_thuoc.png", color: "from-stone-900/90 to-black/95", summary: "French colonialists invaded and turned Vietnam into a colony. A period of suffering but also the arrival of patriotic movements and progressive Western thoughts, paving the way for the Revolution." },
+  { title: "Modern Era", time: "1945 - Present", image: "/images/era_hien_dai.png", color: "from-blue-900/90 to-stone-900/95", summary: "Starting from the August Revolution (1945), birth of the Democratic Republic of Vietnam. Through two arduous resistance wars against French and American forces, Vietnam achieved complete independence and entered the Doi Moi (renovation) era." },
+];
+
+const defaultProcessStepsVi = [
   { title: "Hỏi đáp AI", desc: "Tương tác tự nhiên với AI để tra cứu mọi thông tin lịch sử." },
   { title: "Tìm kiếm thông minh", desc: "Trích xuất thông tin nhanh chóng từ kho tài liệu khổng lồ." },
   { title: "Xác thực nguồn gốc", desc: "Mọi thông tin đều được tham chiếu rõ ràng từ sử liệu uy tín." }
 ];
 
-const defaultFeaturesTabs = [
+const defaultProcessStepsEn = [
+  { title: "AI Q&A", desc: "Interact naturally with AI to query all historical information." },
+  { title: "Smart Search", desc: "Extract information quickly from a massive database of documents." },
+  { title: "Source Verification", desc: "All information is clearly referenced from prestigious historical sources." }
+];
+
+const defaultFeaturesTabsVi = [
   {
     tab: "Cho Học Sinh",
     title: "Trợ thủ ôn tập thông minh",
@@ -74,18 +92,234 @@ const defaultFeaturesTabs = [
   }
 ];
 
-const defaultStatsItems = [
+const defaultFeaturesTabsEn = [
+  {
+    tab: "For Students",
+    title: "Smart Study Assistant",
+    points: [
+      "Short, easy-to-understand summaries of historical events.",
+      "Answers multiple-choice and essay questions.",
+      "Systematizes knowledge with mind maps."
+    ]
+  },
+  {
+    tab: "For Teachers",
+    title: "Teaching Support Tool",
+    points: [
+      "Automatically generates lesson plans and review questions.",
+      "Extracts historical materials to enrich lectures.",
+      "Compares and cross-references different historical sources."
+    ]
+  },
+  {
+    tab: "For Researchers",
+    title: "In-depth Retrieval",
+    points: [
+      "Accesses ancient texts and detailed analysis.",
+      "Supports highly accurate cross-referencing of historical data.",
+      "Explores lesser-known corners of history."
+    ]
+  }
+];
+
+const defaultStatsItemsVi = [
   { num: 50000, suffix: "+", label: "Người dùng tin tưởng" },
   { num: 1000000, suffix: "+", label: "Câu hỏi được giải đáp" },
   { num: 99.8, suffix: "%", label: "Độ chính xác dữ liệu" },
   { num: 24, suffix: "/7", label: "Hỗ trợ tra cứu" }
 ];
 
-const defaultHighlightsItems = [
+const defaultStatsItemsEn = [
+  { num: 50000, suffix: "+", label: "Trusted Users" },
+  { num: 1000000, suffix: "+", label: "Resolved Queries" },
+  { num: 99.8, suffix: "%", label: "Data Accuracy" },
+  { num: 24, suffix: "/7", label: "Lookup Availability" }
+];
+
+const defaultHighlightsItemsVi = [
   { title: "Dữ liệu chuẩn xác", desc: "Mọi câu trả lời được tham chiếu từ các bộ sử liệu chính thống như Đại Việt Sử Ký Toàn Thư, Khâm Định Việt Sử Thông Giám Cương Mục." },
   { title: "AI Thông Minh", desc: "Công nghệ RAG tiên tiến giúp hiểu chính xác ngữ cảnh văn hóa Việt, phản hồi ngay lập tức với ngôn từ trau chuốt, tinh tế." },
   { title: "Đa thiết bị", desc: "Thiết kế đáp ứng hoàn hảo cho cả Web, Android và iOS. Giao diện tối giản, tập trung tối đa vào trải nghiệm đọc và học." }
 ];
+
+const defaultHighlightsItemsEn = [
+  { title: "Accurate Data", desc: "All answers are cross-referenced from official historical documents such as Dai Viet Su Ky Toan Thu, Kham Dinh Viet Su Thong Giam Cuong Muc." },
+  { title: "Smart AI", desc: "Advanced RAG technology ensures a precise grasp of Vietnamese cultural context, responding instantly with polished and refined prose." },
+  { title: "Multi-device", desc: "Perfect responsive design for Web, Android, and iOS. Minimalist interface focusing maximum attention on reading and learning." }
+];
+
+const localized = {
+  vi: {
+    sync_btn: "Đồng Bộ Từ HTML",
+    sync_tooltip: "Đồng bộ nội dung SEO trực tiếp từ index.html",
+    title: "Cấu Hình Hệ Thống",
+    subtitle: "Thiết lập giao diện landing page, thời kỳ lịch sử và cài đặt SEO",
+    seo_brand: "Cấu Hình SEO & Thương Hiệu",
+    web_title: "Tên Website (SEO Title)",
+    web_title_placeholder: "Ví dụ: Sử Việt - Tra Cứu Lịch Sử Việt Nam",
+    web_desc: "Khái Lược Mô Tả (SEO Description)",
+    web_desc_placeholder: "Nhập mô tả tìm kiếm ngắn...",
+    keywords: "Từ Khóa SEO (Keywords)",
+    keywords_placeholder: "Lịch sử, AI, Sử Việt...",
+    author: "Soạn Giả (SEO Author)",
+    author_placeholder: "Ví dụ: Triều Đình Sử Việt",
+    logo_web: "Logo Website",
+    logo_upload: "Tải Logo",
+    logo_success: "Đã tải hình ảnh thời kỳ lên thành công.",
+    uploading_logo: "Đang tải ảnh thời kỳ lên...",
+    favicon: "Favicon",
+    favicon_upload: "Tải Favicon",
+    landing_bg: "Nền Landing Page",
+    landing_bg_upload: "Tải Nền",
+    chat_bg: "Nền Trò Chuyện (Chat)",
+    chat_bg_upload: "Tải Nền Chat",
+    realtime_content: "Nội Dung Trang Chủ (Real-time)",
+    game_active: "Kích Hoạt Trò Chơi Lịch Sử",
+    game_desc: "Hiển thị nút \"Chơi Game\" trên thanh điều hướng",
+    hero_title: "Tiêu Đề Chính (Hero Title)",
+    hero_title_placeholder: "Tiêu đề to chính diện trang chủ...",
+    hero_subtitle: "Mô Tả Phụ (Hero Subtitle)",
+    hero_subtitle_placeholder: "Đoạn văn giới thiệu ngắn dưới tiêu đề chính...",
+    hero_words: "Từ Khoá Chạy Chữ (Hero Words)",
+    hero_words_placeholder: "Cách nhau bằng dấu phẩy, ví dụ: Lịch Sử Việt Nam, Văn Hoá Dân Tộc...",
+    process_steps: "Các Bước Quy Trình (Process Steps)",
+    step_label: "Bước",
+    step_title_placeholder: "Tiêu đề...",
+    step_desc_placeholder: "Mô tả...",
+    audience_features: "Tính Năng Dành Cho Nhóm Đối Tượng",
+    audience_label: "Nhóm",
+    audience_name_placeholder: "Tên nhóm...",
+    audience_main_title: "Tiêu đề chính của nhóm",
+    audience_highlight_points: "Các điểm tính năng nổi bật (Gạch đầu dòng)",
+    stats_title: "Các Số Liệu Thống Kê",
+    stats_col: "Cột",
+    stats_num_placeholder: "Số...",
+    stats_suffix_placeholder: "Hậu tố...",
+    stats_label_placeholder: "Nhãn...",
+    highlights_title: "Các Khối Điểm Nổi Bật (Highlights)",
+    highlight_item: "Mục",
+    title_timeline: "Tiêu đề Tiến Trình",
+    title_solution: "Tiêu đề Giải Pháp",
+    title_stats: "Tiêu đề Thống Kê",
+    era_edit_title: "Biên Tập Triều Đại (8 Thời Kỳ)",
+    era_num_label: "Kỳ",
+    era_time_label: "Thời Kỳ Số",
+    era_name: "Tên Thời Kỳ",
+    era_duration: "Niên Đại (Thời gian)",
+    era_image: "Hình Ảnh Đại Diện",
+    era_image_placeholder: "Đường dẫn hoặc tải ảnh lên...",
+    era_summary: "Tóm Tắt Sử Sử Liệu",
+    era_summary_placeholder: "Mô tả sự kiện, nét chính của thời kỳ...",
+    config_intel: "Định Cấu Hình Trí Tuệ & Chi Phí",
+    tokens_rate: "Đơn Giá (Tokens/1000)",
+    llm_model: "Mô Hình Trí Tuệ (LLM)",
+    no_ans_fallback: "Lời Cáo Lỗi Khi Mất Kết Nối Tri Thức",
+    no_ans_fallback_placeholder: "Lời cáo lỗi khi AI không tìm được câu trả lời...",
+    config_footer: "Cấu Hình Thông Tin Chân Trang (Footer)",
+    footer_company: "Tên Công Ty / Chủ Thể",
+    footer_mst: "Mã Số Thuế (MST)",
+    footer_rep: "Người Đại Diện",
+    footer_address: "Địa Chỉ Liên Hệ",
+    footer_phone: "Số Điện Thoại Hotline",
+    footer_email: "Email Liên Hệ",
+    footer_zalo: "Số Điện Thoại Zalo",
+    footer_zalo_link: "Đường Dẫn Zalo (Chat Link)",
+    footer_fb_link: "Đường Dẫn Facebook",
+    footer_about: "Nội dung \"Về chúng tôi\" (Giới thiệu chung)",
+    footer_terms: "Nội dung \"Điều khoản dịch vụ\"",
+    footer_privacy: "Nội dung \"Chính sách bảo mật\"",
+    btn_save: "Lưu Thư Văn Cấu Hình",
+    preview_realtime: "Xem Trước Realtime",
+    preview_url: "http://localhost:5173/preview",
+    btn_minimize: "Thu nhỏ",
+    drag_tooltip: "Kéo thanh tiêu đề để di chuyển • Đúp chuột để phóng to"
+  },
+  en: {
+    sync_btn: "Sync from HTML",
+    sync_tooltip: "Synchronize SEO meta tags directly from index.html",
+    title: "System Settings",
+    subtitle: "Configure Landing Page content, historical eras and SEO options",
+    seo_brand: "SEO & Brand Configuration",
+    web_title: "Website Name (SEO Title)",
+    web_title_placeholder: "Example: Sử Việt - Vietnam History Query System",
+    web_desc: "Meta Description (SEO Description)",
+    web_desc_placeholder: "Enter short description for search engines...",
+    keywords: "SEO Keywords",
+    keywords_placeholder: "History, AI, Su Viet...",
+    author: "Author (SEO Author)",
+    author_placeholder: "Example: Su Viet Imperial Court",
+    logo_web: "Website Logo",
+    logo_upload: "Upload Logo",
+    logo_success: "Era image uploaded successfully.",
+    uploading_logo: "Uploading era image...",
+    favicon: "Favicon",
+    favicon_upload: "Upload Favicon",
+    landing_bg: "Landing Page Background",
+    landing_bg_upload: "Upload BG",
+    chat_bg: "Chat View Background",
+    chat_bg_upload: "Upload Chat BG",
+    realtime_content: "Home Page Real-time Content",
+    game_active: "Enable History Game",
+    game_desc: "Show 'Play Game' button on the navigation bar",
+    hero_title: "Hero Title",
+    hero_title_placeholder: "Large prominent header on homepage...",
+    hero_subtitle: "Hero Subtitle",
+    hero_subtitle_placeholder: "Introduction text below the hero title...",
+    hero_words: "Sliding Banner Keywords (Hero Words)",
+    hero_words_placeholder: "Comma separated, e.g., Vietnam History, National Culture...",
+    process_steps: "Process Steps",
+    step_label: "Step",
+    step_title_placeholder: "Title...",
+    step_desc_placeholder: "Description...",
+    audience_features: "Audience-Specific Features",
+    audience_label: "Group",
+    audience_name_placeholder: "Audience name...",
+    audience_main_title: "Group Main Title",
+    audience_highlight_points: "Highlighted Features (Bullet Points)",
+    stats_title: "Statistic Metrics",
+    stats_col: "Column",
+    stats_num_placeholder: "Value...",
+    stats_suffix_placeholder: "Suffix...",
+    stats_label_placeholder: "Label...",
+    highlights_title: "Highlight Features Blocks",
+    highlight_item: "Item",
+    title_timeline: "Timeline Title",
+    title_solution: "Solution Title",
+    title_stats: "Stats Section Title",
+    era_edit_title: "Edit Historical Eras (8 Eras)",
+    era_num_label: "Era",
+    era_time_label: "Era Number",
+    era_name: "Era Title",
+    era_duration: "Historical Period",
+    era_image: "Cover Image",
+    era_image_placeholder: "URL path or upload image...",
+    era_summary: "Historical Summary",
+    era_summary_placeholder: "Describe events and key aspects of the era...",
+    config_intel: "Configure AI Brain & Costs",
+    tokens_rate: "Pricing (Tokens/1000)",
+    llm_model: "AI Engine Model (LLM)",
+    no_ans_fallback: "Connection Offline Apology Prompt",
+    no_ans_fallback_placeholder: "Apology message when AI fails to retrieve answers...",
+    config_footer: "Footer Information Configuration",
+    footer_company: "Company Name / Entity",
+    footer_mst: "Tax ID (MST)",
+    footer_rep: "Representative",
+    footer_address: "Contact Address",
+    footer_phone: "Hotline Number",
+    footer_email: "Contact Email",
+    footer_zalo: "Zalo Phone Number",
+    footer_zalo_link: "Zalo Chat Link",
+    footer_fb_link: "Facebook Profile Link",
+    footer_about: "\"About Us\" content (General Introduction)",
+    footer_terms: "\"Terms of Service\" content",
+    footer_privacy: "\"Privacy Policy\" content",
+    btn_save: "Save System Settings",
+    preview_realtime: "Real-time Preview",
+    preview_url: "http://localhost:5173/preview",
+    btn_minimize: "Minimize",
+    drag_tooltip: "Drag title bar to move • Double click to expand"
+  }
+};
 
 const SettingsTab: React.FC<SettingsTabProps> = ({ 
   data, 
@@ -97,15 +331,18 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   onUploadBackground,
   onUploadChatBackground
 }) => {
+  const { language } = useLanguage();
+  const tLocal = localized[language] || localized.vi;
+
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const [selectedEraIdx, setSelectedEraIdx] = useState<number>(0);
-  const [eras, setEras] = useState<EraCard[]>(defaultEras);
+  const [eras, setEras] = useState<EraCard[]>(language === 'en' ? defaultErasEn : defaultErasVi);
   const [uploadingEraImage, setUploadingEraImage] = useState(false);
 
-  const [processSteps, setProcessSteps] = useState(defaultProcessSteps);
-  const [featuresTabs, setFeaturesTabs] = useState(defaultFeaturesTabs);
-  const [statsItems, setStatsItems] = useState<Array<{ num: number | string; suffix: string; label: string; }>>(defaultStatsItems);
-  const [highlightsItems, setHighlightsItems] = useState(defaultHighlightsItems);
+  const [processSteps, setProcessSteps] = useState(language === 'en' ? defaultProcessStepsEn : defaultProcessStepsVi);
+  const [featuresTabs, setFeaturesTabs] = useState(language === 'en' ? defaultFeaturesTabsEn : defaultFeaturesTabsVi);
+  const [statsItems, setStatsItems] = useState<Array<{ num: number | string; suffix: string; label: string; }>>(language === 'en' ? defaultStatsItemsEn : defaultStatsItemsVi);
+  const [highlightsItems, setHighlightsItems] = useState(language === 'en' ? defaultHighlightsItemsEn : defaultHighlightsItemsVi);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [dragPosition, setDragPosition] = useState({ x: 24, y: 24 });
   const [isDragging, setIsDragging] = useState(false);
@@ -157,39 +394,76 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
         const parsed = JSON.parse(data.landing_eras_json);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setEras(parsed);
+          return;
         }
       } catch (e) {
         console.error("Lỗi khi khôi phục landing_eras_json:", e);
       }
     }
-  }, [data.landing_eras_json]);
+    setEras(language === 'en' ? defaultErasEn : defaultErasVi);
+  }, [data.landing_eras_json, language]);
 
   useEffect(() => {
     if (data.landing_process_json) {
       try {
         const parsed = JSON.parse(data.landing_process_json);
-        if (Array.isArray(parsed) && parsed.length > 0) setProcessSteps(parsed);
-      } catch (e) { }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProcessSteps(parsed);
+        } else {
+          setProcessSteps(language === 'en' ? defaultProcessStepsEn : defaultProcessStepsVi);
+        }
+      } catch (e) {
+        setProcessSteps(language === 'en' ? defaultProcessStepsEn : defaultProcessStepsVi);
+      }
+    } else {
+      setProcessSteps(language === 'en' ? defaultProcessStepsEn : defaultProcessStepsVi);
     }
+
     if (data.landing_features_json) {
       try {
         const parsed = JSON.parse(data.landing_features_json);
-        if (Array.isArray(parsed) && parsed.length > 0) setFeaturesTabs(parsed);
-      } catch (e) { }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setFeaturesTabs(parsed);
+        } else {
+          setFeaturesTabs(language === 'en' ? defaultFeaturesTabsEn : defaultFeaturesTabsVi);
+        }
+      } catch (e) {
+        setFeaturesTabs(language === 'en' ? defaultFeaturesTabsEn : defaultFeaturesTabsVi);
+      }
+    } else {
+      setFeaturesTabs(language === 'en' ? defaultFeaturesTabsEn : defaultFeaturesTabsVi);
     }
+
     if (data.landing_stats_json) {
       try {
         const parsed = JSON.parse(data.landing_stats_json);
-        if (Array.isArray(parsed) && parsed.length > 0) setStatsItems(parsed);
-      } catch (e) { }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setStatsItems(parsed);
+        } else {
+          setStatsItems(language === 'en' ? defaultStatsItemsEn : defaultStatsItemsVi);
+        }
+      } catch (e) {
+        setStatsItems(language === 'en' ? defaultStatsItemsEn : defaultStatsItemsVi);
+      }
+    } else {
+      setStatsItems(language === 'en' ? defaultStatsItemsEn : defaultStatsItemsVi);
     }
+
     if (data.landing_highlights_json) {
       try {
         const parsed = JSON.parse(data.landing_highlights_json);
-        if (Array.isArray(parsed) && parsed.length > 0) setHighlightsItems(parsed);
-      } catch (e) { }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setHighlightsItems(parsed);
+        } else {
+          setHighlightsItems(language === 'en' ? defaultHighlightsItemsEn : defaultHighlightsItemsVi);
+        }
+      } catch (e) {
+        setHighlightsItems(language === 'en' ? defaultHighlightsItemsEn : defaultHighlightsItemsVi);
+      }
+    } else {
+      setHighlightsItems(language === 'en' ? defaultHighlightsItemsEn : defaultHighlightsItemsVi);
     }
-  }, [data.landing_process_json, data.landing_features_json, data.landing_stats_json, data.landing_highlights_json]);
+  }, [data.landing_process_json, data.landing_features_json, data.landing_stats_json, data.landing_highlights_json, language]);
 
   // Handle scrolling preview pane to focused section
   const scrollToSection = (sectionId: string) => {
@@ -228,13 +502,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   const handleUploadEraImage = async (file: File) => {
     try {
       setUploadingEraImage(true);
-      const loadingToast = toast.loading(`Đang tải ảnh thời kỳ lên...`);
+      const loadingToast = toast.loading(language === 'en' ? 'Uploading era image...' : 'Đang tải ảnh thời kỳ lên...');
       const res = await api.adminUploadLogo(file);
       toast.dismiss(loadingToast);
-      toast.success('Đã tải hình ảnh thời kỳ lên thành công.');
+      toast.success(language === 'en' ? 'Era image uploaded successfully.' : 'Đã tải hình ảnh thời kỳ lên thành công.');
       handleEraChange('image', res.logo_url);
     } catch (err: any) {
-      toast.error(err.message || 'Lỗi tải ảnh lên');
+      toast.error(err.message || (language === 'en' ? 'Upload error' : 'Lỗi tải ảnh lên'));
     } finally {
       setUploadingEraImage(false);
     }
@@ -281,8 +555,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             設
           </div>
           <div>
-            <h2 className="text-xl font-historical font-black text-[#7f1d1d] leading-none mb-1">Cấu Hồi Hệ Thống</h2>
-            <p className="text-xs text-stone-500 font-sans italic">Thiết lập giao diện landing page, thời kỳ lịch sử và cài đặt SEO</p>
+            <h2 className="text-xl font-historical font-black text-[#7f1d1d] leading-none mb-1">{tLocal.title}</h2>
+            <p className="text-xs text-stone-500 font-sans italic">{tLocal.subtitle}</p>
           </div>
         </div>
 
@@ -290,10 +564,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
           type="button" 
           onClick={onSync}
           className="text-xs font-historical font-black text-amber-800 bg-amber-50 hover:bg-amber-100 px-4 py-2 rounded-lg border border-amber-400/40 transition-all flex items-center gap-1.5 hover-lift shadow-sm"
-          title="Đồng bộ nội dung SEO trực tiếp từ index.html"
+          title={tLocal.sync_tooltip}
         >
           <RefreshCw size={12} className="animate-spin-hover" />
-          Đồng Bộ Từ HTML
+          {tLocal.sync_btn}
         </button>
       </div>
 
@@ -305,56 +579,56 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* --- SECTION 1: CÀI ĐẶT CHUNG (SEO) --- */}
             <div className="space-y-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
-                <Layout size={16} /> Cấu Hình SEO & Thương Hiệu
+                <Layout size={16} /> {tLocal.seo_brand}
               </h4>
 
               {/* Site Title */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Tên Website (SEO Title)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.web_title}</label>
                 <input 
                   name="site_title"
                   value={data.site_title || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('hero')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                  placeholder="Ví dụ: Sử Việt - Tra Cứu Lịch Sử Việt Nam"
+                  placeholder={tLocal.web_title_placeholder}
                 />
               </div>
 
               {/* SEO Description */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Khái Lược Mô Tả (SEO Description)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.web_desc}</label>
                 <textarea 
                   name="seo_description"
                   value={data.seo_description || ''}
                   onChange={onChange}
                   rows={2}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs leading-relaxed"
-                  placeholder="Nhập mô tả tìm kiếm ngắn..."
+                  placeholder={tLocal.web_desc_placeholder}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 {/* Keywords */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Từ Khóa SEO (Keywords)</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.keywords}</label>
                   <input 
                     name="seo_keywords"
                     value={data.seo_keywords || ''}
                     onChange={onChange}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="Lịch sử, AI, Sử Việt..."
+                    placeholder={tLocal.keywords_placeholder}
                   />
                 </div>
                 {/* Author */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Soạn Giả (SEO Author)</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.author}</label>
                   <input 
                     name="seo_author"
                     value={data.seo_author || ''}
                     onChange={onChange}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="Ví dụ: Triều Đình Sử Việt"
+                    placeholder={tLocal.author_placeholder}
                   />
                 </div>
               </div>
@@ -364,11 +638,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   {/* Logo Upload */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Logo Website</label>
+                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.logo_web}</label>
                     <div className="flex items-center gap-2">
                       <label className="cursor-pointer bg-stone-50 border border-stone-300 hover:bg-stone-100 p-2 rounded-lg text-xs font-bold shadow-sm transition-all hover-lift flex items-center gap-1.5 w-full justify-center">
                         <Upload size={12} className="text-[#7f1d1d]" />
-                        <span>Tải Logo</span>
+                        <span>{tLocal.logo_upload}</span>
                         <input 
                           type="file" 
                           className="hidden" 
@@ -381,7 +655,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                       </label>
                       {data.logo_url && (
                         <div className="w-8 h-8 rounded border border-stone-200 flex items-center justify-center p-0.5 shrink-0 bg-stone-50 overflow-hidden">
-                          <img src={data.logo_url.startsWith('/') ? `${API_ROOT}${data.logo_url}` : data.logo_url} className="w-full h-full object-contain" alt="Logo" />
+                           <img src={data.logo_url.startsWith('/') ? `${API_ROOT}${data.logo_url}` : data.logo_url} className="w-full h-full object-contain" alt="Logo" />
                         </div>
                       )}
                     </div>
@@ -389,11 +663,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
                   {/* Favicon Upload */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Favicon</label>
+                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.favicon}</label>
                     <div className="flex items-center gap-2">
                       <label className="cursor-pointer bg-stone-50 border border-stone-300 hover:bg-stone-100 p-2 rounded-lg text-xs font-bold shadow-sm transition-all hover-lift flex items-center gap-1.5 w-full justify-center">
                         <Upload size={12} className="text-[#7f1d1d]" />
-                        <span>Tải Favicon</span>
+                        <span>{tLocal.favicon_upload}</span>
                         <input 
                           type="file" 
                           className="hidden" 
@@ -416,11 +690,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   {/* Landing BG Upload */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Nền Landing Page</label>
+                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.landing_bg}</label>
                     <div className="flex items-center gap-2">
                       <label className="cursor-pointer bg-stone-50 border border-stone-300 hover:bg-stone-100 p-2 rounded-lg text-xs font-bold shadow-sm transition-all hover-lift flex items-center gap-1.5 w-full justify-center">
                         <Upload size={12} className="text-[#7f1d1d]" />
-                        <span>Tải Nền</span>
+                        <span>{tLocal.landing_bg_upload}</span>
                         <input 
                           type="file" 
                           className="hidden" 
@@ -441,11 +715,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
                   {/* Chat BG Upload */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Nền Trò Chuyện (Chat)</label>
+                    <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.chat_bg}</label>
                     <div className="flex items-center gap-2">
                       <label className="cursor-pointer bg-stone-50 border border-stone-300 hover:bg-stone-100 p-2 rounded-lg text-xs font-bold shadow-sm transition-all hover-lift flex items-center gap-1.5 w-full justify-center">
                         <Upload size={12} className="text-[#7f1d1d]" />
-                        <span>Tải Nền Chat</span>
+                        <span>{tLocal.chat_bg_upload}</span>
                         <input 
                           type="file" 
                           className="hidden" 
@@ -470,7 +744,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* --- SECTION 2: CẤU HÌNH TRANG LANDING (BẢN ĐỒ/HÌNH ẢNH) --- */}
             <div className="space-y-4 border-t border-stone-100 pt-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
-                <FileText size={16} /> Nội Dung Trang Chủ (Real-time)
+                <FileText size={16} /> {tLocal.realtime_content}
               </h4>
 
               {/* Phaser Game Toggle Switch */}
@@ -478,8 +752,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 <div className="flex items-center gap-2">
                   <Gamepad2 className="text-amber-800" size={18} />
                   <div>
-                    <span className="text-xs font-historical font-black text-stone-800 block">Kích Hoạt Trò Chơi Lịch Sử</span>
-                    <span className="text-[10px] text-stone-500 font-sans">Hiển thị nút "Chơi Game" trên thanh điều hướng</span>
+                    <span className="text-xs font-historical font-black text-stone-800 block">{tLocal.game_active}</span>
+                    <span className="text-[10px] text-stone-500 font-sans">{tLocal.game_desc}</span>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -502,20 +776,20 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
               {/* Hero Title */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Tiêu Đề Chính (Hero Title)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.hero_title}</label>
                 <input 
                   name="landing_hero_title"
                   value={data.landing_hero_title || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('hero')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                  placeholder="Tiêu đề to chính diện trang chủ..."
+                  placeholder={tLocal.hero_title_placeholder}
                 />
               </div>
 
               {/* Hero Subtitle */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Mô Tả Phụ (Hero Subtitle)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.hero_subtitle}</label>
                 <textarea 
                   name="landing_hero_subtitle"
                   value={data.landing_hero_subtitle || ''}
@@ -523,30 +797,30 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   onFocus={() => scrollToSection('hero')}
                   rows={2}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs leading-relaxed"
-                  placeholder="Đoạn văn giới thiệu ngắn dưới tiêu đề chính..."
+                  placeholder={tLocal.hero_subtitle_placeholder}
                 />
               </div>
 
               {/* Hero Words (sliding keywords) */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Từ Khoá Chạy Chữ (Hero Words)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.hero_words}</label>
                 <input 
                   name="landing_hero_words"
                   value={data.landing_hero_words || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('hero')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                  placeholder="Cách nhau bằng dấu phẩy, ví dụ: Lịch Sử Việt Nam, Văn Hoá Dân Tộc..."
+                  placeholder={tLocal.hero_words_placeholder}
                 />
               </div>
 
               {/* Process Steps Section */}
               <div className="space-y-3">
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Các Bước Quy Trình (Process Steps)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.process_steps}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {processSteps.map((step, idx) => (
                     <div key={idx} className="bg-stone-50 border border-stone-200 p-2 rounded-lg space-y-1.5">
-                      <div className="text-[9px] font-historical font-black text-[#7f1d1d]">Bước {idx + 1}</div>
+                      <div className="text-[9px] font-historical font-black text-[#7f1d1d]">{tLocal.step_label} {idx + 1}</div>
                       <input 
                         type="text"
                         value={step.title}
@@ -556,7 +830,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                           setProcessSteps(updated);
                           onChange({ target: { name: 'landing_process_json', value: JSON.stringify(updated) } } as any);
                         }}
-                        placeholder="Tiêu đề..."
+                        placeholder={tLocal.step_title_placeholder}
                         className="w-full bg-white border border-stone-200 p-1.5 rounded focus:outline-none text-[10px] font-bold"
                       />
                       <textarea 
@@ -568,7 +842,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                           setProcessSteps(updated);
                           onChange({ target: { name: 'landing_process_json', value: JSON.stringify(updated) } } as any);
                         }}
-                        placeholder="Mô tả..."
+                        placeholder={tLocal.step_desc_placeholder}
                         className="w-full bg-white border border-stone-200 p-1.5 rounded focus:outline-none text-[9px] leading-snug"
                       />
                     </div>
@@ -578,12 +852,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
               {/* Features Tabs Section */}
               <div className="space-y-3">
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Tính Năng Dành Cho Nhóm Đối Tượng</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.audience_features}</label>
                 <div className="space-y-2.5">
                   {featuresTabs.map((item, idx) => (
                     <div key={idx} className="bg-stone-50 border border-stone-200 p-3 rounded-lg space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-historical font-black text-[#7f1d1d]">Nhóm {idx + 1}</span>
+                        <span className="text-[10px] font-historical font-black text-[#7f1d1d]">{tLocal.audience_label} {idx + 1}</span>
                         <input 
                           type="text"
                           value={item.tab}
@@ -594,11 +868,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             onChange({ target: { name: 'landing_features_json', value: JSON.stringify(updated) } } as any);
                           }}
                           className="bg-white border border-stone-200 px-2 py-0.5 rounded text-[10px] font-bold text-stone-700 w-32 focus:outline-none"
-                          placeholder="Tên nhóm..."
+                          placeholder={tLocal.audience_name_placeholder}
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] text-stone-500 font-sans block mb-0.5">Tiêu đề chính của nhóm</label>
+                        <label className="text-[9px] text-stone-500 font-sans block mb-0.5">{tLocal.audience_main_title}</label>
                         <input 
                           type="text"
                           value={item.title}
@@ -609,11 +883,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             onChange({ target: { name: 'landing_features_json', value: JSON.stringify(updated) } } as any);
                           }}
                           className="w-full bg-white border border-stone-200 p-1.5 rounded focus:outline-none text-[11px]"
-                          placeholder="Tiêu đề..."
+                          placeholder={tLocal.step_title_placeholder}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[9px] text-stone-500 font-sans block">Các điểm tính năng nổi bật (Gạch đầu dòng)</label>
+                        <label className="text-[9px] text-stone-500 font-sans block">{tLocal.audience_highlight_points}</label>
                         {item.points.map((pt, pidx) => (
                           <input 
                             key={pidx}
@@ -626,7 +900,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                               onChange({ target: { name: 'landing_features_json', value: JSON.stringify(updated) } } as any);
                             }}
                             className="w-full bg-white border border-stone-200 p-1.5 rounded focus:outline-none text-[10px]"
-                            placeholder={`Điểm ${pidx + 1}...`}
+                            placeholder={language === 'en' ? `Point ${pidx + 1}...` : `Điểm ${pidx + 1}...`}
                           />
                         ))}
                       </div>
@@ -637,11 +911,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
               {/* Stats Numbers Section */}
               <div className="space-y-3">
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Các Số Liệu Thống Kê</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.stats_title}</label>
                 <div className="grid grid-cols-4 gap-2">
                   {statsItems.map((stat, idx) => (
                     <div key={idx} className="bg-stone-50 border border-stone-200 p-2 rounded-lg space-y-1.5">
-                      <div className="text-[9px] font-historical font-black text-amber-800">Cột {idx + 1}</div>
+                      <div className="text-[9px] font-historical font-black text-amber-800">{tLocal.stats_col} {idx + 1}</div>
                       <div>
                         <input 
                           type="text"
@@ -652,7 +926,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             setStatsItems(updated);
                             onChange({ target: { name: 'landing_stats_json', value: JSON.stringify(updated) } } as any);
                           }}
-                          placeholder="Số..."
+                          placeholder={tLocal.stats_num_placeholder}
                           className="w-full bg-white border border-stone-200 p-1 rounded focus:outline-none text-[10px] text-center font-bold"
                         />
                       </div>
@@ -666,7 +940,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             setStatsItems(updated);
                             onChange({ target: { name: 'landing_stats_json', value: JSON.stringify(updated) } } as any);
                           }}
-                          placeholder="Hậu tố..."
+                          placeholder={tLocal.stats_suffix_placeholder}
                           className="w-full bg-white border border-stone-200 p-1 rounded focus:outline-none text-[10px] text-center"
                         />
                       </div>
@@ -680,7 +954,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             setStatsItems(updated);
                             onChange({ target: { name: 'landing_stats_json', value: JSON.stringify(updated) } } as any);
                           }}
-                          placeholder="Nhãn..."
+                          placeholder={tLocal.stats_label_placeholder}
                           className="w-full bg-white border border-stone-200 p-1 rounded focus:outline-none text-[10px] text-center"
                         />
                       </div>
@@ -691,11 +965,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
               {/* Stats Highlights Section */}
               <div className="space-y-3">
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">Các Khối Điểm Nổi Bật (Highlights)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.highlights_title}</label>
                 <div className="space-y-2">
                   {highlightsItems.map((highlight, idx) => (
                     <div key={idx} className="bg-stone-50 border border-stone-200 p-2.5 rounded-lg space-y-1.5">
-                      <div className="text-[9px] font-historical font-black text-[#7f1d1d]">Mục {idx + 1}</div>
+                      <div className="text-[9px] font-historical font-black text-[#7f1d1d]">{tLocal.highlight_item} {idx + 1}</div>
                       <input 
                         type="text"
                         value={highlight.title}
@@ -705,7 +979,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                           setHighlightsItems(updated);
                           onChange({ target: { name: 'landing_highlights_json', value: JSON.stringify(updated) } } as any);
                         }}
-                        placeholder="Tiêu đề..."
+                        placeholder={tLocal.step_title_placeholder}
                         className="w-full bg-white border border-stone-200 p-1.5 rounded focus:outline-none text-[10px] font-bold"
                       />
                       <textarea 
@@ -717,7 +991,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                           setHighlightsItems(updated);
                           onChange({ target: { name: 'landing_highlights_json', value: JSON.stringify(updated) } } as any);
                         }}
-                        placeholder="Nội dung chi tiết..."
+                        placeholder={tLocal.step_desc_placeholder}
                         className="w-full bg-white border border-stone-200 p-1.5 rounded focus:outline-none text-[9px]"
                       />
                     </div>
@@ -728,39 +1002,39 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               {/* Section Titles */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Tiêu đề Tiến Trình</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.title_timeline}</label>
                   <input 
                     name="landing_section_eras_title"
                     value={data.landing_section_eras_title || ''}
                     onChange={onChange}
                     onFocus={() => scrollToSection('process')}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="Ví dụ: Một nền tảng xuyên suốt..."
+                    placeholder={language === 'en' ? 'e.g., A seamless platform...' : 'Ví dụ: Một nền tảng xuyên suốt...'}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Tiêu đề Giải Pháp</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.title_solution}</label>
                   <input 
                     name="landing_section_features_title"
                     value={data.landing_section_features_title || ''}
                     onChange={onChange}
                     onFocus={() => scrollToSection('features')}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="Ví dụ: Giải pháp toàn diện..."
+                    placeholder={language === 'en' ? 'e.g., Comprehensive solution...' : 'Ví dụ: Giải pháp toàn diện...'}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Tiêu đề Thống Kê</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.title_stats}</label>
                   <input 
                     name="landing_section_stats_title"
                     value={data.landing_section_stats_title || ''}
                     onChange={onChange}
                     onFocus={() => scrollToSection('stats')}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="Ví dụ: Tại sao chọn Sử Việt AI?"
+                    placeholder={language === 'en' ? 'e.g., Why choose Vietnam History AI?' : 'Ví dụ: Tại sao chọn Sử Việt AI?'}
                   />
                 </div>
                 <div>
@@ -772,7 +1046,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* --- SECTION 3: EDIT ERA CARDS (SESSIONS) --- */}
             <div className="space-y-4 border-t border-stone-100 pt-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
-                <Image size={16} /> Biên Tập Triều Đại (8 Thời Kỳ)
+                <Image size={16} /> {tLocal.era_edit_title}
               </h4>
 
               {/* Era Selector Cards */}
@@ -791,7 +1065,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                         : 'bg-white text-stone-700 hover:bg-stone-50 border-stone-200'
                     }`}
                   >
-                    Kỳ {idx + 1}
+                    {tLocal.era_num_label} {idx + 1}
                   </button>
                 ))}
               </div>
@@ -799,13 +1073,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               {/* Detailed Era Form */}
               <div className="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4 space-y-3.5 relative">
                 <div className="absolute top-3 right-3 text-[10px] font-historical font-black text-amber-800 bg-amber-100/50 px-2 py-0.5 rounded-full border border-amber-300/30">
-                  Thời Kỳ Số {selectedEraIdx + 1}
+                  {tLocal.era_time_label} {selectedEraIdx + 1}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   {/* Era Title */}
                   <div>
-                    <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">Tên Thời Kỳ</label>
+                    <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">{tLocal.era_name}</label>
                     <input
                       type="text"
                       value={eras[selectedEraIdx]?.title || ''}
@@ -815,7 +1089,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   </div>
                   {/* Era Time duration */}
                   <div>
-                    <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">Niên Đại (Thời gian)</label>
+                    <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">{tLocal.era_duration}</label>
                     <input
                       type="text"
                       value={eras[selectedEraIdx]?.time || ''}
@@ -827,14 +1101,14 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
                 {/* Era Image URL and Upload button */}
                 <div>
-                  <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">Hình Ảnh Đại Diện</label>
+                  <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">{tLocal.era_image}</label>
                   <div className="flex gap-2 items-center">
                     <input
                       type="text"
                       value={eras[selectedEraIdx]?.image || ''}
                       onChange={(e) => handleEraChange('image', e.target.value)}
                       className="w-full bg-white border border-stone-200 p-2 rounded-lg focus:outline-none text-xs font-mono"
-                      placeholder="Đường dẫn hoặc tải ảnh lên..."
+                      placeholder={tLocal.era_image_placeholder}
                     />
                     <label className="cursor-pointer bg-stone-900 hover:bg-stone-800 text-white p-2 rounded-lg text-xs font-bold transition-all flex items-center shrink-0">
                       <Upload size={12} />
@@ -854,13 +1128,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
                 {/* Era Summary */}
                 <div>
-                  <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">Tóm Tắt Sử Sử Liệu</label>
+                  <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">{tLocal.era_summary}</label>
                   <textarea
                     value={eras[selectedEraIdx]?.summary || ''}
                     onChange={(e) => handleEraChange('summary', e.target.value)}
                     rows={3}
                     className="w-full bg-white border border-stone-200 p-2 rounded-lg focus:outline-none text-xs leading-relaxed"
-                    placeholder="Mô tả sự kiện, nét chính của thời kỳ..."
+                    placeholder={tLocal.era_summary_placeholder}
                   />
                 </div>
               </div>
@@ -869,13 +1143,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* --- SECTION 4: THUẾ SUẤT & LLM FALLBACK --- */}
             <div className="space-y-4 border-t border-stone-100 pt-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
-                <Brain size={16} /> Định Cấu Hình Trí Tuệ & Chi Phí
+                <Brain size={16} /> {tLocal.config_intel}
               </h4>
 
               <div className="grid grid-cols-2 gap-3">
                 {/* Tokens rate */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Đơn Giá (Tokens/1000)</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.tokens_rate}</label>
                   <input 
                     name="rate"
                     type="number"
@@ -888,7 +1162,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
                 {/* LLM Model Select */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Mô Hình Trí Tuệ (LLM)</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.llm_model}</label>
                   <select
                     name="llm_name"
                     value={data.llm_name || 'openai'}
@@ -898,21 +1172,21 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                     <option value="openai">OpenAI (GPT-4o)</option>
                     <option value="gemini">Gemini API</option>
                     <option value="vertex">Google Vertex AI</option>
-                    <option value="local">Nội Địa (Ollama)</option>
+                    <option value="local">{language === 'en' ? 'Local (Ollama)' : 'Nội Địa (Ollama)'}</option>
                   </select>
                 </div>
               </div>
 
               {/* No Answer Fallback */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Lời Cáo Lỗi Khi Mất Kết Nối Tri Thức</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.no_ans_fallback}</label>
                 <textarea 
                   name="no_answer_fallback"
                   value={data.no_answer_fallback || ''}
                   onChange={onChange}
                   rows={2}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs italic text-stone-600 leading-relaxed"
-                  placeholder="Lời cáo lỗi khi AI không tìm được câu trả lời..."
+                  placeholder={tLocal.no_ans_fallback_placeholder}
                 />
               </div>
             </div>
@@ -920,72 +1194,72 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* --- SECTION 5: CẤU HÌNH FOOTER --- */}
             <div className="space-y-4 border-t border-stone-100 pt-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
-                <FileText size={16} /> Cấu Hình Thông Tin Chân Trang (Footer)
+                <FileText size={16} /> {tLocal.config_footer}
               </h4>
 
               {/* Company name */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Tên Công Ty / Chủ Thể</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_company}</label>
                 <input 
                   name="landing_footer_company"
                   value={data.landing_footer_company || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                  placeholder="Ví dụ: CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG"
+                  placeholder={language === 'en' ? 'Company name...' : 'Ví dụ: CÔNG TY TNHH MTV...'}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 {/* MST */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Mã Số Thuế (MST)</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_mst}</label>
                   <input 
                     name="landing_footer_mst"
                     value={data.landing_footer_mst || ''}
                     onChange={onChange}
                     onFocus={() => scrollToSection('landing-footer')}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="MST..."
+                    placeholder="Tax ID..."
                   />
                 </div>
                 {/* Representative */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Người Đại Diện</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_rep}</label>
                   <input 
                     name="landing_footer_representative"
                     value={data.landing_footer_representative || ''}
                     onChange={onChange}
                     onFocus={() => scrollToSection('landing-footer')}
                     className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                    placeholder="Tên người đại diện..."
+                    placeholder={language === 'en' ? 'Representative name...' : 'Tên người đại diện...'}
                   />
                 </div>
               </div>
 
               {/* Address */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Địa Chỉ Liên Hệ</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_address}</label>
                 <input 
                   name="landing_footer_address"
                   value={data.landing_footer_address || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                  placeholder="Địa chỉ công ty..."
+                  placeholder={language === 'en' ? 'Company address...' : 'Địa chỉ công ty...'}
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Số Điện Thoại Hotline</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_phone}</label>
                 <input 
                   name="landing_footer_phone"
                   value={data.landing_footer_phone || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
-                  placeholder="Ví dụ: 0916 416 409"
+                  placeholder={language === 'en' ? 'e.g., 0916 416 409' : 'Ví dụ: 0916 416 409'}
                 />
               </div>
 
@@ -993,7 +1267,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 {/* Contact Email */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Email Liên Hệ</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_email}</label>
                   <input 
                     name="landing_contact_email"
                     value={data.landing_contact_email || ''}
@@ -1005,7 +1279,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 </div>
                 {/* Zalo phone number */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Số Điện Thoại Zalo</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_zalo}</label>
                   <input 
                     name="landing_contact_zalo_num"
                     value={data.landing_contact_zalo_num || ''}
@@ -1020,7 +1294,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 {/* Zalo chat link */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Đường Dẫn Zalo (Chat Link)</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_zalo_link}</label>
                   <input 
                     name="landing_contact_zalo_link"
                     value={data.landing_contact_zalo_link || ''}
@@ -1032,7 +1306,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 </div>
                 {/* FB Link */}
                 <div>
-                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Đường Dẫn Facebook</label>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_fb_link}</label>
                   <input 
                     name="landing_contact_fb_link"
                     value={data.landing_contact_fb_link || ''}
@@ -1046,40 +1320,40 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
               {/* About us modal content */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Nội dung "Về chúng tôi" (Giới thiệu chung)</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_about}</label>
                 <textarea 
                   name="landing_footer_about_us"
                   value={data.landing_footer_about_us || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs min-h-[80px]"
-                  placeholder="Giới thiệu về Sử Việt AI..."
+                  placeholder={language === 'en' ? 'Introduce Vietnam History AI...' : 'Giới thiệu về Sử Việt AI...'}
                 />
               </div>
 
               {/* Terms of service modal content */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Nội dung "Điều khoản dịch vụ"</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_terms}</label>
                 <textarea 
                   name="landing_footer_terms"
                   value={data.landing_footer_terms || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs min-h-[100px]"
-                  placeholder="Các điều khoản sử dụng dịch vụ..."
+                  placeholder={language === 'en' ? 'Terms of service content...' : 'Các điều khoản sử dụng dịch vụ...'}
                 />
               </div>
 
               {/* Privacy policy modal content */}
               <div>
-                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">Nội dung "Chính sách bảo mật"</label>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_privacy}</label>
                 <textarea 
                   name="landing_footer_privacy"
                   value={data.landing_footer_privacy || ''}
                   onChange={onChange}
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs min-h-[100px]"
-                  placeholder="Chính sách bảo mật dữ liệu..."
+                  placeholder={language === 'en' ? 'Privacy policy content...' : 'Chính sách bảo mật dữ liệu...'}
                 />
               </div>
             </div>
@@ -1092,7 +1366,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full bg-gradient-to-r from-[#7f1d1d] to-[#451a03] hover:from-[#b45309] hover:to-[#7f1d1d] text-amber-100 border border-amber-500/40 py-3 rounded-xl font-historical font-black text-xs uppercase tracking-widest shadow-md hover-lift active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <Save size={14} />
-              Lưu Thư Văn Cấu Hình
+              {tLocal.btn_save}
             </button>
           </div>
         </form>
@@ -1107,13 +1381,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
                 <span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
                 <span className="text-[10px] text-stone-500 font-mono ml-4 select-none bg-stone-950 px-3 py-1 rounded-full border border-stone-850">
-                  http://localhost:5173/preview
+                  {tLocal.preview_url}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 text-stone-400 font-bold text-[10px] font-historical uppercase">
                   <Eye size={12} className="text-amber-500" />
-                  <span>Xem Trước Realtime</span>
+                  <span>{tLocal.preview_realtime}</span>
                 </div>
                 <button
                   type="button"
@@ -1121,7 +1395,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="bg-stone-800 hover:bg-red-800 text-stone-300 hover:text-white px-2.5 py-1 rounded-lg text-[9px] font-historical font-black uppercase tracking-wider transition-all flex items-center gap-1"
                 >
                   <Minimize2 size={10} />
-                  <span>Thu nhỏ</span>
+                  <span>{tLocal.btn_minimize}</span>
                 </button>
               </div>
             </div>
@@ -1147,12 +1421,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               bottom: `${dragPosition.y}px` 
             }}
             className="fixed w-[280px] h-[210px] z-50 bg-stone-900 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-2 border-stone-700 hover:border-amber-500 flex flex-col overflow-hidden transition-colors duration-300 group select-none"
-            title="Kéo thanh tiêu đề để di chuyển • Đúp chuột để phóng to"
+            title={tLocal.drag_tooltip}
           >
             {/* Header / Drag Handle */}
             <div className="bg-stone-950 px-3 py-2 border-b border-stone-850 flex items-center justify-between shrink-0 drag-handle cursor-move select-none">
               <span className="text-[9px] text-amber-500 font-historical font-black uppercase tracking-wider flex items-center gap-1">
-                <Eye size={10} /> Xem trước Realtime
+                <Eye size={10} /> {tLocal.preview_realtime}
               </span>
               <button
                 type="button"

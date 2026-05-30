@@ -43,6 +43,7 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: int | None = None
     async_web_fallback: bool = True
+    language_instruction: str | None = None  # e.g. "Please respond entirely in English."
     # ── Adaptive RAG debug flag (thêm mới) ─────────────────
     # Khi debug=True: trả thêm intent + scores trong response
     # Khi debug=False (mặc định): response giữ nguyên như cũ
@@ -1534,6 +1535,10 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
 
         chat_history = _build_chat_history(user_db, conversation_id)
         retrieval_question = _resolve_contextual_question(request.question, chat_history)
+
+        # Prepend language instruction if provided by client
+        if request.language_instruction:
+            retrieval_question = f"[INSTRUCTION: {request.language_instruction}]\n{retrieval_question}"
 
         # ===== SEMANTIC CACHE CHECK =====
         from chatbot.services.semantic_cache import SemanticCacheManager

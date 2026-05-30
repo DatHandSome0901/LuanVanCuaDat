@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import toast from 'react-hot-toast';
 import { PaymentPackage, PaymentInvoice } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 import PackageCard from './payment/PackageCard';
 import PaymentReportModal from './payment/PaymentReportModal';
@@ -14,6 +15,7 @@ interface PaymentViewProps {
 }
 
 const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpen }) => {
+  const { t } = useLanguage();
   const [packages, setPackages] = useState<PaymentPackage[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<PaymentInvoice | null>(null);
   const [showReportForm, setShowReportForm] = useState(false);
@@ -55,15 +57,15 @@ const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpe
   }, [selectedInvoice, onBalanceUpdate]);
 
   const handlePaymentSuccess = async (tokens: number) => {
-    toast.success(`Chúc mừng! Bạn đã nạp thành công ${tokens} tokens!`, { duration: 5000 });
-    setStatusMsg(`Nạp thành công ${tokens} tokens!`);
+    toast.success(t.pay_success_toast.replace('{tokens}', tokens.toString()), { duration: 5000 });
+    setStatusMsg(t.pay_success_toast.replace('{tokens}', tokens.toString()));
     
     // Lấy lại thông tin user mới nhất để cập nhật số dư tổng
     try {
       const updatedUser = await api.checkAuth();
       onBalanceUpdate(updatedUser.token_balance);
     } catch (authErr) {
-      console.error('Failed to refresh user after payment', authErr);
+      console.error(t.pay_refresh_err, authErr);
     }
 
     setTimeout(() => {
@@ -78,14 +80,14 @@ const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpe
       const invoice = await api.createInvoice(packageId);
       setSelectedInvoice(invoice);
     } catch (err: any) {
-      toast.error(err.message || 'Lỗi tạo hóa đơn');
+      toast.error(err.message || t.pay_invoice_err);
     } finally {
       setIsProcessing(false);
     }
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center animate-pulse text-stone-400 font-serif italic">Đang tải danh sách gói nạp...</div>;
+    return <div className="p-8 text-center animate-pulse text-stone-400 font-serif italic">{t.pay_loading}</div>;
   }
 
   return (
@@ -101,8 +103,8 @@ const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpe
           </svg>
         </div>
         <div>
-          <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">Nạp Token Sử Việt</h2>
-          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3">Giao dịch an toàn</p>
+          <h2 className="text-4xl md:text-5xl font-calligraphy font-bold text-stone-900 leading-normal">{t.pay_title}</h2>
+          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.2em] mt-3">{t.pay_subtitle}</p>
         </div>
       </header>
 
@@ -124,7 +126,7 @@ const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpe
            className="text-stone-400 text-xs hover:text-red-800 transition-colors flex items-center gap-2 mx-auto"
          >
            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-           Bạn gặp sự cố nạp tiền? Nhấn vào đây để báo cáo
+           {t.pay_trouble_btn}
          </button>
       </div>
 

@@ -26,7 +26,7 @@ from time import perf_counter
 # Prefix API theo version
 api_prefix = f"/api/{settings.VERSION_APP}"
 
-# Tạo instance của FastAPI
+# Tạo instance của FastAPI - Reloaded with SMTP config
 app = FastAPI(
     title=settings.TITLE_APP,
     docs_url=f"{api_prefix}/docs",

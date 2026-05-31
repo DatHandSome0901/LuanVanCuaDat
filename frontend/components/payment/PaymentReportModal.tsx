@@ -152,12 +152,12 @@ ${reportNote.trim()}`;
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[210] overflow-y-auto">
-       <div className="bg-white rounded-[40px] p-6 md:p-8 max-w-2xl w-full relative animate-in zoom-in duration-300 shadow-2xl my-8">
+    <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[210]">
+       <div className="bg-white rounded-[32px] p-6 md:p-8 max-w-2xl w-full max-h-[90vh] flex flex-col relative animate-in zoom-in duration-300 shadow-2xl">
           {/* Close button */}
           <button 
               onClick={onClose}
-              className="absolute top-6 right-6 text-stone-400 hover:text-stone-600 transition-transform hover:rotate-90"
+              className="absolute top-6 right-6 text-stone-400 hover:text-stone-600 transition-transform hover:rotate-90 z-10"
           >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -165,8 +165,8 @@ ${reportNote.trim()}`;
           </button>
 
           {/* Form Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-[#7f1d1d]/10 rounded-full flex items-center justify-center text-[#7f1d1d]">
+          <div className="flex items-center gap-3 mb-4 shrink-0">
+            <div className="w-10 h-10 bg-[#7f1d1d]/10 rounded-full flex items-center justify-center text-[#7f1d1d] shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
@@ -181,7 +181,7 @@ ${reportNote.trim()}`;
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="flex-1 overflow-y-auto pr-2 space-y-4 my-2 chatgpt-scrollbar min-h-0">
              {/* Row 1: Issue Type & conditional invoice picker */}
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -393,10 +393,13 @@ ${reportNote.trim()}`;
                 />
              </div>
 
-             {/* Submit Button */}
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-3 border-t border-stone-100 shrink-0">
              <button 
                 onClick={handleSubmit}
-                className="w-full bg-gradient-to-r from-red-950 to-stone-900 hover:from-red-900 hover:to-stone-850 text-amber-100 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center gap-2 tracking-wide uppercase text-xs shrink-0"
+                className="w-full bg-gradient-to-r from-red-950 to-stone-900 hover:from-red-900 hover:to-stone-850 text-amber-100 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-98 flex items-center justify-center gap-2 tracking-wide uppercase text-xs"
              >
                 <span>⚔️</span> {isVi ? "Gửi Sớ Khai Báo Sự Cố" : "Submit Issue Ticket"}
              </button>

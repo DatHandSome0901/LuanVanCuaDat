@@ -38,6 +38,17 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             detail="Token không hợp lệ hoặc hết hạn",
         )
 
+import time
+
+active_admins = {}  # {admin_id: timestamp}
+
+def mark_admin_active(admin_id: int):
+    active_admins[admin_id] = time.time()
+
+def is_any_admin_online() -> bool:
+    now = time.time()
+    return any(now - ts < 120 for ts in active_admins.values())
+
 # ✅ Kiểm tra quyền Admin
 def get_current_admin(user: dict = Depends(get_current_user)):
     if not user.get("is_admin"):
@@ -45,6 +56,7 @@ def get_current_admin(user: dict = Depends(get_current_user)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Bạn không có quyền truy cập tính năng này!"
         )
+    mark_admin_active(user["id"])
     return user
 
 # ✅ Kiểm tra số dư Token (Yêu cầu n tokens để chạy)

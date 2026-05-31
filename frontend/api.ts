@@ -535,6 +535,69 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
+  async checkAdminOnlineStatus(): Promise<{ admin_online: boolean }> {
+    const response = await fetch(`${BASE_URL}/support/status`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể kiểm tra trạng thái Admin');
+    return response.json();
+  },
+
+  async getSupportRoom(): Promise<any> {
+    const response = await fetch(`${BASE_URL}/support/room`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể lấy thông tin phòng hỗ trợ');
+    return response.json();
+  },
+
+  async getSupportMessages(roomId: number): Promise<{ messages: any[] }> {
+    const response = await fetch(`${BASE_URL}/support/messages/${roomId}`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải lịch sử trò chuyện');
+    return response.json();
+  },
+
+  async sendSupportMessage(roomId: number, message: string): Promise<{
+    status: string;
+    admin_online: boolean;
+    ai_replied: boolean;
+    ai_response: string;
+  }> {
+    const response = await fetch(`${BASE_URL}/support/send`, {
+      method: 'POST',
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ room_id: roomId, message }),
+    });
+    if (!response.ok) throw new Error('Không thể gửi tin nhắn');
+    return response.json();
+  },
+
+  async adminGetSupportRooms(): Promise<{ rooms: any[] }> {
+    const response = await fetch(`${BASE_URL}/support/admin/rooms`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải danh sách phòng hỗ trợ');
+    return response.json();
+  },
+
+  async adminSendSupportMessage(roomId: number, message: string): Promise<{ status: string }> {
+    const response = await fetch(`${BASE_URL}/support/admin/send`, {
+      method: 'POST',
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ room_id: roomId, message }),
+    });
+    if (!response.ok) throw new Error('Không thể gửi phản hồi từ Admin');
+    return response.json();
+  },
+
   async createPaymentReport(paymentId?: number | null, description?: string, email?: string): Promise<{ message: string; report_id?: number }> {
     const formData = new FormData();
     if (paymentId !== undefined && paymentId !== null) {

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { 
   Users as UsersIcon, Box, History as HistoryIcon, FileText, MessageSquare, 
   Settings as SettingsIcon, LogIn, BarChart3, BookOpen, LayoutDashboard, 
-  ShieldCheck, ArrowLeft, LogOut, ThumbsDown
+  ShieldCheck, ArrowLeft, LogOut, ThumbsDown, MessageCircle
 } from 'lucide-react';
 import { confirmDestructive, promptInput, confirmAction, promptTokenAdjustment } from '../utils/swal';
 import { motion } from 'framer-motion';
@@ -24,8 +24,9 @@ import UserDetailModal from './admin/UserDetailModal';
 import KnowledgeTab from './admin/KnowledgeTab';
 import FeedbackTab from './admin/FeedbackTab';
 import DashboardTab from './admin/DashboardTab';
+import SupportTab from './admin/SupportTab';
 
-type AdminTab = 'dashboard' | 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback';
+type AdminTab = 'dashboard' | 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback' | 'support';
 
 interface AdminViewProps {
   user?: any;
@@ -36,7 +37,8 @@ interface AdminViewProps {
 }
 
 const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen, onViewChange }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const isVi = language === 'vi';
   const [activeTab, setActiveTab] = useState<AdminTab>(
     (localStorage.getItem('adminActiveTab') as AdminTab) || 'dashboard'
   );
@@ -400,6 +402,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
     { id: 'reports' as AdminTab, label: t.admin_nav_reports, icon: BarChart3 },
     { id: 'knowledge' as AdminTab, label: t.admin_nav_knowledge, icon: BookOpen },
     { id: 'feedback' as AdminTab, label: t.admin_nav_feedback, icon: ThumbsDown },
+    { id: 'support' as AdminTab, label: isVi ? 'Hỗ trợ trực tuyến' : 'Live Support', icon: MessageCircle },
   ];
 
   return (
@@ -656,6 +659,9 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           )}
           {activeTab === 'feedback' && (
             <FeedbackTab />
+          )}
+          {activeTab === 'support' && (
+            <SupportTab />
           )}
         </div>
       </div>

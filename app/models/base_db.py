@@ -319,6 +319,32 @@ class BaseDB:
         )
         """)
 
+        # ===============================
+        # SUPPORT CHAT TABLES
+        # ===============================
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS support_rooms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            status TEXT DEFAULT 'open', -- 'open', 'closed'
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS support_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            room_id INTEGER NOT NULL,
+            sender_type TEXT NOT NULL, -- 'user', 'admin', 'ai'
+            sender_id INTEGER,         -- user_id (of user or admin)
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (room_id) REFERENCES support_rooms(id)
+        )
+        """)
+
         self.conn.commit()
 
     def log_login(self, user_id, ip_address, user_agent):
@@ -950,3 +976,61 @@ class UserDB(BaseDB):
             "question": prev_msg["content"] if prev_msg else None,
             "conversation_id": msg["conversation_id"]
         }
+
+    # ===============================
+    # SUPPORT CHAT OPERATIONS
+    # ===============================
+    def get_or_create_support_room(self, user_id):
+        # Check if there is an open support room for this user
+        self.cursor.execute("SELECT * FROM support_rooms WHERE user_id = ? AND status = 'open' LIMIT 1", (user_id,))
+        row = self.cursor.fetchone()
+        if row:
+            return dict(row)
+        
+        # If not, create one
+        self.cursor.execute("INSERT INTO support_rooms (user_id, status) VALUES (?, 'open')", (user_id,))
+        self.conn.commit()
+        room_id = self.cursor.lastrowid
+        
+        # Fetch and return the newly created room
+        self.cursor.execute("SELECT * FROM support_rooms WHERE id = ?", (room_id,))
+        new_row = self.cursor.fetchone()
+        return dict(new_row) if new_row else None
+
+    def add_support_message(self, room_id, sender_type, sender_id, message):
+        self.cursor.execute(
+            "INSERT INTO support_messages (room_id, sender_type, sender_id, message) VALUES (?, ?, ?, ?)",
+            (room_id, sender_type, sender_id, message)
+        )
+        # Update updated_at of the room
+        self.cursor.execute(
+            "UPDATE support_rooms SET updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (room_id,)
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def get_support_messages(self, room_id, limit=100):
+        query = """
+            SELECT sm.*, u.username, u.picture_url
+            FROM support_messages sm
+            LEFT JOIN users u ON sm.sender_id = u.id
+            WHERE sm.room_id = ?
+            ORDER BY sm.created_at ASC
+            LIMIT ?
+        """
+        self.cursor.execute(query, (room_id, limit))
+        return [dict(row) for row in self.cursor.fetchall()]
+
+    def get_all_active_support_rooms(self):
+        query = """
+            SELECT sr.*, u.username, u.picture_url, u.email,
+                   (SELECT sm.message FROM support_messages sm WHERE sm.room_id = sr.id ORDER BY sm.created_at DESC LIMIT 1) as last_message,
+                   (SELECT sm.created_at FROM support_messages sm WHERE sm.room_id = sr.id ORDER BY sm.created_at DESC LIMIT 1) as last_message_time
+            FROM support_rooms sr
+            JOIN users u ON sr.user_id = u.id
+            WHERE sr.status = 'open'
+            ORDER BY sr.updated_at DESC
+        """
+        self.cursor.execute(query)
+        return [dict(row) for row in self.cursor.fetchall()]

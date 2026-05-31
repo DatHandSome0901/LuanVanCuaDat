@@ -19,13 +19,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PaymentReportModal from './components/payment/PaymentReportModal';
 
 // Floating support ticket button (bottom-left)
-const ReportFloatBtn: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+const ReportFloatBtn: React.FC<{ 
+  onClick: () => void;
+  isSidebarOpen: boolean;
+  hasSidebar: boolean;
+}> = ({ onClick, isSidebarOpen, hasSidebar }) => {
   const { language } = useLanguage();
+  
+  const positionClass = hasSidebar
+    ? (isSidebarOpen ? "left-6 md:left-[304px]" : "left-6 md:left-[88px]")
+    : "left-6";
+
   return (
     <button
       onClick={onClick}
       title={language === 'vi' ? 'Báo cáo sự cố / Phản ánh' : 'Report Issue / Feedback'}
-      className="fixed bottom-6 left-6 z-[200] w-12 h-12 rounded-full shadow-xl border-2 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer bg-gradient-to-r from-red-950 to-stone-900 text-amber-100"
+      className={`fixed bottom-6 ${positionClass} z-[200] w-12 h-12 rounded-full shadow-xl border-2 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer bg-gradient-to-r from-red-950 to-stone-900 text-amber-100`}
       style={{ borderColor: 'rgba(180,130,40,0.5)' }}
     >
       <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -382,7 +391,13 @@ const AppInner: React.FC = () => {
       {/* Floating language switcher button */}
       <LangSwitcherBtn />
       {/* Floating report button (bottom-left) */}
-      {user && <ReportFloatBtn onClick={() => setShowReportForm(true)} />}
+      {user && !user.is_admin && (
+        <ReportFloatBtn 
+          onClick={() => setShowReportForm(true)} 
+          isSidebarOpen={isSidebarOpen}
+          hasSidebar={currentView !== 'landing' && currentView !== 'admin'}
+        />
+      )}
       {showReportForm && (
         <PaymentReportModal 
           user={user} 

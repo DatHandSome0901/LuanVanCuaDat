@@ -5,6 +5,7 @@ import { ChatMessage } from '../../types';
 import toast from 'react-hot-toast';
 import { API_ROOT } from '../../api';
 import SecureImage from '../SecureImage';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ChatMessageItemProps {
   msg: ChatMessage;
@@ -31,6 +32,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   isSpeaking = false,
   onSpeakToggle
 }) => {
+  const { t } = useLanguage();
   const [imgError, setImgError] = React.useState(false);
   const [currentRating, setCurrentRating] = React.useState(msg.rating || 0);
 
@@ -220,7 +222,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
             <div className="flex items-center gap-2 mb-5">
               <div className="w-1.5 h-5 bg-red-800 rounded-full shadow-sm" />
               <h4 className="font-black text-[10px] md:text-[11px] text-amber-900/60 uppercase tracking-[0.3em]">
-                {hasWebSource ? "Phần chính nguồn (Internet)" : "Nguồn sử liệu trích dẫn"}
+                {hasWebSource ? t.chat_sources_web : t.chat_sources_docs}
               </h4>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -253,10 +255,12 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                     <div className="flex flex-col flex-1 truncate">
                       <span className="truncate tracking-tight">{filename}</span>
                       {typeof src !== 'string' && src.page && (
-                        <span className="text-[9px] text-red-800/60 font-medium italic">Trang {src.page}</span>
+                        <span className="text-[9px] text-red-800/60 font-medium italic">
+                          {t.chat_sources_page.replace("{page}", String(src.page))}
+                        </span>
                       )}
                       {isWeb && (
-                        <span className="text-[9px] text-blue-600/60 font-medium italic">Nguồn Web</span>
+                        <span className="text-[9px] text-blue-600/60 font-medium italic">{t.chat_sources_web_label}</span>
                       )}
                     </div>
                   </button>

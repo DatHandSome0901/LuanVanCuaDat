@@ -33,6 +33,7 @@ import uuid
 
 router = APIRouter(tags=["Chatbot"])
 vietnam_history_language_agent = VietnamHistoryLanguageAgent()
+from chatbot.services.translation_agent import TranslationAgent
 
 
 # ===============================
@@ -917,7 +918,20 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
 
         generation = _apply_vietnam_history_language_policy(request.question, generation)
         generation = strip_inline_source_references(generation)
+        
+        # Translate web fallback response to English if required
+        from chatbot.services.translation_agent import TranslationAgent
+        translation_agent = TranslationAgent(llm_model=llm)
+        is_english = (translation_agent.detect_language(request.question) == "en")
+            
+        if is_english:
+            print(f"[TRANSLATION] Translating web fallback response to English...")
+            generation = translation_agent.translate_answer_to_en(generation)
+            print(f"[TRANSLATION] Translated web fallback: '{generation[:60]}...'")
+
         sources = _build_sources(documents)
+        if is_english:
+            sources = translation_agent.translate_sources_to_en(sources)
         ai_msg_id = user_db.save_message(
             conversation_id,
             "assistant",
@@ -947,6 +961,8 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
 
         user_db.save_chat_log(user["id"], request.question, generation, cost)
         related_questions = _generate_related_questions(llm, request.question, generation)
+        if is_english:
+            related_questions = translation_agent.translate_related_questions_to_en(related_questions)
 
         return ChatResponse(
             answer=generation,
@@ -999,7 +1015,55 @@ def _process_chat_request(
             conversation_id = user_db.create_conversation(current_user["id"])
 
         chat_history = _build_chat_history(user_db, conversation_id)
-        retrieval_question = _resolve_contextual_question(request.question, chat_history)
+        
+        # ===== BILINGUAL TRANSLATION INTERCEPT =====
+        translation_agent = TranslationAgent(llm_model=llm)
+        query_lang = translation_agent.detect_language(request.question)
+        is_english = (query_lang == "en")
+
+        # Determine UI language
+        ui_is_english = False
+        if request.language_instruction and "English" in request.language_instruction:
+            ui_is_english = True
+
+        # Check for mismatch
+        mismatch_apology = None
+        if ui_is_english and query_lang == "vi":
+            mismatch_apology = "Xin lỗi, bạn đang ở giao diện tiếng Anh. Vui lòng nhập câu hỏi bằng tiếng Anh hoặc đổi giao diện sang tiếng Việt."
+        elif not ui_is_english and query_lang == "en":
+            mismatch_apology = "Sorry, you are currently using the Vietnamese interface. Please ask your question in Vietnamese or switch the interface to English."
+
+        if mismatch_apology:
+            if save_user_message:
+                user_db.save_message(conversation_id, "user", request.question)
+            
+            ai_msg_id = user_db.save_message(
+                conversation_id,
+                "assistant",
+                mismatch_apology,
+                [],
+            )
+            
+            latest_user = user_db.get_by_email(email)
+            balance = latest_user.get("token_balance", 0.0) if latest_user else user.get("token_balance", 0.0)
+            
+            return ChatResponse(
+                answer=mismatch_apology,
+                message_id=ai_msg_id,
+                tokens_charged=0.0,
+                user_token_balance=float(balance),
+                sources=[],
+                related_questions=[],
+                conversation_id=conversation_id,
+                status="completed",
+            )
+
+        if is_english:
+            print(f"[TRANSLATION] English user query detected: '{request.question}'")
+            translated_question = translation_agent.translate_query_to_vi(request.question, chat_history, is_english=is_english)
+            retrieval_question = translated_question
+        else:
+            retrieval_question = _resolve_contextual_question(request.question, chat_history)
 
         # ===== SEMANTIC CACHE LOOKUP =====
         from chatbot.services.semantic_cache import SemanticCacheManager
@@ -1020,6 +1084,7 @@ def _process_chat_request(
             q_safe = retrieval_question.encode('ascii', 'replace').decode('ascii')
             print(f"[HIT] [Semantic Cache Hit] Fast-returning cached RAG answer for '{q_safe}'")
             cached_answer = cached_hit["answer"]
+            
             cached_sources_raw = cached_hit["sources"]
             
             # Reconstruct SourceInfo list
@@ -1032,6 +1097,12 @@ def _process_chat_request(
                     is_web=s.get("is_web", False),
                     url=s.get("url")
                 ))
+
+            # Translate cached answer and sources to English if required
+            if is_english:
+                cached_answer = translation_agent.translate_answer_to_en(cached_answer)
+                sources = translation_agent.translate_sources_to_en(sources)
+                print(f"[TRANSLATION] Translated cached answer and sources to English")
 
             # Save the user message to history
             if save_user_message:
@@ -1067,6 +1138,8 @@ def _process_chat_request(
                 
             user_db.save_chat_log(user["id"], request.question, cached_answer, cost)
             related_questions = _generate_related_questions(llm, retrieval_question, cached_answer)
+            if is_english:
+                related_questions = translation_agent.translate_related_questions_to_en(related_questions)
             
             return ChatResponse(
                 answer=cached_answer,
@@ -1124,16 +1197,27 @@ def _process_chat_request(
 
         generation = _apply_vietnam_history_language_policy(retrieval_question, generation)
         generation = strip_inline_source_references(generation)
+        
+        # Save copies of the original Vietnamese generation and sources for caching
+        vietnamese_generation = generation
         sources = _build_sources(documents)
+        vietnamese_sources = sources
+        
+        # Translate live generated answer and sources to English if required
+        if is_english and generation != "_null_":
+            print(f"[TRANSLATION] Translating generation and sources to English...")
+            generation = translation_agent.translate_answer_to_en(generation)
+            sources = translation_agent.translate_sources_to_en(sources)
+            print(f"[TRANSLATION] Translated generation: '{generation[:60]}...'")
 
         # ===== SAVE TO SEMANTIC CACHE =====
         is_rag_or_kb = (
             len(documents) > 0
             and not any(doc.metadata.get("is_pending") for doc in documents)
             and not any(doc.metadata.get("is_web") for doc in documents)
-            and "tự học từ Web" not in generation
-            and "chờ kiểm duyệt" not in generation
-            and "chưa có dữ liệu" not in generation
+            and "tự học từ Web" not in vietnamese_generation
+            and "chờ kiểm duyệt" not in vietnamese_generation
+            and "chưa có dữ liệu" not in vietnamese_generation
         )
         
         if is_rag_or_kb:
@@ -1141,8 +1225,8 @@ def _process_chat_request(
                 ttl_seconds = int(os.environ.get("SEMANTIC_CACHE_TTL", "0"))
                 cache_manager.save(
                     question=retrieval_question,
-                    answer=generation,
-                    sources=[s.model_dump() for s in sources],
+                    answer=vietnamese_generation,
+                    sources=[s.model_dump() for s in vietnamese_sources],
                     embedding_model_name=embedding_model_name,
                     tenant_id=tenant_id,
                     knowledge_base_id=kb_id,
@@ -1183,6 +1267,8 @@ def _process_chat_request(
         user_db.save_chat_log(user["id"], request.question, generation, cost)
 
         related_questions = _generate_related_questions(llm, retrieval_question, generation)
+        if is_english:
+            related_questions = translation_agent.translate_related_questions_to_en(related_questions)
 
         return ChatResponse(
             answer=generation,
@@ -1534,11 +1620,57 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             conversation_id = user_db.create_conversation(current_user["id"])
 
         chat_history = _build_chat_history(user_db, conversation_id)
-        retrieval_question = _resolve_contextual_question(request.question, chat_history)
+        
+        # ===== BILINGUAL TRANSLATION INTERCEPT =====
+        translation_agent = TranslationAgent(llm_model=llm)
+        query_lang = translation_agent.detect_language(request.question)
+        is_english = (query_lang == "en")
 
-        # Prepend language instruction if provided by client
-        if request.language_instruction:
-            retrieval_question = f"[INSTRUCTION: {request.language_instruction}]\n{retrieval_question}"
+        # Determine UI language
+        ui_is_english = False
+        if request.language_instruction and "English" in request.language_instruction:
+            ui_is_english = True
+
+        # Check for mismatch
+        mismatch_apology = None
+        if ui_is_english and query_lang == "vi":
+            mismatch_apology = "Xin lỗi, bạn đang ở giao diện tiếng Anh. Vui lòng nhập câu hỏi bằng tiếng Anh hoặc đổi giao diện sang tiếng Việt."
+        elif not ui_is_english and query_lang == "en":
+            mismatch_apology = "Sorry, you are currently using the Vietnamese interface. Please ask your question in Vietnamese or switch the interface to English."
+
+        if mismatch_apology:
+            user_db.save_message(conversation_id, "user", request.question)
+            
+            CHUNK = 6
+            for i in range(0, len(mismatch_apology), CHUNK):
+                token = mismatch_apology[i:i + CHUNK]
+                yield f"data: {_json.dumps(token)}\n\n"
+                await asyncio.sleep(0.012)
+                
+            ai_msg_id = user_db.save_message(
+                conversation_id, "assistant", mismatch_apology, []
+            )
+            
+            latest_user = token_counter.user_db.get_by_email(email)
+            balance = latest_user.get("token_balance", 0.0) if latest_user else user.get("token_balance", 0.0)
+            
+            done_payload = _json.dumps({
+                "message_id": ai_msg_id,
+                "tokens_charged": 0.0,
+                "user_token_balance": float(balance),
+                "sources": [],
+                "related_questions": [],
+                "conversation_id": conversation_id,
+            })
+            yield f"data: [DONE] {done_payload}\n\n"
+            return
+
+        if is_english:
+            print(f"[TRANSLATION] English user query detected: '{request.question}'")
+            translated_question = translation_agent.translate_query_to_vi(request.question, chat_history, is_english=is_english)
+            retrieval_question = translated_question
+        else:
+            retrieval_question = _resolve_contextual_question(request.question, chat_history)
 
         # ===== SEMANTIC CACHE CHECK =====
         from chatbot.services.semantic_cache import SemanticCacheManager
@@ -1557,6 +1689,7 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         if cached_hit:
             # Cache hit: stream cached answer in chunks
             cached_answer = cached_hit["answer"]
+            
             cached_sources_raw = cached_hit["sources"]
             sources = [
                 SourceInfo(
@@ -1568,6 +1701,12 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 )
                 for s in cached_sources_raw
             ]
+
+            # Translate if English
+            if is_english:
+                cached_answer = translation_agent.translate_answer_to_en(cached_answer)
+                sources = translation_agent.translate_sources_to_en(sources)
+                print(f"[TRANSLATION] Translated cached stream response and sources to English")
 
             user_db.save_message(conversation_id, "user", request.question)
 
@@ -1597,7 +1736,10 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             user_db.save_chat_log(user["id"], request.question, cached_answer, cost)
 
             def _gen_rq_cached():
-                return _generate_related_questions(llm, retrieval_question, cached_answer)
+                rq = _generate_related_questions(llm, retrieval_question, cached_answer)
+                if is_english:
+                    rq = translation_agent.translate_related_questions_to_en(rq)
+                return rq
             related_questions = await asyncio.get_event_loop().run_in_executor(_executor, _gen_rq_cached)
 
             done_payload = _json.dumps({
@@ -1661,6 +1803,11 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             generation_text = _apply_vietnam_history_language_policy(retrieval_question, generation_text)
             generation_text = strip_inline_source_references(generation_text)
 
+            # Translate pre-generated stream response to English if required
+            if is_english:
+                generation_text = translation_agent.translate_answer_to_en(generation_text)
+                print(f"[TRANSLATION] Translated pre-generated stream response to English: '{generation_text[:60]}...'")
+
             CHUNK = 6
             for i in range(0, len(generation_text), CHUNK):
                 token = generation_text[i:i + CHUNK]
@@ -1668,6 +1815,8 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 await asyncio.sleep(0.012)
 
             sources = _build_sources(documents)
+            if is_english:
+                sources = translation_agent.translate_sources_to_en(sources)
             ai_msg_id = user_db.save_message(
                 conversation_id, "assistant", generation_text,
                 [s.model_dump() for s in sources],
@@ -1688,7 +1837,10 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             user_db.save_chat_log(user["id"], request.question, generation_text, cost)
 
             def _rq1():
-                return _generate_related_questions(llm, retrieval_question, generation_text)
+                rq = _generate_related_questions(llm, retrieval_question, generation_text)
+                if is_english:
+                    rq = translation_agent.translate_related_questions_to_en(rq)
+                return rq
             related_questions = await loop.run_in_executor(_executor, _rq1)
 
             done_payload = _json.dumps({
@@ -1736,46 +1888,64 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         for token_text in stream_iter:
             full_generation += token_text
 
-            # Skip <think>...</think> blocks for reasoning models
-            if "<think>" in full_generation and not in_think_block:
-                in_think_block = True
+            if not is_english:
+                # Skip <think>...</think> blocks for reasoning models
+                if "<think>" in full_generation and not in_think_block:
+                    in_think_block = True
 
-            if in_think_block:
-                if "</think>" in full_generation:
-                    after_think = full_generation.split("</think>", 1)[-1]
-                    in_think_block = False
-                    if after_think:
-                        yield f"data: {_json.dumps(after_think)}\n\n"
-                        await asyncio.sleep(0)
-                continue
+                if in_think_block:
+                    if "</think>" in full_generation:
+                        after_think = full_generation.split("</think>", 1)[-1]
+                        in_think_block = False
+                        if after_think:
+                            yield f"data: {_json.dumps(after_think)}\n\n"
+                            await asyncio.sleep(0)
+                    continue
 
-            if token_text:
-                yield f"data: {_json.dumps(token_text)}\n\n"
-                await asyncio.sleep(0)
+                if token_text:
+                    yield f"data: {_json.dumps(token_text)}\n\n"
+                    await asyncio.sleep(0)
 
         # Post-process full answer
         full_generation = _re3.sub(r"<think>.*?</think>", "", full_generation, flags=_re3.DOTALL).strip()
         full_generation = _apply_vietnam_history_language_policy(retrieval_question, full_generation)
         full_generation = strip_inline_source_references(full_generation)
 
+        # Save copies of the original Vietnamese generation and sources for caching
+        vietnamese_generation = full_generation
         sources = _build_sources(documents)
+        vietnamese_sources = sources
+
+        # Translate to English if required
+        if is_english:
+            print(f"[TRANSLATION] Translating stream response and sources to English...")
+            full_generation = translation_agent.translate_answer_to_en(full_generation)
+            sources = translation_agent.translate_sources_to_en(sources)
+            print(f"[TRANSLATION] Translated stream response: '{full_generation[:60]}...'")
+            
+            # Stream the translated English answer to the user in chunks
+            CHUNK = 6
+            for i in range(0, len(full_generation), CHUNK):
+                token = full_generation[i:i + CHUNK]
+                yield f"data: {_json.dumps(token)}\n\n"
+                await asyncio.sleep(0.012)
 
         # Save to semantic cache
         is_rag_or_kb = (
             len(documents) > 0
             and not any(doc.metadata.get("is_pending") for doc in documents)
             and not any(doc.metadata.get("is_web") for doc in documents)
-            and "tự học từ Web" not in full_generation
-            and "chờ kiểm duyệt" not in full_generation
-            and "chưa có dữ liệu" not in full_generation
+            and "tự học từ Web" not in vietnamese_generation
+            and "chờ kiểm duyệt" not in vietnamese_generation
+            and "chưa có dữ liệu" not in vietnamese_generation
         )
         if is_rag_or_kb:
             try:
                 ttl_seconds = int(os.environ.get("SEMANTIC_CACHE_TTL", "0"))
                 cache_manager.save(
                     question=retrieval_question,
-                    answer=full_generation,
-                    sources=[s.model_dump() for s in sources],
+                    answer=vietnamese_generation,
+                    sources=[s.model_dump() for s in vietnamese_sources],
                     embedding_model_name=embedding_model_name,
                     tenant_id=tenant_id,
                     knowledge_base_id=kb_id,
@@ -1806,7 +1976,10 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         user_db.save_chat_log(user["id"], request.question, full_generation, cost)
 
         def _rq2():
-            return _generate_related_questions(llm, retrieval_question, full_generation)
+            rq = _generate_related_questions(llm, retrieval_question, full_generation)
+            if is_english:
+                rq = translation_agent.translate_related_questions_to_en(rq)
+            return rq
         related_questions = await loop.run_in_executor(_executor, _rq2)
 
         done_payload = _json.dumps({

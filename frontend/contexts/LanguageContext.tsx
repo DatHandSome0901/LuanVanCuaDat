@@ -118,6 +118,10 @@ export interface Translations {
   chat_empty_subtitle: string;
   chat_suggest_label: string;
   chat_suggestions: string; // JSON stringified array of {text, category}
+  chat_sources_docs: string;
+  chat_sources_web: string;
+  chat_sources_page: string;
+  chat_sources_web_label: string;
 
   // Auth
   auth_greeting: string;
@@ -564,6 +568,10 @@ const VI: Translations = {
     { text: 'Hai Bà Trưng', category: 'Anh hùng' },
     { text: 'Tuyên ngôn Độc lập', category: 'Lịch sử hiện đại' },
   ]),
+  chat_sources_docs: 'Nguồn sử liệu trích dẫn',
+  chat_sources_web: 'Phần chính nguồn (Internet)',
+  chat_sources_page: 'Trang {page}',
+  chat_sources_web_label: 'Nguồn Web',
 
   auth_greeting: 'Xin chào',
   llm_language_instruction: 'Hãy trả lời hoàn toàn bằng tiếng Việt. Không dùng từ tiếng Anh.',
@@ -1000,6 +1008,10 @@ const EN: Translations = {
     { text: 'Trung Sisters', category: 'Heroes' },
     { text: 'Declaration of Independence', category: 'Modern History' },
   ]),
+  chat_sources_docs: 'Cited Historical Sources',
+  chat_sources_web: 'Web Sources (Internet)',
+  chat_sources_page: 'Page {page}',
+  chat_sources_web_label: 'Web Source',
 
   auth_greeting: 'Hello',
   llm_language_instruction: 'Please respond entirely in English. Do not use any Vietnamese words.',

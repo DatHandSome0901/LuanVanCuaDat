@@ -16,6 +16,8 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
   // Form states
   const [myPayments, setMyPayments] = useState<any[]>([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(true);
+  const [packages, setPackages] = useState<any[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState('');
   
   const [reportPaymentId, setReportPaymentId] = useState('');
   const [isManualId, setIsManualId] = useState(false);
@@ -29,6 +31,22 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
   const [email, setEmail] = useState(user?.email || '');
 
   const isPaymentIssue = ['no_tokens', 'wrong_amount', 'qr_issue'].includes(issueType);
+
+  // Fetch packages list on mount
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const res = await api.getPackages();
+        setPackages(res.packages || []);
+        if (res.packages && res.packages.length > 0) {
+          setSelectedPackageId(res.packages[0].id.toString());
+        }
+      } catch (err) {
+        console.error('Error fetching packages:', err);
+      }
+    };
+    fetchPackages();
+  }, []);
 
   // Fetch user's recent payments (only if they are logged in)
   useEffect(() => {
@@ -55,6 +73,21 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
     };
     fetchPayments();
   }, [user]);
+
+  // Synchronize package selection when user changes selected invoice
+  useEffect(() => {
+    if (!reportPaymentId || myPayments.length === 0 || packages.length === 0) return;
+    const pObj = myPayments.find(p => p.id.toString() === reportPaymentId);
+    if (pObj) {
+      const matchedPkg = packages.find(pkg => 
+        pkg.name === pObj.package_name || 
+        pkg.amount_vnd === pObj.amount_vnd
+      );
+      if (matchedPkg) {
+        setSelectedPackageId(matchedPkg.id.toString());
+      }
+    }
+  }, [reportPaymentId, myPayments, packages]);
 
   const handleSubmit = async () => {
     if (isPaymentIssue && !reportPaymentId) {
@@ -84,8 +117,15 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
     const selectedLabel = issueLabels[issueType] || issueType;
 
     if (isPaymentIssue) {
+      const pkgObj = packages.find(pkg => pkg.id.toString() === selectedPackageId);
+      const pkgNameStr = pkgObj 
+        ? `${pkgObj.name} (${pkgObj.amount_vnd.toLocaleString()}đ) - ${pkgObj.tokens} Tokens`
+        : "Chưa xác định";
+
       formattedDescription = `【BÁO CÁO PHÚC TRA SAI SÓT NẠP TIỀN】
 • Loại sự cố: ${selectedLabel}
+• Gói nạp báo cáo: ${pkgNameStr}
+• Hóa đơn: #${reportPaymentId || "Nhập thủ công"}
 • Số tiền chuyển khoản thực tế: ${transferredAmount ? `${parseInt(transferredAmount).toLocaleString()} VND` : "Chưa cung cấp"}
 • Thời gian giao dịch: ${transactionTime || "Chưa cung cấp"}
 • Cú pháp / Mã GD ngân hàng: ${transferNote || "Chưa cung cấp"}
@@ -242,6 +282,26 @@ ${reportNote.trim()}`;
                   </div>
                 )}
              </div>
+
+             {/* Row 1.5: Gói nạp selector (Only for payment issues) */}
+             {isPaymentIssue && packages.length > 0 && (
+                <div>
+                   <label className="text-[10px] font-black uppercase tracking-widest text-[#7f1d1d] block mb-2 px-1">
+                     {isVi ? "Gói nạp cần báo cáo" : "Disputed Package"}
+                   </label>
+                   <select
+                     className="w-full bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-all font-semibold"
+                     value={selectedPackageId}
+                     onChange={(e) => setSelectedPackageId(e.target.value)}
+                   >
+                     {packages.map((pkg) => (
+                       <option key={pkg.id} value={pkg.id.toString()}>
+                         {pkg.name} ({pkg.amount_vnd.toLocaleString()}đ) — {pkg.tokens.toLocaleString()} Tokens
+                       </option>
+                     ))}
+                   </select>
+                </div>
+              )}
 
              {/* Row 2: Optional Bank details helper (Only for payment issues) */}
              {isPaymentIssue && (

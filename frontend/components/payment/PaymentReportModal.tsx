@@ -566,7 +566,7 @@ ${reportNote.trim()}`;
                              isUser 
                                ? 'bg-gradient-to-r from-red-950 to-stone-900 text-amber-100 rounded-tr-none' 
                                : (isAi 
-                                   ? 'bg-amber-100/70 border border-amber-500/25 text-amber-950 rounded-tl-none font-serif italic' 
+                                   ? 'bg-amber-100/70 border border-amber-500/25 text-amber-950 rounded-tl-none italic' 
                                    : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none')
                            }`}>
                              {m.message}

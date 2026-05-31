@@ -109,6 +109,8 @@ async def send_user_message(
                 ai_response = response.content if hasattr(response, "content") else str(response)
                 # Strip thinking tags if any
                 ai_response = re.sub(r"<think>.*?</think>", "", ai_response, flags=re.DOTALL).strip()
+                import unicodedata
+                ai_response = unicodedata.normalize('NFC', ai_response)
                 
                 if ai_response:
                     db.add_support_message(room_id, "ai", None, ai_response)

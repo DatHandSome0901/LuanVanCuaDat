@@ -227,7 +227,7 @@ const SupportTab: React.FC = () => {
                         isSelf 
                           ? 'bg-gradient-to-r from-amber-600 to-red-800 text-amber-50 rounded-tr-none' 
                           : (isAi 
-                              ? 'bg-amber-100/60 border border-amber-500/20 text-amber-950 rounded-tl-none font-serif italic' 
+                              ? 'bg-amber-100/60 border border-amber-500/20 text-amber-950 rounded-tl-none italic' 
                               : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none')
                       }`}>
                         {m.message}

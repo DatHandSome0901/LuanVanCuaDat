@@ -15,9 +15,10 @@ interface ProfileViewProps {
   onLogout?: () => void;
   isSidebarOpen?: boolean;
   onViewChange?: (view: View) => void;
+  onRequestReport?: () => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen, onViewChange }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout, isSidebarOpen, onViewChange, onRequestReport }) => {
   const { t } = useLanguage();
   const [history, setHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,6 +97,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
             user={user} 
             onUpdateFullName={handleUpdateFullName}
             onChangePassword={handleChangePassword}
+            onRequestReport={onRequestReport}
           />
 
           {/* UTILITIES (Admin Only) */}

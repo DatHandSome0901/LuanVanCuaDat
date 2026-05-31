@@ -34,7 +34,7 @@ const ReportFloatBtn: React.FC<{
     <button
       onClick={onClick}
       title={language === 'vi' ? 'Báo cáo sự cố / Phản ánh' : 'Report Issue / Feedback'}
-      className={`fixed bottom-20 md:bottom-6 ${positionClass} z-[200] w-12 h-12 rounded-full shadow-xl border-2 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer bg-gradient-to-r from-red-950 to-stone-900 text-amber-100`}
+      className={`hidden md:flex fixed bottom-6 ${positionClass} z-[200] w-12 h-12 rounded-full shadow-xl border-2 items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer bg-gradient-to-r from-red-950 to-stone-900 text-amber-100`}
       style={{ borderColor: 'rgba(180,130,40,0.5)' }}
     >
       <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@ const LangSwitcherBtn: React.FC = () => {
     <button
       onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
       title={language === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
-      className="fixed bottom-20 md:bottom-6 right-6 z-[200] w-12 h-12 rounded-full shadow-xl border-2 overflow-hidden hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
+      className="hidden md:block fixed bottom-6 right-6 z-[200] w-12 h-12 rounded-full shadow-xl border-2 overflow-hidden hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
       style={{ borderColor: 'rgba(180,130,40,0.5)' }}
     >
       {language === 'vi' ? (
@@ -382,7 +382,16 @@ const AppInner: React.FC = () => {
               {currentView === 'payment' && <PaymentView user={user} onBalanceUpdate={updateBalance} isSidebarOpen={isSidebarOpen} />}
               {currentView === 'qa' && user && <QAView user={user} onBalanceUpdate={updateBalance} onNavigate={setCurrentView} />}
               {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
-              {currentView === 'profile' && user && <ProfileView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
+              {currentView === 'profile' && user && (
+                <ProfileView 
+                  user={user} 
+                  onUpdateUser={setUser} 
+                  onLogout={handleLogout} 
+                  isSidebarOpen={isSidebarOpen} 
+                  onViewChange={setCurrentView} 
+                  onRequestReport={() => setShowReportForm(true)}
+                />
+              )}
             </>
           )}
         </div>

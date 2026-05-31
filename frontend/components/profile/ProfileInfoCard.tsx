@@ -7,14 +7,16 @@ interface ProfileInfoCardProps {
   user: User;
   onUpdateFullName: () => void;
   onChangePassword: () => void;
+  onRequestReport?: () => void;
 }
 
 const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({ 
   user, 
   onUpdateFullName, 
-  onChangePassword 
+  onChangePassword,
+  onRequestReport
 }) => {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [imgError, setImgError] = React.useState(false);
 
   return (
@@ -93,6 +95,40 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
                   </button>
               </div>
           </div>
+
+          {/* Language Switcher Setting */}
+          <div>
+              <label className="text-stone-400 text-[10px] block mb-1 uppercase tracking-widest font-black">Ngôn ngữ / Language</label>
+              <div className="flex items-center justify-between">
+                  <p className="text-stone-600 text-sm font-medium">
+                    {language === 'vi' ? 'Tiếng Việt' : 'English'}
+                  </p>
+                  <button 
+                    onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+                    className="text-[10px] font-bold text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                  >
+                    {language === 'vi' ? '🇬🇧 Switch to English' : '🇻🇳 Đổi sang Tiếng Việt'}
+                  </button>
+              </div>
+          </div>
+
+          {/* Report Feedback Setting */}
+          {onRequestReport && (
+            <div>
+                <label className="text-stone-400 text-[10px] block mb-1 uppercase tracking-widest font-black">Hỗ trợ / Support</label>
+                <div className="flex items-center justify-between">
+                    <p className="text-stone-600 text-sm font-medium">
+                      {language === 'vi' ? 'Góp ý hoặc báo cáo sự cố' : 'Feedback or report issues'}
+                    </p>
+                    <button 
+                      onClick={onRequestReport}
+                      className="text-[10px] font-bold text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                    >
+                      ⚠️ {language === 'vi' ? 'Báo cáo sự cố' : 'Report Issue'}
+                    </button>
+                </div>
+            </div>
+          )}
 
           <div className="pt-2">
               <label className="text-stone-400 text-[10px] block mb-1 uppercase tracking-widest font-black">{t.profile_tokens}</label>

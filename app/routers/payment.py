@@ -169,6 +169,23 @@ async def sync_sepay(db: UserDB):
     except Exception as e:
         print(f"❌ SePay Sync Exception: {e}")
 
+@router.get("/my-payments")
+def get_my_payments(user=Depends(get_current_user)):
+    db = UserDB()
+    db.cursor.execute(
+        """
+        SELECT p.*, pkg.name as package_name 
+        FROM payments p 
+        LEFT JOIN packages pkg ON p.package_id = pkg.id 
+        WHERE p.user_id = ? 
+        ORDER BY p.created_at DESC LIMIT 10
+        """,
+        (user["id"],)
+    )
+    rows = db.cursor.fetchall()
+    db.close()
+    return {"payments": [dict(row) for row in rows]}
+
 @router.post("/report")
 def create_payment_report(
     background_tasks: BackgroundTasks,

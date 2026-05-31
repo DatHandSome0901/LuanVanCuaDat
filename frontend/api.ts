@@ -536,6 +536,14 @@ async getSiteConfig(): Promise<{
     if (!response.ok) throw new Error('Không thể gửi báo cáo thanh toán');
     return response.json();
   },
+
+  async getMyPayments(): Promise<{ payments: any[] }> {
+    const response = await fetch(`${BASE_URL}/payment/my-payments`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Không thể tải lịch sử hóa đơn');
+    return response.json();
+  },
   // ===============================
     // KNOWLEDGE
     // ===============================

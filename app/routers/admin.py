@@ -606,10 +606,11 @@ async def update_report_status(
 
     db = UserDB()
     db.cursor.execute("SELECT * FROM payment_reports WHERE id = ?", (report_id,))
-    report = db.cursor.fetchone()
-    if not report:
+    row = db.cursor.fetchone()
+    if not row:
         db.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy báo cáo")
+    report = dict(row)
 
     db.update_payment_report_status(report_id, payload.status)
     db.close()

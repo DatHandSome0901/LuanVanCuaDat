@@ -16,6 +16,24 @@ import LanguageSelector from './components/LanguageSelector';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import PaymentReportModal from './components/payment/PaymentReportModal';
+
+// Floating support ticket button (bottom-left)
+const ReportFloatBtn: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const { language } = useLanguage();
+  return (
+    <button
+      onClick={onClick}
+      title={language === 'vi' ? 'Báo cáo sự cố / Phản ánh' : 'Report Issue / Feedback'}
+      className="fixed bottom-6 left-6 z-[200] w-12 h-12 rounded-full shadow-xl border-2 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer bg-gradient-to-r from-red-950 to-stone-900 text-amber-100"
+      style={{ borderColor: 'rgba(180,130,40,0.5)' }}
+    >
+      <svg className="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </button>
+  );
+};
 
 // Language switcher floating button
 const LangSwitcherBtn: React.FC = () => {
@@ -56,6 +74,7 @@ const AppInner: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showReportForm, setShowReportForm] = useState(false);
 
   useEffect(() => {
     const id = localStorage.getItem('conversation_id');
@@ -362,6 +381,14 @@ const AppInner: React.FC = () => {
       <Toaster position="top-right" />
       {/* Floating language switcher button */}
       <LangSwitcherBtn />
+      {/* Floating report button (bottom-left) */}
+      {user && <ReportFloatBtn onClick={() => setShowReportForm(true)} />}
+      {showReportForm && (
+        <PaymentReportModal 
+          user={user} 
+          onClose={() => setShowReportForm(false)} 
+        />
+      )}
     </div>
   );
 };

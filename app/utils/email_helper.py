@@ -41,19 +41,27 @@ def send_payment_report_emails(
     amount_vnd: int = None,
     tokens: int = None
 ):
+    is_payment = payment_id is not None and payment_id > 0
+    payment_id_str = f"#{payment_id}" if is_payment else "Không có (Lỗi hệ thống/Khác)"
+    
     # 1. Email to Admin
-    admin_subject = f"[Sử Việt AI] Báo cáo sự cố nạp tiền - Hóa đơn #{payment_id}"
+    admin_subject = f"[Sử Việt AI] Báo cáo sự cố thanh toán - Hóa đơn #{payment_id}" if is_payment else f"[Sử Việt AI] Báo cáo lỗi / Góp ý hệ thống từ {username}"
+    
     admin_body = f"""
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2 style="color: #800000; border-bottom: 2px solid #800000; padding-bottom: 8px;">
-          Báo cáo sự cố nạp tiền mới
+          { "Báo cáo sự cố thanh toán mới" if is_payment else "Báo cáo lỗi / Góp ý hệ thống mới" }
         </h2>
         <p>Hệ thống Sử Việt AI vừa nhận được báo cáo từ người dùng:</p>
         <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
           <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 180px; background-color: #f9f9f9;">Mã hóa đơn (Payment ID):</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">#{payment_id}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 180px; background-color: #f9f9f9;">Loại báo cáo:</td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #800000;">{ "Sự cố nạp tiền" if is_payment else "Sự cố hệ thống / Góp ý" }</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #f9f9f9;">Mã hóa đơn (Payment ID):</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{payment_id_str}</td>
           </tr>
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #f9f9f9;">Tài khoản gửi:</td>
@@ -70,13 +78,13 @@ def send_payment_report_emails(
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #f9f9f9;">Tokens:</td>
             <td style="padding: 8px; border: 1px solid #ddd;">{tokens} tokens</td>
-          </tr>''' if amount_vnd is not None else ''}
+          </tr>''' if (is_payment and amount_vnd is not None) else ''}
           <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #f9f9f9; vertical-align: top;">Nội dung sự cố:</td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #f9f9f9; vertical-align: top;">Chi tiết báo cáo:</td>
             <td style="padding: 8px; border: 1px solid #ddd; white-space: pre-wrap;">{description}</td>
           </tr>
         </table>
-        <p style="margin-top: 20px;">Vui lòng kiểm tra đối soát trên cổng thanh toán SePay và cộng số dư thích hợp cho khách hàng.</p>
+        <p style="margin-top: 20px;">Vui lòng kiểm tra và hỗ trợ thành viên kịp thời.</p>
         <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;" />
         <p style="font-size: 11px; color: #888;">Thư điện tử tự động gửi từ hệ thống Sử Việt AI.</p>
       </body>
@@ -84,23 +92,24 @@ def send_payment_report_emails(
     """
     
     # 2. Email to User
-    user_subject = f"[Sử Việt AI] Đã nhận báo cáo sự cố của bạn cho đơn hàng #{payment_id}"
+    user_subject = f"[Sử Việt AI] Đã nhận báo cáo sự cố của bạn #{payment_id_str}" if is_payment else "[Sử Việt AI] Xác nhận tiếp nhận báo cáo lỗi / Góp ý hệ thống"
+    
     user_body = f"""
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2 style="color: #800000; border-bottom: 2px solid #800000; padding-bottom: 8px;">
-          Xác nhận tiếp nhận báo cáo sự cố
+          Xác nhận tiếp nhận phản hồi từ bạn
         </h2>
         <p>Chào <strong>{username}</strong>,</p>
-        <p>Sử Việt AI đã nhận được báo cáo sự cố nạp tiền của bạn đối với đơn hàng <strong>#{payment_id}</strong>.</p>
+        <p>Sử Việt AI đã nhận được báo cáo sự cố của bạn.</p>
         
         <div style="background-color: #f9f9f9; border-left: 4px solid #800000; padding: 15px; margin: 20px 0;">
-          <h4 style="margin: 0 0 8px 0; color: #800000;">Nội dung báo cáo:</h4>
-          <p style="margin: 0; white-space: pre-wrap; font-style: italic; color: #555;">"{description}"</p>
+          <h4 style="margin: 0 0 8px 0; color: #800000;">Chi tiết phản hồi:</h4>
+          <p style="margin: 0; white-space: pre-wrap; font-style: italic; color: #555;">{description}</p>
         </div>
         
-        <p>Ban quản trị đang tiến hành rà soát giao dịch này. Nếu có sai sót về việc cộng tokens, hệ thống sẽ thực hiện xử lý bổ sung ngay khi xác nhận.</p>
-        <p>Cảm ơn bạn đã đóng góp thông tin để cải thiện hệ thống. Nếu có thắc mắc khác, vui lòng liên hệ lại với chúng tôi.</p>
+        <p>Ban quản trị đang tiến hành kiểm tra và xử lý sự cố này. Chúng tôi sẽ phản hồi lại bạn sớm nhất có thể qua email này.</p>
+        <p>Cảm ơn sự đóng góp của bạn để giúp hệ thống Sử Việt AI ngày một hoàn thiện hơn.</p>
         
         <p style="margin-top: 30px;">Trân trọng,<br/><strong>Ban quản trị Sử Việt AI</strong></p>
         <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;" />

@@ -189,25 +189,26 @@ def get_my_payments(user=Depends(get_current_user)):
 @router.post("/report")
 def create_payment_report(
     background_tasks: BackgroundTasks,
-    payment_id: int = Form(...), 
+    payment_id: Optional[int] = Form(None), 
     description: str = Form("Thanh toán bị lỗi hoặc không nhận được token"), 
     email: Optional[str] = Form(None),
     user=Depends(get_current_user)
 ):
     db = UserDB()
-    # Verify payment belongs to user
-    payment = db.get_payment(payment_id)
-    
-    if not payment:
-        db.close()
-        raise HTTPException(status_code=404, detail="Hóa đơn không tìm thấy")
-    
-    if payment["user_id"] != user["id"]:
-        db.close()
-        raise HTTPException(status_code=403, detail="Không có quyền báo cáo hóa đơn này")
+    payment = None
+    if payment_id and payment_id > 0:
+        # Verify payment belongs to user
+        payment = db.get_payment(payment_id)
+        if not payment:
+            db.close()
+            raise HTTPException(status_code=404, detail="Hóa đơn không tìm thấy")
+        if payment["user_id"] != user["id"]:
+            db.close()
+            raise HTTPException(status_code=403, detail="Không có quyền báo cáo hóa đơn này")
+    else:
+        payment_id = None
 
     # Determine email to use
-    # If the user did not supply a custom email, fallback to user's account email
     contact_email = email if email and email.strip() else user.get("email")
 
     db.create_payment_report(user["id"], payment_id, description, contact_email)
@@ -216,6 +217,8 @@ def create_payment_report(
     # Send email notification in the background
     if contact_email:
         username = user.get("full_name") or user.get("username") or "User"
+        amount_vnd = payment.get("amount_vnd") if payment else None
+        tokens = payment.get("tokens") if payment else None
         background_tasks.add_task(
             send_payment_report_emails,
             admin_email="nguyenquocdat888888@gmail.com",
@@ -223,8 +226,8 @@ def create_payment_report(
             payment_id=payment_id,
             username=username,
             description=description,
-            amount_vnd=payment.get("amount_vnd"),
-            tokens=payment.get("tokens")
+            amount_vnd=amount_vnd,
+            tokens=tokens
         )
     
     return {"message": "Đã gửi báo cáo thành công. Admin sẽ kiểm tra sớm."}

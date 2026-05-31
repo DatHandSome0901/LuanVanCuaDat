@@ -31,9 +31,12 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
 
   const isPaymentIssue = ['no_tokens', 'wrong_amount', 'qr_issue'].includes(issueType);
 
-  // Fetch packages list on mount
+  const [zaloLink, setZaloLink] = useState('https://zalo.me/0896498997');
+  const [fbLink, setFbLink] = useState('https://www.facebook.com/nguyen.quoc.at.383270');
+
+  // Fetch packages list and site settings on mount
   useEffect(() => {
-    const fetchPackages = async () => {
+    const fetchPackagesAndSettings = async () => {
       try {
         const res = await api.getPackages();
         setPackages(res.packages || []);
@@ -43,8 +46,20 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
       } catch (err) {
         console.error('Error fetching packages:', err);
       }
+
+      try {
+        const config = await api.getPublicSettings();
+        if (config.landing_contact_zalo_link) {
+          setZaloLink(config.landing_contact_zalo_link);
+        }
+        if (config.landing_contact_fb_link) {
+          setFbLink(config.landing_contact_fb_link);
+        }
+      } catch (err) {
+        console.error('Error fetching settings:', err);
+      }
     };
-    fetchPackages();
+    fetchPackagesAndSettings();
   }, []);
 
   // Fetch user's recent payments (only if they are logged in)
@@ -320,6 +335,32 @@ ${reportNote.trim()}`;
                   value={reportNote}
                   onChange={(e) => setReportNote(e.target.value)}
                 />
+             </div>
+
+             {/* Row 5: Direct Chat Option */}
+             <div className="bg-amber-50/40 border border-amber-600/10 rounded-2xl p-4 text-center mt-2">
+                <p className="text-xs text-amber-900 font-bold mb-3 flex items-center justify-center gap-1.5">
+                  <span>💬</span>
+                  <span>{isVi ? "Hoặc trò chuyện trực tiếp để Ban Quản Trị hỗ trợ ngay lập tức:" : "Or chat directly with Admin for instant assistance:"}</span>
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <a
+                    href={zaloLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-2 py-2.5 px-4 bg-[#0068ff] hover:bg-[#0057d6] text-white text-xs font-bold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 text-center"
+                  >
+                    <span>💬</span> Zalo Chat
+                  </a>
+                  <a
+                    href={fbLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-2 py-2.5 px-4 bg-[#1877f2] hover:bg-[#166fe5] text-white text-xs font-bold rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 text-center"
+                  >
+                    <span>📘</span> Messenger
+                  </a>
+                </div>
              </div>
 
           </div>

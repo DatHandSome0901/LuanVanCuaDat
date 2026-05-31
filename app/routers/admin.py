@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Body, File, UploadFile
+from fastapi import APIRouter, HTTPException, Depends, Body, File, UploadFile, BackgroundTasks
 from app.models.base_db import UserDB
 from app.security.security import get_current_admin
 from pydantic import BaseModel
@@ -590,6 +590,36 @@ async def get_payment_reports(admin: dict = Depends(get_current_admin)):
     reports = db.get_all_payment_reports()
     db.close()
     return {"reports": reports}
+
+class ReportStatusUpdate(BaseModel):
+    status: str
+
+@router.post("/payment-reports/{report_id}/status")
+async def update_report_status(
+    report_id: int,
+    payload: ReportStatusUpdate,
+    background_tasks: BackgroundTasks,
+    admin: dict = Depends(get_current_admin)
+):
+    if payload.status not in ["resolved", "ignored"]:
+        raise HTTPException(status_code=400, detail="Trạng thái không hợp lệ")
+
+    db = UserDB()
+    db.cursor.execute("SELECT * FROM payment_reports WHERE id = ?", (report_id,))
+    report = db.cursor.fetchone()
+    if not report:
+        db.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy báo cáo")
+
+    db.update_payment_report_status(report_id, payload.status)
+    db.close()
+
+    to_email = report.get("email")
+    if payload.status == "resolved" and to_email:
+        from app.utils.email_helper import send_resolution_email
+        background_tasks.add_task(send_resolution_email, to_email, report_id, report.get("description", ""))
+
+    return {"message": "Cập nhật trạng thái thành công"}
 
 @router.get("/sync-from-html")
 async def sync_from_html(admin: dict = Depends(get_current_admin)):

@@ -522,6 +522,19 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
+  async adminUpdatePaymentReportStatus(reportId: number, status: 'resolved' | 'ignored'): Promise<{ message: string }> {
+    const response = await fetch(`${BASE_URL}/admin/payment-reports/${reportId}/status`, {
+      method: 'POST',
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok) throw new Error('Không thể cập nhật trạng thái báo cáo');
+    return response.json();
+  },
+
   async createPaymentReport(paymentId?: number | null, description?: string, email?: string): Promise<{ message: string; report_id?: number }> {
     const formData = new FormData();
     if (paymentId !== undefined && paymentId !== null) {

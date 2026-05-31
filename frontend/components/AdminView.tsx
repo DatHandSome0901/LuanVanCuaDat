@@ -649,7 +649,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           )}
 
           {activeTab === 'reports' && (
-            <ReportsTab reports={data.reports} />
+            <ReportsTab reports={data.reports} onRefresh={fetchData} />
           )}
           {activeTab === 'knowledge' && (
             <KnowledgeTab  />

@@ -127,3 +127,32 @@ def send_payment_report_emails(
     # Send both
     send_email_in_background(admin_email, admin_subject, admin_body)
     send_email_in_background(user_email, user_subject, user_body)
+
+def send_resolution_email(to_email: str, report_id: int, user_description: str):
+    subject = f"[Sử Việt AI] Phản hồi sớ báo cáo sự cố #{report_id} - ĐÃ XỬ LÝ THÀNH CÔNG"
+    body = f"""
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #008000; border-bottom: 2px solid #008000; padding-bottom: 8px;">
+          Sớ Phúc Tra Đã Được Duyệt & Xử Lý Thành Công! (Mã sớ: #{report_id})
+        </h2>
+        <p>Chào bạn,</p>
+        <p>Ban quản trị Sử Việt AI xin kính báo: Sớ khai báo sự cố/phúc tra của bạn (Mã sớ: <strong>#{report_id}</strong>) đã được ban quản trị rà soát và xử lý thành công.</p>
+        
+        <div style="background-color: #f9f9f9; border-left: 4px solid #008000; padding: 15px; margin: 20px 0;">
+          <h4 style="margin: 0 0 8px 0; color: #008000;">Nội dung sự việc bạn đã báo cáo:</h4>
+          <p style="margin: 0; white-space: pre-wrap; font-style: italic; color: #555;">{user_description}</p>
+        </div>
+
+        <p><strong>Kết quả xử lý:</strong> Trạng thái của sớ báo cáo đã được chuyển sang <span style="color: #008000; font-weight: bold;">ĐÃ GIẢI QUYẾT (Resolved)</span>. Vui lòng kiểm tra lại tài khoản của bạn (số dư tokens, trạng thái thanh toán hoặc chức năng hệ thống liên quan).</p>
+        <p>Nếu bạn vẫn gặp khó khăn hoặc có thắc mắc khác, xin vui lòng gửi phản hồi tiếp tục hoặc liên hệ ban quản trị để được trợ giúp.</p>
+        <p>Chân thành cảm ơn sự đóng góp của bạn.</p>
+        
+        <p style="margin-top: 30px;">Trân trọng,<br/><strong>Ban quản trị Sử Việt AI</strong></p>
+        <hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;" />
+        <p style="font-size: 11px; color: #888;">Thư điện tử tự động gửi từ hệ thống Sử Việt AI. Vui lòng không trả lời thư này.</p>
+      </body>
+    </html>
+    """
+    send_email_in_background(to_email, subject, body)
+

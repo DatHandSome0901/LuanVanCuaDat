@@ -1,7 +1,8 @@
-import React from 'react';
-import { Calendar, User, FileText, AlertCircle } from 'lucide-react';
-import { API_ROOT } from '../../api';
+import React, { useState } from 'react';
+import { Calendar, AlertCircle, Check, X } from 'lucide-react';
+import { api, API_ROOT } from '../../api';
 import { useLanguage } from '../../contexts/LanguageContext';
+import toast from 'react-hot-toast';
 
 const localized = {
   vi: {
@@ -9,9 +10,10 @@ const localized = {
     subtitle: "Ghi nhận các khiếu nại hoặc sự cố từ sĩ tử",
     col_time: "Điểm Thời Gian",
     col_user: "Nhân Sĩ Báo Cáo",
-    col_invoice: "Mã Hóa Đơn",
+    col_invoice: "Hóa Đơn",
     col_detail: "Chi Tiết Sự Việc (Mô Tả)",
-    col_status: "Trạng Thái Phúc Tra",
+    col_status: "Trạng Thái",
+    col_actions: "Duyệt Sớ",
     empty_records: "Khắp nơi bình yên, chưa ghi nhận sớ phúc tra sự cố nào...",
     status_resolved: "已決 Đã Giải Quyết",
     status_ignored: "罷 Bỏ Qua",
@@ -25,6 +27,7 @@ const localized = {
     col_invoice: "Invoice ID",
     col_detail: "Incident Details (Description)",
     col_status: "Audit Status",
+    col_actions: "Audit Actions",
     empty_records: "All quiet across the land, no incident reports found...",
     status_resolved: "已決 Resolved",
     status_ignored: "罷 Ignored",
@@ -55,11 +58,38 @@ const AvatarImage: React.FC<{ src?: string, alt: string }> = ({ src, alt }) => {
 
 interface ReportsTabProps {
   reports: any[];
+  onRefresh?: () => void;
 }
 
-const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
+const ReportsTab: React.FC<ReportsTabProps> = ({ reports, onRefresh }) => {
   const { language } = useLanguage();
   const tLocal = localized[language] || localized.vi;
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  const handleUpdateStatus = async (reportId: number, status: 'resolved' | 'ignored') => {
+    try {
+      setUpdatingId(reportId);
+      const loadingToast = toast.loading(
+        status === 'resolved' 
+          ? (language === 'vi' ? 'Đang duyệt và gửi thư phản hồi cho khách hàng...' : 'Approving and sending resolution email...')
+          : (language === 'vi' ? 'Đang bỏ qua báo cáo này...' : 'Ignoring report...')
+      );
+      await api.adminUpdatePaymentReportStatus(reportId, status);
+      toast.dismiss(loadingToast);
+      toast.success(
+        status === 'resolved'
+          ? (language === 'vi' ? 'Đã duyệt sớ thành công & gửi email phản hồi!' : 'Ticket resolved successfully & email reply sent!')
+          : (language === 'vi' ? 'Đã bỏ qua báo cáo.' : 'Report ignored.')
+      );
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi cập nhật trạng thái');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <div className="paper-texture scroll-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in pb-10">
@@ -79,12 +109,13 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
               <th className="px-6 py-5 text-left font-historical">{tLocal.col_invoice}</th>
               <th className="px-6 py-5 text-left font-historical">{tLocal.col_detail}</th>
               <th className="px-6 py-5 text-center font-historical">{tLocal.col_status}</th>
+              <th className="px-6 py-5 text-center font-historical">{tLocal.col_actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#b45309]/10">
             {reports.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-20 italic text-amber-900/60 font-serif">
+                <td colSpan={6} className="text-center py-20 italic text-amber-900/60 font-serif">
                   {tLocal.empty_records}
                 </td>
               </tr>
@@ -119,11 +150,11 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
 
                   {/* ID Hóa Đơn */}
                   <td className="px-6 py-4 font-mono text-amber-800 font-bold text-xs">
-                    #{rep.payment_id}
+                    {rep.payment_id ? `#${rep.payment_id}` : '—'}
                   </td>
 
                   {/* Nội Dung */}
-                  <td className="px-6 py-4 text-stone-700 font-serif italic text-xs">
+                  <td className="px-6 py-4 text-stone-700 font-serif italic text-xs max-w-xs truncate" title={rep.description}>
                     <div className="flex items-center gap-1">
                       <AlertCircle size={12} className="text-[#7f1d1d]/40 shrink-0" />
                       <span>"{rep.description}"</span>
@@ -145,6 +176,36 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
                     {rep.status !== 'resolved' && rep.status !== 'ignored' && (
                       <span className="inline-block px-3 py-1 bg-amber-50 border-2 border-amber-500 text-amber-700 rounded-sm text-[9px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[1deg] border-double">
                         {tLocal.status_pending}
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Thao tác */}
+                  <td className="px-6 py-4 text-center">
+                    {rep.status !== 'resolved' && rep.status !== 'ignored' ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          disabled={updatingId !== null}
+                          onClick={() => handleUpdateStatus(rep.id, 'resolved')}
+                          className="p-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-0.5 text-xs font-semibold px-2 shadow-sm"
+                          title="Phê duyệt & Gửi email phản hồi"
+                        >
+                          <Check size={12} />
+                          <span>{language === 'vi' ? 'Duyệt' : 'Resolve'}</span>
+                        </button>
+                        <button
+                          disabled={updatingId !== null}
+                          onClick={() => handleUpdateStatus(rep.id, 'ignored')}
+                          className="p-1 bg-stone-500 text-white rounded-lg hover:bg-stone-600 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-0.5 text-xs font-semibold px-2 shadow-sm"
+                          title="Bỏ qua báo cáo này"
+                        >
+                          <X size={12} />
+                          <span>{language === 'vi' ? 'Bỏ qua' : 'Ignore'}</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-stone-400 font-medium italic">
+                        {language === 'vi' ? 'Đã duyệt' : 'Done'}
                       </span>
                     )}
                   </td>

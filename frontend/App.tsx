@@ -351,7 +351,7 @@ const AppInner: React.FC = () => {
                   isSidebarOpen={isSidebarOpen}
                 />
               )}
-              {currentView === 'payment' && <PaymentView onBalanceUpdate={updateBalance} isSidebarOpen={isSidebarOpen} />}
+              {currentView === 'payment' && <PaymentView user={user} onBalanceUpdate={updateBalance} isSidebarOpen={isSidebarOpen} />}
               {currentView === 'qa' && user && <QAView user={user} onBalanceUpdate={updateBalance} onNavigate={setCurrentView} />}
               {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
               {currentView === 'profile' && user && <ProfileView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}

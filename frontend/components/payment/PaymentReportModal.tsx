@@ -2,24 +2,34 @@ import React, { useState } from 'react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { User } from '../../types';
 
 interface PaymentReportModalProps {
+  user: User | null;
   onClose: () => void;
 }
 
-const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ onClose }) => {
+const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }) => {
   const { t } = useLanguage();
   const [reportNote, setReportNote] = useState('');
   const [reportPaymentId, setReportPaymentId] = useState('');
+
+  // Check if the user has a linked email (not null/empty and has '@')
+  const hasLinkedEmail = !!(user?.email && user.email.trim() && user.email.includes('@'));
+  const [email, setEmail] = useState(user?.email || '');
 
   const handleSubmit = async () => {
     if (!reportPaymentId || !reportNote.trim()) {
       toast.error(t.pay_report_missing_info);
       return;
     }
+    if (!email || !email.trim() || !email.includes('@')) {
+      toast.error("Vui lòng cung cấp email liên hệ hợp lệ.");
+      return;
+    }
     const loadingToast = toast.loading(t.pay_report_sending_toast);
     try {
-      await api.createPaymentReport(parseInt(reportPaymentId), reportNote);
+      await api.createPaymentReport(parseInt(reportPaymentId), reportNote, email);
       toast.success(t.pay_report_success);
       onClose();
     } catch (err: any) {
@@ -55,6 +65,21 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ onClose }) => {
                   onChange={(e) => setReportPaymentId(e.target.value)}
                 />
              </div>
+             
+             <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 block mb-2 px-1">
+                   {hasLinkedEmail ? "Email liên hệ (Đã liên kết)" : "Email nhận phản hồi"}
+                </label>
+                <input 
+                  type="email"
+                  disabled={hasLinkedEmail}
+                  placeholder="Nhập email của bạn để nhận phản hồi"
+                  className={`w-full bg-stone-50 border border-stone-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-amber-500 transition-all ${hasLinkedEmail ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+             </div>
+
              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 block mb-2 px-1">{t.pay_report_desc}</label>
                 <textarea 

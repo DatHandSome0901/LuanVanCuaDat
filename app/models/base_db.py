@@ -144,11 +144,18 @@ class BaseDB:
                 user_id INTEGER,
                 payment_id INTEGER,
                 description TEXT,
+                email TEXT,
                 status TEXT DEFAULT 'pending', -- 'pending', 'resolved', 'ignored'
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+
+        # 🔥 Migration: Thêm cột email vào payment_reports nếu chưa có
+        try:
+            self.cursor.execute("ALTER TABLE payment_reports ADD COLUMN email TEXT")
+        except:
+            pass
 
         # Create login_logs table
         self.cursor.execute("""
@@ -652,17 +659,17 @@ class UserDB(BaseDB):
         return [dict(row) for row in self.cursor.fetchall()]
 
     # --- Payment Reports ---
-    def create_payment_report(self, user_id, payment_id, description):
+    def create_payment_report(self, user_id, payment_id, description, email=None):
         self.cursor.execute(
-            "INSERT INTO payment_reports (user_id, payment_id, description) VALUES (?, ?, ?)",
-            (user_id, payment_id, description)
+            "INSERT INTO payment_reports (user_id, payment_id, description, email) VALUES (?, ?, ?, ?)",
+            (user_id, payment_id, description, email)
         )
         self.conn.commit()
         return self.cursor.lastrowid
         
     def get_all_payment_reports(self):
         query = """
-            SELECT pr.*, u.username, u.email, u.picture_url 
+            SELECT pr.*, u.username, u.email as user_account_email, u.picture_url 
             FROM payment_reports pr
             JOIN users u ON pr.user_id = u.id
             ORDER BY pr.created_at DESC

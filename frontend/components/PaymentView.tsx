@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import toast from 'react-hot-toast';
-import { PaymentPackage, PaymentInvoice } from '../types';
+import { PaymentPackage, PaymentInvoice, User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 import PackageCard from './payment/PackageCard';
@@ -10,11 +10,12 @@ import PaymentReportModal from './payment/PaymentReportModal';
 import PaymentInvoiceModal from './payment/PaymentInvoiceModal';
 
 interface PaymentViewProps {
+  user: User | null;
   onBalanceUpdate: (balance: number) => void;
   isSidebarOpen?: boolean;
 }
 
-const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpen }) => {
+const PaymentView: React.FC<PaymentViewProps> = ({ user, onBalanceUpdate, isSidebarOpen }) => {
   const { t } = useLanguage();
   const [packages, setPackages] = useState<PaymentPackage[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<PaymentInvoice | null>(null);
@@ -131,7 +132,7 @@ const PaymentView: React.FC<PaymentViewProps> = ({ onBalanceUpdate, isSidebarOpe
       </div>
 
       {showReportForm && (
-        <PaymentReportModal onClose={() => setShowReportForm(false)} />
+        <PaymentReportModal user={user} onClose={() => setShowReportForm(false)} />
       )}
 
       {selectedInvoice && (

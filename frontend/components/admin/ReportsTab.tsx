@@ -105,7 +105,14 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ reports }) => {
                       <AvatarImage src={rep.picture_url} alt={rep.username} />
                       <div>
                         <span className="font-historical font-black text-[#7f1d1d]">{rep.username}</span>
-                        <p className="text-[10px] text-stone-405 font-mono leading-none mt-0.5">{rep.email}</p>
+                        <p className="text-[10px] text-stone-500 font-mono leading-none mt-1" title="Email nhận phản hồi">
+                          📬 {rep.email || 'N/A'}
+                        </p>
+                        {rep.user_account_email && rep.user_account_email !== rep.email && (
+                          <p className="text-[9px] text-stone-400 font-mono leading-none mt-1" title="Email tài khoản">
+                            👤 {rep.user_account_email}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </td>

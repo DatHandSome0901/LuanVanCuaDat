@@ -1,7 +1,9 @@
 import httpx
 import re
-from fastapi import APIRouter, HTTPException, Depends, Form
+from fastapi import APIRouter, HTTPException, Depends, Form, BackgroundTasks
+from typing import Optional
 from app.config import settings
+from app.utils.email_helper import send_payment_report_emails
 from app.models.base_db import UserDB
 from app.security.security import get_current_user
 from datetime import datetime, timedelta
@@ -169,8 +171,10 @@ async def sync_sepay(db: UserDB):
 
 @router.post("/report")
 def create_payment_report(
+    background_tasks: BackgroundTasks,
     payment_id: int = Form(...), 
     description: str = Form("Thanh toán bị lỗi hoặc không nhận được token"), 
+    email: Optional[str] = Form(None),
     user=Depends(get_current_user)
 ):
     db = UserDB()
@@ -185,8 +189,26 @@ def create_payment_report(
         db.close()
         raise HTTPException(status_code=403, detail="Không có quyền báo cáo hóa đơn này")
 
-    db.create_payment_report(user["id"], payment_id, description)
+    # Determine email to use
+    # If the user did not supply a custom email, fallback to user's account email
+    contact_email = email if email and email.strip() else user.get("email")
+
+    db.create_payment_report(user["id"], payment_id, description, contact_email)
     db.close()
+    
+    # Send email notification in the background
+    if contact_email:
+        username = user.get("full_name") or user.get("username") or "User"
+        background_tasks.add_task(
+            send_payment_report_emails,
+            admin_email="nguyenquocdat888888@gmail.com",
+            user_email=contact_email,
+            payment_id=payment_id,
+            username=username,
+            description=description,
+            amount_vnd=payment.get("amount_vnd"),
+            tokens=payment.get("tokens")
+        )
     
     return {"message": "Đã gửi báo cáo thành công. Admin sẽ kiểm tra sớm."}
 

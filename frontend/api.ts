@@ -522,10 +522,11 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
-  async createPaymentReport(paymentId: number, description?: string): Promise<{ message: string }> {
+  async createPaymentReport(paymentId: number, description?: string, email?: string): Promise<{ message: string }> {
     const formData = new FormData();
     formData.append('payment_id', paymentId.toString());
     if (description) formData.append('description', description);
+    if (email) formData.append('email', email);
 
     const response = await fetch(`${BASE_URL}/payment/report`, {
       method: 'POST',

@@ -522,7 +522,7 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
-  async createPaymentReport(paymentId?: number | null, description?: string, email?: string): Promise<{ message: string }> {
+  async createPaymentReport(paymentId?: number | null, description?: string, email?: string): Promise<{ message: string; report_id?: number }> {
     const formData = new FormData();
     if (paymentId !== undefined && paymentId !== null) {
       formData.append('payment_id', paymentId.toString());

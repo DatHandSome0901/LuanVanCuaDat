@@ -211,7 +211,7 @@ def create_payment_report(
     # Determine email to use
     contact_email = email if email and email.strip() else user.get("email")
 
-    db.create_payment_report(user["id"], payment_id, description, contact_email)
+    report_id = db.create_payment_report(user["id"], payment_id, description, contact_email)
     db.close()
     
     # Send email notification in the background
@@ -224,11 +224,15 @@ def create_payment_report(
             admin_email="nguyenquocdat888888@gmail.com",
             user_email=contact_email,
             payment_id=payment_id,
+            report_id=report_id,
             username=username,
             description=description,
             amount_vnd=amount_vnd,
             tokens=tokens
         )
     
-    return {"message": "Đã gửi báo cáo thành công. Admin sẽ kiểm tra sớm."}
+    return {
+        "message": f"Đã gửi báo cáo thành công. Mã sớ báo cáo: #{report_id}.",
+        "report_id": report_id
+    }
 

@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from typing import Optional
 
 def send_email_in_background(to_email: str, subject: str, body: str):
     smtp_username = os.getenv("SMTP_USERNAME")
@@ -35,17 +36,18 @@ def send_email_in_background(to_email: str, subject: str, body: str):
 def send_payment_report_emails(
     admin_email: str,
     user_email: str,
-    payment_id: int,
+    payment_id: Optional[int],
+    report_id: int,
     username: str,
     description: str,
-    amount_vnd: int = None,
-    tokens: int = None
+    amount_vnd: Optional[int] = None,
+    tokens: Optional[int] = None
 ):
     is_payment = payment_id is not None and payment_id > 0
     payment_id_str = f"#{payment_id}" if is_payment else "Không có (Lỗi hệ thống/Khác)"
     
     # 1. Email to Admin
-    admin_subject = f"[Sử Việt AI] Báo cáo sự cố thanh toán - Hóa đơn #{payment_id}" if is_payment else f"[Sử Việt AI] Báo cáo lỗi / Góp ý hệ thống từ {username}"
+    admin_subject = f"[Sử Việt AI] Báo cáo sự cố thanh toán - Hóa đơn #{payment_id} (Mã sớ: #{report_id})" if is_payment else f"[Sử Việt AI] Báo cáo lỗi / Góp ý hệ thống từ {username} (Mã sớ: #{report_id})"
     
     admin_body = f"""
     <html>
@@ -56,7 +58,11 @@ def send_payment_report_emails(
         <p>Hệ thống Sử Việt AI vừa nhận được báo cáo từ người dùng:</p>
         <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
           <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 180px; background-color: #f9f9f9;">Loại báo cáo:</td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 180px; background-color: #f9f9f9;">Mã sớ báo cáo:</td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #800000;">#{report_id}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #f9f9f9;">Loại báo cáo:</td>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #800000;">{ "Sự cố nạp tiền" if is_payment else "Sự cố hệ thống / Góp ý" }</td>
           </tr>
           <tr>
@@ -92,13 +98,13 @@ def send_payment_report_emails(
     """
     
     # 2. Email to User
-    user_subject = f"[Sử Việt AI] Đã nhận báo cáo sự cố của bạn #{payment_id_str}" if is_payment else "[Sử Việt AI] Xác nhận tiếp nhận báo cáo lỗi / Góp ý hệ thống"
+    user_subject = f"[Sử Việt AI] Đã nhận báo cáo sự cố của bạn #{report_id}" if is_payment else f"[Sử Việt AI] Xác nhận tiếp nhận báo cáo lỗi / Góp ý #{report_id}"
     
     user_body = f"""
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2 style="color: #800000; border-bottom: 2px solid #800000; padding-bottom: 8px;">
-          Xác nhận tiếp nhận phản hồi từ bạn
+          Xác nhận tiếp nhận phản hồi từ bạn (Mã sớ: #{report_id})
         </h2>
         <p>Chào <strong>{username}</strong>,</p>
         <p>Sử Việt AI đã nhận được báo cáo sự cố của bạn.</p>

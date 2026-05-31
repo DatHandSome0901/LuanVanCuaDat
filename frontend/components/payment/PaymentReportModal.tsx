@@ -20,7 +20,6 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
   const [selectedPackageId, setSelectedPackageId] = useState('');
   
   const [reportPaymentId, setReportPaymentId] = useState('');
-  const [isManualId, setIsManualId] = useState(false);
   const [issueType, setIssueType] = useState('no_tokens');
   const [transferredAmount, setTransferredAmount] = useState('');
   const [transactionTime, setTransactionTime] = useState('');
@@ -52,21 +51,24 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
   useEffect(() => {
     if (!user) {
       setIsLoadingPayments(false);
-      setIsManualId(true);
       return;
     }
     const fetchPayments = async () => {
       try {
         const res = await api.getMyPayments();
-        setMyPayments(res.payments || []);
-        if (res.payments && res.payments.length > 0) {
-          setReportPaymentId(res.payments[0].id.toString());
-        } else {
-          setIsManualId(true);
+        const paymentsList = res.payments || [];
+        setMyPayments(paymentsList);
+        if (paymentsList.length > 0) {
+          // Find the latest pending payment, otherwise the first payment
+          const pendingPay = paymentsList.find((p: any) => p.status === 'pending');
+          if (pendingPay) {
+            setReportPaymentId(pendingPay.id.toString());
+          } else {
+            setReportPaymentId(paymentsList[0].id.toString());
+          }
         }
       } catch (err) {
         console.error('Error fetching payments:', err);
-        setIsManualId(true);
       } finally {
         setIsLoadingPayments(false);
       }
@@ -90,10 +92,6 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
   }, [reportPaymentId, myPayments, packages]);
 
   const handleSubmit = async () => {
-    if (isPaymentIssue && !reportPaymentId) {
-      toast.error(isVi ? "Vui lòng chọn hoặc nhập mã hóa đơn." : "Please select or enter an invoice ID.");
-      return;
-    }
     if (!reportNote.trim()) {
       toast.error(isVi ? "Vui lòng nhập mô tả chi tiết sự cố." : "Please provide a detailed description.");
       return;
@@ -125,7 +123,7 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
       formattedDescription = `【BÁO CÁO PHÚC TRA SAI SÓT NẠP TIỀN】
 • Loại sự cố: ${selectedLabel}
 • Gói nạp báo cáo: ${pkgNameStr}
-• Hóa đơn: #${reportPaymentId || "Nhập thủ công"}
+• Hóa đơn liên quan: ${reportPaymentId ? `#${reportPaymentId}` : "Không tìm thấy trên hệ thống (Thanh toán mới/Chưa ghi nhận)"}
 • Số tiền chuyển khoản thực tế: ${transferredAmount ? `${parseInt(transferredAmount).toLocaleString()} VND` : "Chưa cung cấp"}
 • Thời gian giao dịch: ${transactionTime || "Chưa cung cấp"}
 • Cú pháp / Mã GD ngân hàng: ${transferNote || "Chưa cung cấp"}
@@ -141,8 +139,13 @@ ${reportNote.trim()}`;
     const loadingToast = toast.loading(t.pay_report_sending_toast);
     try {
       const pId = isPaymentIssue && reportPaymentId ? parseInt(reportPaymentId) : null;
-      await api.createPaymentReport(pId, formattedDescription, email);
-      toast.success(isVi ? "Gửi báo cáo thành công! Ban quản trị sẽ rà soát và phản hồi sớm qua email." : "Report submitted successfully! The admin will review and reply via email.");
+      const res = await api.createPaymentReport(pId, formattedDescription, email);
+      const ticketCode = res.report_id ? `#${res.report_id}` : '';
+      toast.success(
+        isVi 
+          ? `Gửi báo cáo thành công! Mã sớ báo cáo: ${ticketCode}. Ban quản trị sẽ rà soát và phản hồi sớm qua email.` 
+          : `Report submitted successfully! Ticket Code: ${ticketCode}. The admin will review and reply via email.`
+      );
       onClose();
     } catch (err: any) {
       toast.error(err.message || t.pay_report_err);
@@ -182,105 +185,31 @@ ${reportNote.trim()}`;
           </div>
 
           <div className="flex-1 overflow-y-auto pr-2 space-y-4 my-2 chatgpt-scrollbar min-h-0">
-             {/* Row 1: Issue Type & conditional invoice picker */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                   <label className="text-[10px] font-black uppercase tracking-widest text-[#7f1d1d] block mb-2 px-1">
-                     {isVi ? "Chọn loại sự cố / Yêu cầu" : "Choose issue category"}
-                   </label>
-                   <select
-                     className="w-full bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-all font-semibold"
-                     value={issueType}
-                     onChange={(e) => setIssueType(e.target.value)}
-                   >
-                     {/* Payment Related */}
-                     <optgroup label={isVi ? "Thanh toán & Nạp tiền" : "Payments & Billing"}>
-                       <option value="no_tokens">{isVi ? "Chuyển khoản đúng nhưng chưa nhận tokens" : "Transferred but tokens not received"}</option>
-                       <option value="wrong_amount">{isVi ? "Chuyển khoản sai số tiền / sai nội dung" : "Wrong amount or transfer content"}</option>
-                       <option value="qr_issue">{isVi ? "Không hiển thị / không quét được mã QR" : "QR display or scanning issue"}</option>
-                     </optgroup>
-                     
-                     {/* System Related */}
-                     <optgroup label={isVi ? "Trải nghiệm hệ thống" : "System Experience"}>
-                       <option value="chatbot_answer">{isVi ? "Trò chuyện - AI trả lời chưa chuẩn xác" : "Chat - AI response incorrect"}</option>
-                       <option value="game_qa">{isVi ? "Q&A - Lỗi câu hỏi, điểm danh, streak" : "Q&A - Question or check-in issue"}</option>
-                       <option value="layout_bug">{isVi ? "Giao diện - Lỗi hiển thị, đơ chức năng" : "UI/Layout - Display or freeze bug"}</option>
-                       <option value="other">{isVi ? "Khác / Góp ý nâng cấp" : "Other / Feedback & Suggestion"}</option>
-                     </optgroup>
-                   </select>
-                </div>
-
-                {isPaymentIssue ? (
-                  <div>
-                     <label className="text-[10px] font-black uppercase tracking-widest text-[#7f1d1d] block mb-2 px-1">
-                       {isVi ? "Chọn Hóa Đơn Bị Sự Cố" : "Select Disputed Invoice"}
-                     </label>
-                     
-                     {isLoadingPayments ? (
-                       <div className="h-12 bg-stone-50 border border-stone-100 rounded-xl animate-pulse flex items-center px-4 text-xs text-stone-400">
-                         {isVi ? "Đang tìm hóa đơn gần đây..." : "Finding recent invoices..."}
-                       </div>
-                     ) : (
-                       <div className="space-y-2">
-                         {!isManualId && myPayments.length > 0 ? (
-                           <select
-                             className="w-full bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-all font-medium"
-                             value={reportPaymentId}
-                             onChange={(e) => {
-                               if (e.target.value === 'manual') {
-                                 setIsManualId(true);
-                                 setReportPaymentId('');
-                               } else {
-                                 setReportPaymentId(e.target.value);
-                               }
-                             }}
-                           >
-                             {myPayments.map((p) => {
-                               const name = p.package_name || `${p.tokens} Tokens`;
-                               const statusText = p.status === 'pending'
-                                 ? (isVi ? 'Chờ' : 'Pending')
-                                 : p.status === 'completed'
-                                 ? (isVi ? 'Thành công' : 'Done')
-                                 : (isVi ? 'Lỗi' : 'Failed');
-                               return (
-                                 <option key={p.id} value={p.id.toString()}>
-                                   #{p.id} - {name} ({p.amount_vnd.toLocaleString()}đ) [{statusText}]
-                                 </option>
-                               );
-                             })}
-                             <option value="manual">✍️ {isVi ? "Nhập mã hóa đơn thủ công" : "Enter ID manually"}</option>
-                           </select>
-                         ) : (
-                           <div className="relative">
-                             <input 
-                               type="number"
-                               placeholder={isVi ? "Nhập ID hóa đơn (ví dụ: 7)" : "Enter numeric invoice ID (e.g. 7)"}
-                               className="w-full bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-all font-mono"
-                               value={reportPaymentId}
-                               onChange={(e) => setReportPaymentId(e.target.value)}
-                             />
-                             {!isLoadingPayments && myPayments.length > 0 && (
-                               <button
-                                 type="button"
-                                 onClick={() => {
-                                   setIsManualId(false);
-                                   setReportPaymentId(myPayments[0].id.toString());
-                                 }}
-                                 className="absolute right-3 top-2.5 text-xs text-amber-800 hover:underline font-bold"
-                               >
-                                 {isVi ? "Chọn từ danh sách" : "Select from list"}
-                               </button>
-                             )}
-                           </div>
-                         )}
-                       </div>
-                     )}
-                  </div>
-                ) : (
-                  <div className="bg-stone-50/50 border border-dashed border-stone-200 rounded-xl p-3 flex items-center justify-center text-xs text-stone-400 italic">
-                    {isVi ? "Không cần đính kèm hóa đơn đối với sự cố này." : "No invoice attachment needed for this category."}
-                  </div>
-                )}
+             {/* Row 1: Issue Type */}
+             <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-[#7f1d1d] block mb-2 px-1">
+                  {isVi ? "Chọn loại sự cố / Yêu cầu" : "Choose issue category"}
+                </label>
+                <select
+                  className="w-full bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-all font-semibold"
+                  value={issueType}
+                  onChange={(e) => setIssueType(e.target.value)}
+                >
+                  {/* Payment Related */}
+                  <optgroup label={isVi ? "Thanh toán & Nạp tiền" : "Payments & Billing"}>
+                    <option value="no_tokens">{isVi ? "Chuyển khoản đúng nhưng chưa nhận tokens" : "Transferred but tokens not received"}</option>
+                    <option value="wrong_amount">{isVi ? "Chuyển khoản sai số tiền / sai nội dung" : "Wrong amount or transfer content"}</option>
+                    <option value="qr_issue">{isVi ? "Không hiển thị / không quét được mã QR" : "QR display or scanning issue"}</option>
+                  </optgroup>
+                  
+                  {/* System Related */}
+                  <optgroup label={isVi ? "Trải nghiệm hệ thống" : "System Experience"}>
+                    <option value="chatbot_answer">{isVi ? "Trò chuyện - AI trả lời chưa chuẩn xác" : "Chat - AI response incorrect"}</option>
+                    <option value="game_qa">{isVi ? "Q&A - Lỗi câu hỏi, điểm danh, streak" : "Q&A - Question or check-in issue"}</option>
+                    <option value="layout_bug">{isVi ? "Giao diện - Lỗi hiển thị, đơ chức năng" : "UI/Layout - Display or freeze bug"}</option>
+                    <option value="other">{isVi ? "Khác / Góp ý nâng cấp" : "Other / Feedback & Suggestion"}</option>
+                  </optgroup>
+                </select>
              </div>
 
              {/* Row 1.5: Gói nạp selector (Only for payment issues) */}

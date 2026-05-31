@@ -195,11 +195,19 @@ ${reportNote.trim()}`;
                                }
                              }}
                            >
-                             {myPayments.map((p) => (
-                               <option key={p.id} value={p.id}>
-                                 #{p.id} - {p.package_name || `${p.tokens} Tokens`} ({p.amount_vnd.toLocaleString()} VND) [{p.status}]
-                               </option>
-                             ))}
+                             {myPayments.map((p) => {
+                               const name = p.package_name || `${p.tokens} Tokens`;
+                               const statusText = p.status === 'pending'
+                                 ? (isVi ? 'Chờ' : 'Pending')
+                                 : p.status === 'completed'
+                                 ? (isVi ? 'Thành công' : 'Done')
+                                 : (isVi ? 'Lỗi' : 'Failed');
+                               return (
+                                 <option key={p.id} value={p.id.toString()}>
+                                   #{p.id} - {name} ({p.amount_vnd.toLocaleString()}đ) [{statusText}]
+                                 </option>
+                               );
+                             })}
                              <option value="manual">✍️ {isVi ? "Nhập mã hóa đơn thủ công" : "Enter ID manually"}</option>
                            </select>
                          ) : (

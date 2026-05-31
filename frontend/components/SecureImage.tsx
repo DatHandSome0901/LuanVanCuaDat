@@ -9,10 +9,13 @@ interface SecureImageProps {
   children?: React.ReactNode;
 }
 
+// Global cache for secure image blob URLs to prevent redundant network fetches
+const secureImageCache: Record<string, string> = {};
+
 const SecureImage: React.FC<SecureImageProps> = ({ 
   src, alt, className, style, isBackground, children 
 }) => {
-  const [safeSrc, setSafeSrc] = useState<string>('');
+  const [safeSrc, setSafeSrc] = useState<string>(secureImageCache[src] || '');
 
   useEffect(() => {
     if (!src) return;
@@ -22,6 +25,14 @@ const SecureImage: React.FC<SecureImageProps> = ({
       setSafeSrc(src);
       return;
     }
+
+    // Nếu đã có trong cache, dùng luôn
+    if (secureImageCache[src]) {
+      setSafeSrc(secureImageCache[src]);
+      return;
+    }
+
+    let isMounted = true;
 
     const loadImage = async () => {
       try {
@@ -33,19 +44,23 @@ const SecureImage: React.FC<SecureImageProps> = ({
         if (!response.ok) throw new Error('Failed to load image');
         const blob = await response.blob();
         const objectUrl = URL.createObjectURL(blob);
-        setSafeSrc(objectUrl);
+        
+        secureImageCache[src] = objectUrl;
+        if (isMounted) {
+          setSafeSrc(objectUrl);
+        }
       } catch (error) {
         console.error('Error loading secure image:', error);
-        setSafeSrc(src); // Fallback về link gốc
+        if (isMounted) {
+          setSafeSrc(src); // Fallback về link gốc
+        }
       }
     };
 
     loadImage();
 
     return () => {
-      if (safeSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(safeSrc);
-      }
+      isMounted = false;
     };
   }, [src]);
 

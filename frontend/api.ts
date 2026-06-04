@@ -352,6 +352,21 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
+  async uploadAvatar(file: File): Promise<{ picture_url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${BASE_URL}/auth/upload-avatar`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: formData,
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Tải ảnh lên thất bại');
+    }
+    return response.json();
+  },
+
   async adminGetPackages(): Promise<{ packages: PaymentPackage[] }> {
     const response = await fetch(`${BASE_URL}/admin/packages`, {
       headers: getHeaders(),
@@ -522,14 +537,23 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
-  async adminUpdatePaymentReportStatus(reportId: number, status: 'resolved' | 'ignored'): Promise<{ message: string }> {
+  async adminUpdatePaymentReportStatus(
+    reportId: number, 
+    status: 'resolved' | 'ignored',
+    adminReply?: string,
+    tokenAdjustment?: number
+  ): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/admin/payment-reports/${reportId}/status`, {
       method: 'POST',
       headers: {
         ...getHeaders(),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ 
+        status,
+        admin_reply: adminReply,
+        token_adjustment: tokenAdjustment
+      }),
     });
     if (!response.ok) throw new Error('Không thể cập nhật trạng thái báo cáo');
     return response.json();

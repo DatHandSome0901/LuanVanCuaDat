@@ -71,7 +71,13 @@ const ChatView: React.FC<ChatViewProps> = ({
     lastScrollTimeRef.current = now;
     requestAnimationFrame(() => {
       if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+        // Scroll only if forced (new message) or if the user is already close to the bottom
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+        
+        if (force || isNearBottom) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
       }
     });
   }, []);
@@ -433,7 +439,7 @@ const ChatView: React.FC<ChatViewProps> = ({
           if (doneMetaRef) {
             applyDoneMeta(doneMetaRef);
           }
-          scrollToBottom(true);
+          scrollToBottom(false);
         }
       };
 

@@ -149,7 +149,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
               className="rounded-[32px] p-0.5 bg-gradient-to-tr from-amber-600/50 to-red-600/50"
             >
               <SecureImage
-                src={logoUrl || "/default.jpg"}
+                src={logoUrl || "/images/su_viet_bot.jpg"}
                 className="w-20 h-20 rounded-[30px] border border-white/10 object-cover"
               />
             </motion.div>

@@ -128,8 +128,18 @@ def send_payment_report_emails(
     send_email_in_background(admin_email, admin_subject, admin_body)
     send_email_in_background(user_email, user_subject, user_body)
 
-def send_resolution_email(to_email: str, report_id: int, user_description: str):
+def send_resolution_email(to_email: str, report_id: int, user_description: str, admin_reply: Optional[str] = None):
     subject = f"[Sử Việt AI] Phản hồi sớ báo cáo sự cố #{report_id} - ĐÃ XỬ LÝ THÀNH CÔNG"
+    
+    admin_reply_section = ""
+    if admin_reply:
+        admin_reply_section = f"""
+        <div style="background-color: #fffbeb; border-left: 4px solid #d97706; padding: 15px; margin: 20px 0;">
+          <h4 style="margin: 0 0 8px 0; color: #d97706;">Bút phê / Phản hồi từ Ban Quản Trị:</h4>
+          <p style="margin: 0; white-space: pre-wrap; color: #374151; font-weight: bold; font-size: 14px;">{admin_reply}</p>
+        </div>
+        """
+
     body = f"""
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -139,6 +149,8 @@ def send_resolution_email(to_email: str, report_id: int, user_description: str):
         <p>Chào bạn,</p>
         <p>Ban quản trị Sử Việt AI xin kính báo: Sớ khai báo sự cố/phúc tra của bạn (Mã sớ: <strong>#{report_id}</strong>) đã được ban quản trị rà soát và xử lý thành công.</p>
         
+        {admin_reply_section}
+
         <div style="background-color: #f9f9f9; border-left: 4px solid #008000; padding: 15px; margin: 20px 0;">
           <h4 style="margin: 0 0 8px 0; color: #008000;">Nội dung sự việc bạn đã báo cáo:</h4>
           <p style="margin: 0; white-space: pre-wrap; font-style: italic; color: #555;">{user_description}</p>

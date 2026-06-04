@@ -17,6 +17,8 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import PaymentReportModal from './components/payment/PaymentReportModal';
+import { confirmAction } from './utils/swal';
+import SecureImage from './components/SecureImage';
 
 // Floating support ticket button (bottom-left)
 const ReportFloatBtn: React.FC<{
@@ -51,8 +53,8 @@ const LangSwitcherBtn: React.FC = () => {
     <button
       onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
       title={language === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
-      className="hidden md:block fixed bottom-6 right-6 z-[200] w-12 h-12 rounded-full shadow-xl border-2 overflow-hidden hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
-      style={{ borderColor: 'rgba(180,130,40,0.5)' }}
+      className="hidden md:block fixed bottom-6 right-6 z-[200] rounded-full shadow-md border overflow-hidden hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+      style={{ borderColor: 'rgba(180, 130, 40, 0.3)', width: '36px', height: '36px' }}
     >
       {language === 'vi' ? (
         // Show EN flag to switch to English
@@ -75,7 +77,7 @@ const LangSwitcherBtn: React.FC = () => {
 };
 
 const AppInner: React.FC = () => {
-  const { hasChosen, setLanguage } = useLanguage();
+  const { hasChosen, setLanguage, language } = useLanguage();
   const isNative = Capacitor.isNativePlatform();
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<View>('landing');
@@ -283,7 +285,16 @@ const AppInner: React.FC = () => {
   }, [fetchUser]);
 
   // ================= HANDLERS =================
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const isVi = language === 'vi';
+    const confirmed = await confirmAction(
+      isVi ? 'Đăng Xuất Khỏi Điện Đường' : 'Sign Out of Palace',
+      isVi 
+        ? 'Sĩ tử có chắc chắn muốn đăng xuất khỏi hệ thống không?' 
+        : 'Are you sure you want to sign out of the system?'
+    );
+    if (!confirmed) return;
+
     localStorage.removeItem('access_token');
     localStorage.removeItem('conversation_id');
     setUser(null);
@@ -355,8 +366,37 @@ const AppInner: React.FC = () => {
               <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
             )
           ) : !user && currentView !== 'chat' ? (
-            <div className="min-h-full w-full flex justify-center items-start py-8 px-4">
-              <AuthView onSuccess={handleLoginSuccess} />
+            <div className="min-h-full w-full flex justify-center items-center py-12 px-4 relative overflow-hidden bg-[#faf6eb]">
+              {/* 1. Custom Background if configured, else fallback historical background */}
+              {siteConfig?.chat_bg ? (
+                <SecureImage 
+                  src={siteConfig.chat_bg.startsWith('http') ? siteConfig.chat_bg : `${API_ROOT}${siteConfig.chat_bg.startsWith('/') ? '' : '/'}${siteConfig.chat_bg}`}
+                  isBackground={true}
+                  className="absolute inset-0 pointer-events-none object-cover w-full h-full"
+                  style={{ zIndex: 0 }}
+                />
+              ) : (
+                <div 
+                  className="absolute inset-0 pointer-events-none object-cover w-full h-full"
+                  style={{ 
+                    backgroundImage: "url('/images/historical_bg_hd.png')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    zIndex: 0 
+                  }} 
+                />
+              )}
+
+              {/* 2. Paper texture & watermark overlay matching the chat style */}
+              <div className="absolute inset-0 paper-texture-only motif-watermark pointer-events-none opacity-60" style={{ zIndex: 1 }} />
+              
+              {/* 3. Dark overlay to make the login card stand out and be readable */}
+              <div className="absolute inset-0 bg-[#1c120c]/40 backdrop-blur-[2px] pointer-events-none" style={{ zIndex: 2 }} />
+
+              {/* 4. Login Card */}
+              <div className="relative z-10 w-full flex justify-center">
+                <AuthView onSuccess={handleLoginSuccess} />
+              </div>
             </div>
           ) : (
             <>
@@ -381,9 +421,9 @@ const AppInner: React.FC = () => {
                   isSidebarOpen={isSidebarOpen}
                 />
               )}
-              {currentView === 'payment' && <PaymentView user={user} onBalanceUpdate={updateBalance} isSidebarOpen={isSidebarOpen} />}
+              {currentView === 'payment' && <PaymentView user={user} onBalanceUpdate={updateBalance} isSidebarOpen={isSidebarOpen} siteConfig={siteConfig} />}
               {currentView === 'qa' && user && <QAView user={user} onBalanceUpdate={updateBalance} onNavigate={setCurrentView} />}
-              {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
+              {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} siteConfig={siteConfig} />}
               {currentView === 'profile' && user && (
                 <ProfileView
                   user={user}

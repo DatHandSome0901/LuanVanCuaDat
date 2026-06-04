@@ -1,5 +1,5 @@
 import httpx
-from fastapi import APIRouter, HTTPException, Form, Depends, Query, Request
+from fastapi import APIRouter, HTTPException, Form, Depends, Query, Request, File, UploadFile
 from datetime import datetime, timedelta
 from jose import jwt
 from app.config import settings
@@ -8,6 +8,9 @@ from app.security.security import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 import bcrypt
+import os
+import shutil
+from uuid import uuid4
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -278,6 +281,43 @@ async def update_profile(data: ProfileUpdate, user=Depends(get_current_user)):
         
     user_db.close()
     return {"message": "Cập nhật hồ sơ thành công"}
+
+@router.post("/upload-avatar")
+async def upload_avatar(file: UploadFile = File(...), user=Depends(get_current_user)):
+    """Upload avatar ảnh cho người dùng và cập nhật picture_url."""
+    # Validate file type
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Chỉ chấp nhận ảnh JPG, PNG, WebP, GIF")
+
+    # Max 5MB
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ảnh không được vượt quá 5MB")
+
+    # Save to utils/download (reuse existing file serving route)
+    ext = os.path.splitext(file.filename or "avatar.jpg")[1] or ".jpg"
+    unique_name = f"avatar_{uuid4().hex}{ext}"
+    save_dir = os.path.join(settings.DIR_ROOT, "utils", "download")
+    os.makedirs(save_dir, exist_ok=True)
+    file_path = os.path.join(save_dir, unique_name)
+
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    picture_url = f"/api/v1/upload-file/view/{unique_name}"
+
+    # Update DB
+    user_db = UserDB()
+    db_user = user_db.get_by_email(user["email"])
+    if not db_user:
+        user_db.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    user_db.update_user_info(db_user["id"], picture_url=picture_url)
+    user_db.close()
+
+    return {"picture_url": picture_url}
+
 
 @router.get("/check")
 def check_login(user=Depends(get_current_user)):

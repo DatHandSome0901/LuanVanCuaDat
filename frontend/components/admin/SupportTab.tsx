@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from '../../contexts/LanguageContext';
+import SecureImage from '../SecureImage';
 
 interface SupportRoom {
   id: number;
@@ -29,7 +30,11 @@ interface Message {
   picture_url?: string;
 }
 
-const SupportTab: React.FC = () => {
+interface SupportTabProps {
+  siteConfig?: any;
+}
+
+const SupportTab: React.FC<SupportTabProps> = ({ siteConfig }) => {
   const { language } = useLanguage();
 
   const txt = {
@@ -74,6 +79,15 @@ const SupportTab: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [hasInitialScrolled, setHasInitialScrolled] = useState(false);
+  const prevMessageCountRef = useRef(0);
+
+  // Reset initial scroll flag and count when selected room changes
+  useEffect(() => {
+    setHasInitialScrolled(false);
+    prevMessageCountRef.current = 0;
+  }, [selectedRoom?.id]);
 
   // Fetch rooms list initially & start polling rooms list
   useEffect(() => {
@@ -125,10 +139,28 @@ const SupportTab: React.FC = () => {
 
   // Auto-scroll messages list
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    const currentCount = messages.length;
+    const prevCount = prevMessageCountRef.current;
+    prevMessageCountRef.current = currentCount;
+
+    if (!hasInitialScrolled && currentCount > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      setHasInitialScrolled(true);
+      return;
     }
-  }, [messages]);
+
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    const hasNewMessage = currentCount > prevCount;
+    const lastMsg = messages[currentCount - 1];
+    const isMyNewMessage = hasNewMessage && lastMsg && lastMsg.sender_type === 'admin';
+
+    if (isNearBottom || isMyNewMessage) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, hasInitialScrolled]);
 
   const handleSend = async () => {
     const text = inputVal.trim();
@@ -189,11 +221,10 @@ const SupportTab: React.FC = () => {
                 <button
                   key={r.id}
                   onClick={() => setSelectedRoom(r)}
-                  className={`w-full text-left p-3.5 rounded-2xl border transition-all flex flex-col gap-1.5 ${
-                    isSelected
+                  className={`w-full text-left p-3.5 rounded-2xl border transition-all flex flex-col gap-1.5 ${isSelected
                       ? 'bg-gradient-to-r from-amber-600 to-red-800 border-transparent text-amber-50 shadow-md scale-[0.98]'
                       : 'bg-stone-50 border-stone-150 text-stone-700 hover:bg-stone-100 hover:border-stone-200'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-bold truncate pr-2 ${isSelected ? 'text-white' : 'text-stone-900'}`}>
@@ -242,7 +273,7 @@ const SupportTab: React.FC = () => {
             </div>
 
             {/* Message Area */}
-            <div className="flex-1 overflow-y-auto p-4 border border-stone-150 rounded-2xl bg-stone-50/20 space-y-3 chatgpt-scrollbar min-h-0">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 border border-stone-150 rounded-2xl bg-stone-50/20 space-y-3 chatgpt-scrollbar min-h-0">
               {messages.map((m) => {
                 const isUser = m.sender_type === 'user';
                 const isAi = m.sender_type === 'ai';
@@ -251,17 +282,17 @@ const SupportTab: React.FC = () => {
                   <div key={m.id} className={`flex items-start gap-2.5 ${isSelf ? 'justify-end' : 'justify-start'}`}>
                     {!isSelf && (
                       isAi ? (
-                        <img 
-                          src="/images/su_viet_bot.jpg" 
-                          alt="AI Assistant" 
+                        <SecureImage
+                          src={siteConfig?.logo_url || "/images/su_viet_bot.jpg"}
+                          alt="AI Assistant"
                           className="w-7 h-7 rounded-full object-cover border border-amber-500/30 shadow-md shrink-0"
                         />
                       ) : (
                         m.picture_url ? (
-                          <img 
-                            src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url} 
-                            alt="User" 
-                            className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0" 
+                          <img
+                            src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url}
+                            alt="User"
+                            className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0"
                             referrerPolicy="no-referrer"
                           />
                         ) : (
@@ -280,13 +311,12 @@ const SupportTab: React.FC = () => {
                           {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm font-medium ${
-                        isSelf 
-                          ? 'bg-gradient-to-r from-amber-600 to-red-800 text-amber-50 rounded-tr-none font-sans' 
-                          : (isAi 
-                              ? 'bg-amber-100/60 border border-amber-500/20 text-amber-950 rounded-tl-none font-sans' 
-                              : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none font-sans')
-                      }`}>
+                      <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm font-medium ${isSelf
+                          ? 'bg-gradient-to-r from-amber-600 to-red-800 text-amber-50 rounded-tr-none font-sans'
+                          : (isAi
+                            ? 'bg-amber-100/60 border border-amber-500/20 text-amber-950 rounded-tl-none font-sans'
+                            : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none font-sans')
+                        }`}>
                         {isSelf ? (
                           m.message
                         ) : (
@@ -300,10 +330,10 @@ const SupportTab: React.FC = () => {
                     </div>
                     {isSelf && (
                       m.picture_url ? (
-                        <img 
-                          src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url} 
-                          alt="Admin" 
-                          className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0" 
+                        <img
+                          src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url}
+                          alt="Admin"
+                          className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0"
                           referrerPolicy="no-referrer"
                         />
                       ) : (

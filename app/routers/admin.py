@@ -593,6 +593,8 @@ async def get_payment_reports(admin: dict = Depends(get_current_admin)):
 
 class ReportStatusUpdate(BaseModel):
     status: str
+    admin_reply: Optional[str] = None
+    token_adjustment: Optional[float] = None
 
 @router.post("/payment-reports/{report_id}/status")
 async def update_report_status(
@@ -612,13 +614,28 @@ async def update_report_status(
         raise HTTPException(status_code=404, detail="Không tìm thấy báo cáo")
     report = dict(row)
 
+    # Apply token adjustment if resolved and positive amount specified
+    if payload.status == "resolved" and payload.token_adjustment and payload.token_adjustment > 0:
+        db.change_token_balance(
+            user_id=report["user_id"],
+            amount=payload.token_adjustment,
+            description=f"Hệ thống: Duyệt nạp {payload.token_adjustment:.0f} tokens từ sớ báo cáo #{report_id}",
+            tx_type="in"
+        )
+
     db.update_payment_report_status(report_id, payload.status)
     db.close()
 
     to_email = report.get("email")
     if payload.status == "resolved" and to_email:
         from app.utils.email_helper import send_resolution_email
-        background_tasks.add_task(send_resolution_email, to_email, report_id, report.get("description", ""))
+        background_tasks.add_task(
+            send_resolution_email,
+            to_email,
+            report_id,
+            report.get("description", ""),
+            payload.admin_reply
+        )
 
     return {"message": "Cập nhật trạng thái thành công"}
 

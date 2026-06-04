@@ -40,6 +40,24 @@ const PackagesTab: React.FC<PackagesTabProps> = ({
 }) => {
   const { language } = useLanguage();
   const tLocal = localized[language] || localized.vi;
+  const isVi = language === 'vi';
+
+  const getTransName = (name: string) => {
+    if (isVi) return name;
+    switch (name) {
+      case 'Gói khởi đầu':
+        return 'Starter Pack';
+      case 'Gói phổ biến':
+        return 'Standard Pack';
+      case 'Gói tiết kiệm':
+        return 'Savings Pack';
+      default:
+        return name
+          .replace(/Gói khởi đầu/gi, 'Starter Pack')
+          .replace(/Gói phổ biến/gi, 'Standard Pack')
+          .replace(/Gói tiết kiệm/gi, 'Savings Pack');
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in pb-10">
@@ -95,7 +113,7 @@ const PackagesTab: React.FC<PackagesTabProps> = ({
                 <div className="w-10 h-10 bg-amber-100/50 border border-amber-300 rounded-xl flex items-center justify-center mb-4 text-[#7f1d1d] font-historical font-black shadow-inner">
                   敕
                 </div>
-                <h4 className="font-historical font-black text-[#7f1d1d] text-lg leading-tight mb-1">{p.name}</h4>
+                <h4 className="font-historical font-black text-[#7f1d1d] text-lg leading-tight mb-1">{getTransName(p.name)}</h4>
                 <div className="text-3xl font-historical font-black text-amber-800 flex items-baseline gap-1">
                   {p.tokens.toLocaleString()}
                   <span className="text-xs font-serif text-amber-900/60 uppercase tracking-widest font-normal">{tLocal.tokens_unit}</span>

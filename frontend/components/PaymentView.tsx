@@ -13,9 +13,10 @@ interface PaymentViewProps {
   user: User | null;
   onBalanceUpdate: (balance: number) => void;
   isSidebarOpen?: boolean;
+  siteConfig?: any;
 }
 
-const PaymentView: React.FC<PaymentViewProps> = ({ user, onBalanceUpdate, isSidebarOpen }) => {
+const PaymentView: React.FC<PaymentViewProps> = ({ user, onBalanceUpdate, isSidebarOpen, siteConfig }) => {
   const { t } = useLanguage();
   const [packages, setPackages] = useState<PaymentPackage[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<PaymentInvoice | null>(null);
@@ -132,7 +133,7 @@ const PaymentView: React.FC<PaymentViewProps> = ({ user, onBalanceUpdate, isSide
       </div>
 
       {showReportForm && (
-        <PaymentReportModal user={user} onClose={() => setShowReportForm(false)} />
+        <PaymentReportModal user={user} onClose={() => setShowReportForm(false)} siteConfig={siteConfig} />
       )}
 
       {selectedInvoice && (

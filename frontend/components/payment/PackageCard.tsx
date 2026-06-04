@@ -11,7 +11,26 @@ interface PackageCardProps {
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, index }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isVi = language === 'vi';
+
+  const getTransName = (name: string) => {
+    if (isVi) return name;
+    switch (name) {
+      case 'Gói khởi đầu':
+        return 'Starter Pack';
+      case 'Gói phổ biến':
+        return 'Standard Pack';
+      case 'Gói tiết kiệm':
+        return 'Savings Pack';
+      default:
+        return name
+          .replace(/Gói khởi đầu/gi, 'Starter Pack')
+          .replace(/Gói phổ biến/gi, 'Standard Pack')
+          .replace(/Gói tiết kiệm/gi, 'Savings Pack');
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -37,7 +56,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ pkg, onSelect, isProcessing, 
       </div>
       
       {/* Title */}
-      <h3 className="text-lg font-sans font-black text-[#7f1d1d] mb-1.5 tracking-wide leading-tight">{pkg.name}</h3>
+      <h3 className="text-lg font-sans font-black text-[#7f1d1d] mb-1.5 tracking-wide leading-tight">{getTransName(pkg.name)}</h3>
       
       {/* Tokens */}
       <div className="flex items-baseline gap-1 mb-5">

@@ -12,31 +12,52 @@ interface SecureImageProps {
 // Global cache for secure image blob URLs to prevent redundant network fetches
 const secureImageCache: Record<string, string> = {};
 
+// Helper to bypass ngrok browser warning by appending query parameter
+const bypassNgrok = (url: string): string => {
+  if (!url) return url;
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+  if (url.includes('ngrok-free.dev') || url.includes('ngrok-free.app')) {
+    const separator = url.includes('?') ? '&' : '?';
+    if (!url.includes('ngrok-skip-browser-warning')) {
+      return `${url}${separator}ngrok-skip-browser-warning=true`;
+    }
+  }
+  return url;
+};
+
 const SecureImage: React.FC<SecureImageProps> = ({ 
   src, alt, className, style, isBackground, children 
 }) => {
+  const bypassedSrc = src ? bypassNgrok(src) : '';
   const [safeSrc, setSafeSrc] = useState<string>(secureImageCache[src] || '');
 
   useEffect(() => {
-    if (!src) return;
+    if (!src) {
+      setSafeSrc('');
+      return;
+    }
 
-    // Nếu là link base64 hoặc blob thì dùng luôn
     if (src.startsWith('data:') || src.startsWith('blob:')) {
       setSafeSrc(src);
       return;
     }
 
-    // Nếu đã có trong cache, dùng luôn
     if (secureImageCache[src]) {
       setSafeSrc(secureImageCache[src]);
       return;
     }
 
+    // Reset safeSrc to empty to fallback to bypassedSrc immediately during fetch
+    setSafeSrc('');
+
     let isMounted = true;
+    const bypassed = bypassNgrok(src);
 
     const loadImage = async () => {
       try {
-        const response = await fetch(src, {
+        const response = await fetch(bypassed, {
           headers: {
             'ngrok-skip-browser-warning': 'true'
           }
@@ -52,7 +73,7 @@ const SecureImage: React.FC<SecureImageProps> = ({
       } catch (error) {
         console.error('Error loading secure image:', error);
         if (isMounted) {
-          setSafeSrc(src); // Fallback về link gốc
+          setSafeSrc(bypassed); // Fallback to bypassed link
         }
       }
     };
@@ -64,13 +85,15 @@ const SecureImage: React.FC<SecureImageProps> = ({
     };
   }, [src]);
 
+  const activeSrc = safeSrc || bypassedSrc;
+
   if (isBackground) {
     return (
       <div 
         className={className} 
         style={{ 
           ...style, 
-          backgroundImage: safeSrc ? `url(${safeSrc})` : undefined,
+          backgroundImage: activeSrc ? `url(${activeSrc})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -83,7 +106,7 @@ const SecureImage: React.FC<SecureImageProps> = ({
 
   return (
     <img 
-      src={safeSrc || src} 
+      src={activeSrc} 
       alt={alt} 
       className={className} 
       style={style} 

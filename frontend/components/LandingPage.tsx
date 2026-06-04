@@ -27,7 +27,7 @@ const Navbar = ({ logoUrl, siteTitle, onStart, user, onPlayGame, gameEnabled }: 
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
       <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-stone-200 group-hover:shadow-md transition-shadow">
-          <SecureImage src={logoUrl || "/default.jpg"} alt="Logo" className="w-full h-full object-cover" />
+          <SecureImage src={logoUrl || "/images/su_viet_bot.jpg"} alt="Logo" className="w-full h-full object-cover" />
         </div>
         <span className="font-historical-premium text-xl font-bold text-stone-900 group-hover:text-red-800 transition-colors">{siteTitle}</span>
       </div>

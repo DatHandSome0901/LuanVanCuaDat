@@ -2767,3 +2767,45 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Live builder interactive hover guides */
+.preview-mode-active section,
+.preview-mode-active footer {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.preview-mode-active section:hover,
+.preview-mode-active footer:hover {
+  outline: 2px dashed rgba(220, 38, 38, 0.6) !important;
+  outline-offset: -2px;
+  background-color: rgba(254, 243, 199, 0.1) !important;
+  cursor: pointer !important;
+}
+
+.preview-mode-active section::before,
+.preview-mode-active footer::before {
+  content: "Click để sửa phần này";
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #7f1d1d;
+  color: #fef3c7;
+  font-family: sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 50;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.preview-mode-active section:hover::before,
+.preview-mode-active footer:hover::before {
+  opacity: 1;
+}

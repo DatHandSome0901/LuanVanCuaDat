@@ -42,21 +42,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
     fetchHistory();
   }, []);
 
-  const handleUpdateFullName = async () => {
-    const newName = await promptInput(t.swal_update_name_title, t.swal_update_name_desc, user.full_name || '');
-    if (newName) {
-      try {
-        await api.userProfileUpdate({ full_name: newName });
-        toast.success(t.swal_profile_updated);
-        if (onUpdateUser) {
-           const updatedUser = { ...user, full_name: newName };
-           onUpdateUser(updatedUser);
-        }
-      } catch (err: any) {
-        toast.error(err.message);
-      }
-    }
-  };
+
 
   const handleChangePassword = async () => {
     const currentPassword = await promptInput(t.swal_change_pwd_title, t.swal_change_pwd_current, '', 'password');
@@ -93,9 +79,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout,
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         <div className="md:col-span-1 space-y-6">
-          <ProfileInfoCard 
-            user={user} 
-            onUpdateFullName={handleUpdateFullName}
+          <ProfileInfoCard
+            user={user}
+            onUpdateUser={onUpdateUser}
             onChangePassword={handleChangePassword}
             onRequestReport={onRequestReport}
           />

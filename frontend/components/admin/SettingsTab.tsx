@@ -335,6 +335,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   const tLocal = localized[language] || localized.vi;
 
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const miniPreviewContainerRef = useRef<HTMLDivElement>(null);
+  const formContainerRef = useRef<HTMLDivElement>(null);
   const [selectedEraIdx, setSelectedEraIdx] = useState<number>(0);
   const [eras, setEras] = useState<EraCard[]>(language === 'en' ? defaultErasEn : defaultErasVi);
   const [uploadingEraImage, setUploadingEraImage] = useState(false);
@@ -467,15 +469,80 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
   // Handle scrolling preview pane to focused section
   const scrollToSection = (sectionId: string) => {
-    if (previewContainerRef.current) {
-      const element = previewContainerRef.current.querySelector(`#${sectionId}`);
+    const container = isPreviewExpanded ? previewContainerRef.current : miniPreviewContainerRef.current;
+    if (container) {
+      const element = container.querySelector(`#${sectionId}`);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const relativeTop = elementRect.top - containerRect.top;
+        const targetScrollTop = container.scrollTop + relativeTop - (container.clientHeight / 2) + (elementRect.height / 2);
+        
+        container.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+
         // Add a temporary subtle highlight effect
         element.classList.add('ring-4', 'ring-red-600/40', 'transition-all');
         setTimeout(() => {
           element.classList.remove('ring-4', 'ring-red-600/40');
         }, 1500);
+      }
+    }
+  };
+
+  // Scroll Settings Form to the input field corresponding to sectionId
+  const scrollToInput = (sectionId: string) => {
+    if (formContainerRef.current) {
+      let targetElement: HTMLElement | null = null;
+      if (sectionId === 'hero') {
+        targetElement = formContainerRef.current.querySelector('[name="landing_hero_title"]');
+      } else if (sectionId === 'process') {
+        targetElement = formContainerRef.current.querySelector('#form-process');
+      } else if (sectionId === 'features') {
+        targetElement = formContainerRef.current.querySelector('#form-features');
+      } else if (sectionId === 'eras') {
+        targetElement = formContainerRef.current.querySelector('#form-eras');
+      } else if (sectionId === 'stats') {
+        targetElement = formContainerRef.current.querySelector('#form-stats') || formContainerRef.current.querySelector('#form-highlights');
+      } else if (sectionId === 'landing-footer') {
+        targetElement = formContainerRef.current.querySelector('#form-footer');
+      }
+
+      if (targetElement) {
+        const container = formContainerRef.current;
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = targetElement.getBoundingClientRect();
+        const relativeTop = targetRect.top - containerRect.top;
+        const targetScrollTop = container.scrollTop + relativeTop - (container.clientHeight / 2) + (targetRect.height / 2);
+        
+        container.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+
+        targetElement.classList.add('ring-4', 'ring-amber-500/40', 'transition-all');
+        const inputToFocus = targetElement.querySelector('input, textarea, select') as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+        if (inputToFocus) {
+          inputToFocus.focus();
+        }
+        setTimeout(() => {
+          targetElement?.classList.remove('ring-4', 'ring-amber-500/40');
+        }, 1500);
+      }
+    }
+  };
+
+  const handlePreviewClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const target = e.target as HTMLElement;
+    const section = target.closest('section[id], footer[id]');
+    if (section) {
+      const sectionId = section.getAttribute('id');
+      if (sectionId) {
+        scrollToInput(sectionId);
       }
     }
   };
@@ -575,7 +642,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
         {/* LEFT COLUMN: Controls Form */}
         <form onSubmit={onSave} className={`${isPreviewExpanded ? 'lg:col-span-5' : 'lg:col-span-12'} bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden flex flex-col max-h-[calc(100vh-160px)] transition-all duration-300`}>
-          <div className="p-5 md:p-6 overflow-y-auto space-y-6 flex-1 min-h-[400px]">
+          <div ref={formContainerRef} className="p-5 md:p-6 overflow-y-auto space-y-6 flex-1 min-h-[400px]">
             {/* --- SECTION 1: CÀI ĐẶT CHUNG (SEO) --- */}
             <div className="space-y-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
@@ -815,7 +882,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
 
               {/* Process Steps Section */}
-              <div className="space-y-3">
+              <div className="space-y-3" id="form-process">
                 <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.process_steps}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {processSteps.map((step, idx) => (
@@ -824,6 +891,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                       <input 
                         type="text"
                         value={step.title}
+                        onFocus={() => scrollToSection('process')}
                         onChange={(e) => {
                           const updated = [...processSteps];
                           updated[idx].title = e.target.value;
@@ -836,6 +904,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                       <textarea 
                         value={step.desc}
                         rows={2}
+                        onFocus={() => scrollToSection('process')}
                         onChange={(e) => {
                           const updated = [...processSteps];
                           updated[idx].desc = e.target.value;
@@ -851,7 +920,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
 
               {/* Features Tabs Section */}
-              <div className="space-y-3">
+              <div className="space-y-3" id="form-features">
                 <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.audience_features}</label>
                 <div className="space-y-2.5">
                   {featuresTabs.map((item, idx) => (
@@ -861,6 +930,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                         <input 
                           type="text"
                           value={item.tab}
+                          onFocus={() => scrollToSection('features')}
                           onChange={(e) => {
                             const updated = [...featuresTabs];
                             updated[idx].tab = e.target.value;
@@ -876,6 +946,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                         <input 
                           type="text"
                           value={item.title}
+                          onFocus={() => scrollToSection('features')}
                           onChange={(e) => {
                             const updated = [...featuresTabs];
                             updated[idx].title = e.target.value;
@@ -893,6 +964,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                             key={pidx}
                             type="text"
                             value={pt}
+                            onFocus={() => scrollToSection('features')}
                             onChange={(e) => {
                               const updated = [...featuresTabs];
                               updated[idx].points[pidx] = e.target.value;
@@ -910,7 +982,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
 
               {/* Stats Numbers Section */}
-              <div className="space-y-3">
+              <div className="space-y-3" id="form-stats">
                 <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.stats_title}</label>
                 <div className="grid grid-cols-4 gap-2">
                   {statsItems.map((stat, idx) => (
@@ -920,6 +992,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                         <input 
                           type="text"
                           value={stat.num}
+                          onFocus={() => scrollToSection('stats')}
                           onChange={(e) => {
                             const updated = [...statsItems];
                             updated[idx].num = isNaN(Number(e.target.value)) ? e.target.value : Number(e.target.value);
@@ -934,6 +1007,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                         <input 
                           type="text"
                           value={stat.suffix}
+                          onFocus={() => scrollToSection('stats')}
                           onChange={(e) => {
                             const updated = [...statsItems];
                             updated[idx].suffix = e.target.value;
@@ -948,6 +1022,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                         <input 
                           type="text"
                           value={stat.label}
+                          onFocus={() => scrollToSection('stats')}
                           onChange={(e) => {
                             const updated = [...statsItems];
                             updated[idx].label = e.target.value;
@@ -964,7 +1039,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
 
               {/* Stats Highlights Section */}
-              <div className="space-y-3">
+              <div className="space-y-3" id="form-highlights">
                 <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider block">{tLocal.highlights_title}</label>
                 <div className="space-y-2">
                   {highlightsItems.map((highlight, idx) => (
@@ -973,6 +1048,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                       <input 
                         type="text"
                         value={highlight.title}
+                        onFocus={() => scrollToSection('stats')}
                         onChange={(e) => {
                           const updated = [...highlightsItems];
                           updated[idx].title = e.target.value;
@@ -985,6 +1061,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                       <textarea 
                         value={highlight.desc}
                         rows={2}
+                        onFocus={() => scrollToSection('stats')}
                         onChange={(e) => {
                           const updated = [...highlightsItems];
                           updated[idx].desc = e.target.value;
@@ -1050,7 +1127,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </h4>
 
               {/* Era Selector Cards */}
-              <div className="grid grid-cols-4 gap-2 bg-stone-100 p-1.5 rounded-xl border border-stone-200">
+              <div className="grid grid-cols-4 gap-2 bg-stone-100 p-1.5 rounded-xl border border-stone-200" id="form-eras">
                 {eras.map((era, idx) => (
                   <button
                     key={idx}
@@ -1083,6 +1160,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                     <input
                       type="text"
                       value={eras[selectedEraIdx]?.title || ''}
+                      onFocus={() => scrollToSection('eras')}
                       onChange={(e) => handleEraChange('title', e.target.value)}
                       className="w-full bg-white border border-stone-200 p-2 rounded-lg focus:outline-none text-xs"
                     />
@@ -1093,6 +1171,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                     <input
                       type="text"
                       value={eras[selectedEraIdx]?.time || ''}
+                      onFocus={() => scrollToSection('eras')}
                       onChange={(e) => handleEraChange('time', e.target.value)}
                       className="w-full bg-white border border-stone-200 p-2 rounded-lg focus:outline-none text-xs"
                     />
@@ -1106,6 +1185,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                     <input
                       type="text"
                       value={eras[selectedEraIdx]?.image || ''}
+                      onFocus={() => scrollToSection('eras')}
                       onChange={(e) => handleEraChange('image', e.target.value)}
                       className="w-full bg-white border border-stone-200 p-2 rounded-lg focus:outline-none text-xs font-mono"
                       placeholder={tLocal.era_image_placeholder}
@@ -1131,6 +1211,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   <label className="text-[9px] font-historical font-black text-[#7f1d1d] mb-1 block">{tLocal.era_summary}</label>
                   <textarea
                     value={eras[selectedEraIdx]?.summary || ''}
+                    onFocus={() => scrollToSection('eras')}
                     onChange={(e) => handleEraChange('summary', e.target.value)}
                     rows={3}
                     className="w-full bg-white border border-stone-200 p-2 rounded-lg focus:outline-none text-xs leading-relaxed"
@@ -1191,8 +1272,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
             </div>
 
-            {/* --- SECTION 5: CẤU HÌNH FOOTER --- */}
-            <div className="space-y-4 border-t border-stone-100 pt-4">
+             {/* --- SECTION 5: CẤU HÌNH FOOTER --- */}
+            <div className="space-y-4 border-t border-stone-100 pt-4" id="form-footer">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
                 <FileText size={16} /> {tLocal.config_footer}
               </h4>
@@ -1403,7 +1484,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* Embedded React Component Preview Pane */}
             <div 
               ref={previewContainerRef}
-              className="flex-1 overflow-y-auto bg-stone-50 scale-95 origin-top rounded-2xl border border-stone-200"
+              onClick={handlePreviewClick}
+              className="flex-1 overflow-y-auto bg-stone-50 scale-95 origin-top rounded-2xl border border-stone-200 preview-mode-active"
             >
               <LandingPage 
                 siteConfig={previewSiteConfig as any} 
@@ -1441,9 +1523,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </button>
             </div>
             {/* Miniature Preview Screen - Scrollable! */}
-            <div className="flex-1 bg-stone-50 overflow-y-auto relative scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-stone-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div 
+              ref={miniPreviewContainerRef}
+              onClick={handlePreviewClick}
+              className="flex-1 bg-stone-50 overflow-y-auto relative scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-stone-300 [&::-webkit-scrollbar-thumb]:rounded-full"
+            >
               <div className="absolute inset-0 pointer-events-none bg-black/5 group-hover:bg-transparent z-10 transition-colors"></div>
-              <div className="w-[1120px] origin-top-left scale-[0.25] pointer-events-none">
+              <div className="w-[1120px] origin-top-left scale-[0.25]">
                 <LandingPage 
                   siteConfig={previewSiteConfig as any} 
                   onStart={() => {}} 

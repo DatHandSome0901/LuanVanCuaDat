@@ -128,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         initial={false}
         animate={{ width: isOpen ? 288 : 72 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="hidden md:flex bg-[#171717] border-r border-white/10 flex-col h-screen shrink-0 relative overflow-hidden"
+        className="hidden md:flex bg-[#1c120c] border-r border-amber-900/15 flex-col h-screen shrink-0 relative overflow-hidden"
       >
         <div className={`flex-1 flex flex-col min-h-0 ${isOpen ? 'p-6' : 'p-3'} overflow-y-auto chatgpt-scrollbar`}>
           <div className={`flex items-center ${isOpen ? 'justify-between' : 'justify-center'} mb-8 shrink-0`}>
@@ -182,17 +182,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => handleNavClick(item.id)}
                   className={`w-full group relative flex items-center ${isOpen ? 'gap-3 px-4 py-3' : 'justify-center p-3'} rounded-2xl transition-all ${
                     isActive 
-                      ? 'bg-white/10 text-white font-bold' 
-                      : 'text-stone-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-[#7f1d1d]/85 text-amber-100 font-bold border border-amber-500/20 shadow-md shadow-red-950/40' 
+                      : 'text-stone-400 hover:bg-[#7f1d1d]/15 hover:text-amber-200'
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-white' : 'text-stone-500 group-hover:text-stone-300'}`} />
+                  <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-amber-450/80'}`} />
                   {isOpen && <span>{item.label}</span>}
                   
                   {isOpen && isActive && (
                     <motion.div 
                       layoutId="desktopActive"
-                      className="absolute left-0 w-1 h-6 bg-red-800 rounded-r-full"
+                      className="absolute left-0 w-1 h-6 bg-amber-500 rounded-r-full"
                     />
                   )}
                 </button>
@@ -230,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-4">
               <div 
                 onClick={() => onViewChange('profile')}
-                className={`flex items-center ${isOpen ? 'gap-3 p-2' : 'justify-center p-2'} rounded-xl border border-white/5 hover:bg-white/5 cursor-pointer transition-all group`}
+                className={`flex items-center ${isOpen ? 'gap-3 p-2' : 'justify-center p-2'} rounded-xl border border-amber-900/10 hover:bg-[#7f1d1d]/10 cursor-pointer transition-all group`}
               >
                 {user.picture_url ? (
                   <SecureImage 
@@ -269,12 +269,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
               {isOpen ? (
                 <button 
-                  onClick={() => {
-                    localStorage.removeItem("access_token")
-                    localStorage.removeItem("conversation_id")
-                    window.dispatchEvent(new Event("clear_conversations"))
-                    onLogout()
-                  }}
+                  onClick={onLogout}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,10 +279,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               ) : (
                 <button 
-                  onClick={() => {
-                    localStorage.removeItem("access_token")
-                    onLogout()
-                  }}
+                  onClick={onLogout}
                   className="w-full flex justify-center p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                   title={t.sidebar_logout}
                 >

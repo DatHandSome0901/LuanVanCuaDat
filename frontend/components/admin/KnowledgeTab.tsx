@@ -4,8 +4,73 @@ import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { confirmDestructive } from "../../utils/swal";
 import { CheckCircle, Trash2, Clock, Search, BookOpen, Info, ChevronRight, X } from "lucide-react";
+import { useLanguage } from '../../contexts/LanguageContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const stripMarkdown = (text: string): string => {
+    if (!text) return "";
+    return text
+        .replace(/[#*`~_\-]/g, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/\s+/g, " ")
+        .trim();
+};
 
 export default function KnowledgeTab() {
+    const { language } = useLanguage();
+
+    const txt = {
+        vi: {
+            title: "Kho Tàng Tri Thức Triều Đình (Tri Thức AI)",
+            subtitle: "Biên soạn, phê duyệt và quản lý những áng văn lịch sử thông minh của quốc gia",
+            search_placeholder: "Truy tầm tri thức...",
+            filter_all: "Tất cả",
+            filter_pending: "Chờ duyệt",
+            filter_approved: "Đã duyệt",
+            loading: "Đang mở hòm tri thức...",
+            empty: "Không tìm thấy tri thức nào phù hợp trong thư tịch.",
+            lbl_question: "Đề mục câu hỏi",
+            lbl_answer: "Lời chép của sử thư hệ thống",
+            btn_approve: "Phê Phê Phán (Duyệt)",
+            btn_delete: "Bãi Bỏ",
+            select_prompt: "Chọn một thiên mục tri thức để tra duyệt thư tịch",
+            err_load: "Lỗi khi tải dữ liệu",
+            success_approve: "Đã duyệt tri thức thành công",
+            err_approve: "Lỗi khi duyệt",
+            delete_title: "Xóa tri thức",
+            delete_confirm: "Bạn có chắc chắn muốn xóa tri thức này? Hành động này không thể hoàn tác.",
+            success_delete: "Đã xóa tri thức",
+            err_delete: "Lỗi khi xóa",
+            status_pending_stamp: "侍閱 Chờ duyệt",
+            status_approved_stamp: "已決 Đã phê duyệt"
+        },
+        en: {
+            title: "Royal Archives of Knowledge (AI Knowledge)",
+            subtitle: "Compile, approve, and manage the nation's intelligent historical documents",
+            search_placeholder: "Search knowledge...",
+            filter_all: "All",
+            filter_pending: "Pending",
+            filter_approved: "Approved",
+            loading: "Opening knowledge vault...",
+            empty: "No matching knowledge found in the archives.",
+            lbl_question: "Question Subject",
+            lbl_answer: "System historical script",
+            btn_approve: "Approve",
+            btn_delete: "Delete",
+            select_prompt: "Select a knowledge entry to browse the archives",
+            err_load: "Error loading data",
+            success_approve: "Knowledge approved successfully",
+            err_approve: "Error approving",
+            delete_title: "Delete Knowledge",
+            delete_confirm: "Are you sure you want to delete this knowledge? This action cannot be undone.",
+            success_delete: "Knowledge deleted",
+            err_delete: "Error deleting",
+            status_pending_stamp: "PENDING",
+            status_approved_stamp: "APPROVED"
+        }
+    }[language === 'en' ? 'en' : 'vi'];
+
     const [pending, setPending] = useState<any[]>([]);
     const [approved, setApproved] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +88,7 @@ export default function KnowledgeTab() {
             setPending(p.data || []);
             setApproved(a.data || []);
         } catch (error) {
-            toast.error("Lỗi khi tải dữ liệu");
+            toast.error(txt.err_load);
         } finally {
             setLoading(false);
         }
@@ -42,7 +107,7 @@ export default function KnowledgeTab() {
             await api.adminApproveKnowledge(id);
             setProgress(100);
             setTimeout(() => {
-                toast.success("Đã duyệt tri thức thành công");
+                toast.success(txt.success_approve);
                 setApprovingId(null);
                 setSelected(null);
                 fetchData();
@@ -50,20 +115,20 @@ export default function KnowledgeTab() {
         } catch (err: any) {
             clearInterval(interval);
             setApprovingId(null);
-            toast.error(err.message || "Lỗi khi duyệt");
+            toast.error(err.message || txt.err_approve);
         }
     };
 
     const remove = async (id: number) => {
-        const confirmed = await confirmDestructive("Xóa tri thức", "Bạn có chắc chắn muốn xóa tri thức này? Hành động này không thể hoàn tác.");
+        const confirmed = await confirmDestructive(txt.delete_title, txt.delete_confirm);
         if (confirmed) {
             try {
                 await api.adminDeleteKnowledge(id);
-                toast.success("Đã xóa tri thức");
+                toast.success(txt.success_delete);
                 setSelected(null);
                 fetchData();
             } catch (err: any) {
-                toast.error(err.message || "Lỗi khi xóa");
+                toast.error(err.message || txt.err_delete);
             }
         }
     };
@@ -95,8 +160,8 @@ export default function KnowledgeTab() {
                         <BookOpen size={18} />
                     </div>
                     <div>
-                        <h2 className="font-historical text-lg text-[#7f1d1d] font-black uppercase tracking-tight">Kho Tàng Tri Thức Triều Đình (Tri Thức AI)</h2>
-                        <p className="text-[11px] text-stone-500 font-sans italic mt-0.5">Biên soạn, phê duyệt và quản lý những áng văn lịch sử thông minh của quốc gia</p>
+                        <h2 className="font-historical text-lg text-[#7f1d1d] font-black uppercase tracking-tight">{txt.title}</h2>
+                        <p className="text-[11px] text-stone-500 font-sans italic mt-0.5">{txt.subtitle}</p>
                     </div>
                 </div>
 
@@ -106,7 +171,7 @@ export default function KnowledgeTab() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-800/60" size={14} />
                         <input
                             type="text"
-                            placeholder="Truy tầm tri thức..."
+                            placeholder={txt.search_placeholder}
                             className="pl-9 pr-3 py-2 bg-white/70 border border-amber-800/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-xs w-48 font-sans"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -124,9 +189,9 @@ export default function KnowledgeTab() {
                                     : "text-amber-200/50 hover:text-amber-100"
                                 }`}
                             >
-                                {f === 'all' && 'Tất cả'}
-                                {f === 'pending' && 'Chờ duyệt'}
-                                {f === 'approved' && 'Đã duyệt'}
+                                {f === 'all' && txt.filter_all}
+                                {f === 'pending' && txt.filter_pending}
+                                {f === 'approved' && txt.filter_approved}
                             </button>
                         ))}
                     </div>
@@ -134,16 +199,16 @@ export default function KnowledgeTab() {
             </div>
 
             {loading ? (
-                <div className="flex-1 flex items-center justify-center text-amber-900/60 font-serif gap-3 py-20">
+                <div className="flex-1 flex items-center justify-center text-amber-900/60 font-sans gap-3 py-20">
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
                         <Clock size={20} />
                     </motion.div>
-                    <span className="text-sm">Đang mở hòm tri thức...</span>
+                    <span className="text-sm">{txt.loading}</span>
                 </div>
             ) : filteredItems.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-stone-400 gap-2 py-20 paper-texture scroll-border rounded-xl">
                     <Info size={28} className="opacity-30 text-amber-700" />
-                    <p className="text-sm font-serif italic text-stone-600">Không tìm thấy tri thức nào phù hợp trong thư tịch.</p>
+                    <p className="text-sm font-sans text-stone-600">{txt.empty}</p>
                 </div>
             ) : (
                 <div className="flex flex-col lg:flex-row gap-5 min-h-0">
@@ -170,12 +235,12 @@ export default function KnowledgeTab() {
                                                 ? 'bg-amber-50 text-amber-700 border-amber-200'
                                                 : 'bg-green-50 text-green-700 border-green-200'
                                         }`}>
-                                            {item.status === 'pending' ? 'Chờ duyệt' : 'Đã duyệt'}
+                                            {item.status === 'pending' ? txt.filter_pending : txt.filter_approved}
                                         </div>
                                         <ChevronRight size={12} className="ml-auto text-stone-300 group-hover:text-stone-500 transition-colors shrink-0" />
                                     </div>
                                     <p className="text-xs font-historical font-black text-[#7f1d1d] line-clamp-1 mb-1">{item.question}</p>
-                                    <p className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed font-serif">{item.answer}</p>
+                                    <p className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed font-sans">{stripMarkdown(item.answer)}</p>
                                 </motion.button>
                             ))}
                         </AnimatePresence>
@@ -202,8 +267,8 @@ export default function KnowledgeTab() {
                                                     : 'bg-green-50 text-green-700 border-green-600'
                                             }`}>
                                                 {selected.status === 'pending'
-                                                    ? <><Clock size={10} /> 侍閱 Chờ duyệt</>
-                                                    : <><CheckCircle size={10} /> 已決 Đã phê duyệt</>
+                                                    ? <><Clock size={10} /> {txt.status_pending_stamp}</>
+                                                    : <><CheckCircle size={10} /> {txt.status_approved_stamp}</>
                                                 }
                                             </div>
                                             {approvingId === selected.id && (
@@ -223,15 +288,17 @@ export default function KnowledgeTab() {
 
                                     {/* Question */}
                                     <div>
-                                        <div className="text-[9px] font-historical font-black uppercase tracking-widest text-[#b45309]/80 mb-2">Đề mục câu hỏi</div>
+                                        <div className="text-[9px] font-historical font-black uppercase tracking-widest text-[#b45309]/80 mb-2">{txt.lbl_question}</div>
                                         <p className="text-base font-historical font-black text-[#7f1d1d] leading-relaxed">{selected.question}</p>
                                     </div>
 
                                     {/* Answer */}
                                     <div className="flex-1">
-                                        <div className="text-[9px] font-historical font-black uppercase tracking-widest text-[#b45309]/80 mb-2">Lời chép của sử thư hệ thống</div>
-                                        <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-800/20 text-xs font-serif text-stone-700 leading-relaxed whitespace-pre-wrap">
-                                            {selected.answer}
+                                        <div className="text-[9px] font-historical font-black uppercase tracking-widest text-[#b45309]/80 mb-2">{txt.lbl_answer}</div>
+                                        <div className="p-5 bg-amber-50/40 rounded-xl border border-amber-800/20 text-xs text-stone-750 leading-relaxed font-sans prose prose-stone prose-sm max-w-none">
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                {selected.answer}
+                                            </ReactMarkdown>
                                         </div>
                                     </div>
 
@@ -242,7 +309,7 @@ export default function KnowledgeTab() {
                                                 onClick={() => approve(selected.id)}
                                                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-700 to-emerald-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-historical font-black text-xs uppercase tracking-widest shadow-md hover-lift active:scale-95 transition-all"
                                             >
-                                                <CheckCircle size={13} /> Phê Phê Phán (Duyệt)
+                                                <CheckCircle size={13} /> {txt.btn_approve}
                                             </button>
                                         )}
                                         <button
@@ -250,7 +317,7 @@ export default function KnowledgeTab() {
                                             disabled={approvingId === selected.id}
                                             className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-700 border border-red-200 rounded-xl font-historical font-black text-xs uppercase tracking-widest hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95 transition-all disabled:opacity-30 hover-lift"
                                         >
-                                            <Trash2 size={13} /> Bãi Bỏ
+                                            <Trash2 size={13} /> {txt.btn_delete}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -262,7 +329,7 @@ export default function KnowledgeTab() {
                                     className="h-full min-h-[300px] flex flex-col items-center justify-center text-amber-900/40 gap-2 border border-dashed border-amber-800/20 rounded-2xl"
                                 >
                                     <ChevronRight size={28} className="rotate-180 text-amber-700/30" />
-                                    <p className="text-sm font-serif italic text-stone-600">Chọn một thiên mục tri thức để tra duyệt thư tịch</p>
+                                    <p className="text-sm font-sans text-stone-600">{txt.select_prompt}</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>

@@ -19,13 +19,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PaymentReportModal from './components/payment/PaymentReportModal';
 
 // Floating support ticket button (bottom-left)
-const ReportFloatBtn: React.FC<{ 
+const ReportFloatBtn: React.FC<{
   onClick: () => void;
   isSidebarOpen: boolean;
   hasSidebar: boolean;
 }> = ({ onClick, isSidebarOpen, hasSidebar }) => {
   const { language } = useLanguage();
-  
+
   const positionClass = hasSidebar
     ? (isSidebarOpen ? "left-6 md:left-[304px]" : "left-6 md:left-[88px]")
     : "left-6";
@@ -355,7 +355,9 @@ const AppInner: React.FC = () => {
               <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
             )
           ) : !user && currentView !== 'chat' ? (
-            <AuthView onSuccess={handleLoginSuccess} />
+            <div className="min-h-full w-full flex justify-center items-start py-8 px-4">
+              <AuthView onSuccess={handleLoginSuccess} />
+            </div>
           ) : (
             <>
               {currentView === 'chat' && (
@@ -383,12 +385,12 @@ const AppInner: React.FC = () => {
               {currentView === 'qa' && user && <QAView user={user} onBalanceUpdate={updateBalance} onNavigate={setCurrentView} />}
               {currentView === 'admin' && user?.is_admin && <AdminView user={user} onUpdateUser={setUser} onLogout={handleLogout} isSidebarOpen={isSidebarOpen} onViewChange={setCurrentView} />}
               {currentView === 'profile' && user && (
-                <ProfileView 
-                  user={user} 
-                  onUpdateUser={setUser} 
-                  onLogout={handleLogout} 
-                  isSidebarOpen={isSidebarOpen} 
-                  onViewChange={setCurrentView} 
+                <ProfileView
+                  user={user}
+                  onUpdateUser={setUser}
+                  onLogout={handleLogout}
+                  isSidebarOpen={isSidebarOpen}
+                  onViewChange={setCurrentView}
                   onRequestReport={() => setShowReportForm(true)}
                 />
               )}
@@ -401,16 +403,16 @@ const AppInner: React.FC = () => {
       <LangSwitcherBtn />
       {/* Floating report button (bottom-left) */}
       {user && !user.is_admin && (
-        <ReportFloatBtn 
-          onClick={() => setShowReportForm(true)} 
+        <ReportFloatBtn
+          onClick={() => setShowReportForm(true)}
           isSidebarOpen={isSidebarOpen}
           hasSidebar={currentView !== 'landing' && currentView !== 'admin'}
         />
       )}
       {showReportForm && (
-        <PaymentReportModal 
-          user={user} 
-          onClose={() => setShowReportForm(false)} 
+        <PaymentReportModal
+          user={user}
+          onClose={() => setShowReportForm(false)}
         />
       )}
     </div>

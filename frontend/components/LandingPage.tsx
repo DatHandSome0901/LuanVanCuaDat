@@ -622,12 +622,26 @@ const CTASection = ({ onStart, user }: any) => {
               {user ? (user.is_admin ? t.cta_btn_admin : t.cta_btn_chat) : t.cta_btn_guest}
               <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </button>
-            <div className="flex -space-x-3 items-center ml-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <img key={i} src={`https://i.pravatar.cc/100?img=${i + 20}`} className="w-10 h-10 rounded-full border-2 border-stone-900 shadow-lg" alt="User Avatar" />
-              ))}
-              <div className="ml-6 text-stone-400 font-bold text-sm">{t.cta_users_label}</div>
-            </div>
+
+            {/* APK Download Button */}
+            <a
+              href="https://rehydrate-doing-crust.ngrok-free.dev/download/apk"
+              download="ChatbotLichSu.apk"
+              className="px-8 py-5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-all duration-300 border border-white/20 hover:border-white/40 text-base flex items-center gap-3 hover:-translate-y-1 active:scale-95 backdrop-blur-sm"
+            >
+              <span className="text-2xl">📲</span>
+              <div className="text-left">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 leading-none mb-0.5">Tải về</div>
+                <div>App Android (APK)</div>
+              </div>
+            </a>
+          </div>
+
+          <div className="flex -space-x-3 items-center justify-center mt-10">
+            {[1, 2, 3, 4, 5].map(i => (
+              <img key={i} src={`https://i.pravatar.cc/100?img=${i + 20}`} className="w-10 h-10 rounded-full border-2 border-stone-900 shadow-lg" alt="User Avatar" />
+            ))}
+            <div className="ml-6 text-stone-400 font-bold text-sm">{t.cta_users_label}</div>
           </div>
         </motion.div>
       </div>

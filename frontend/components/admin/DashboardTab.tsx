@@ -5,6 +5,17 @@ import {
 } from 'lucide-react';
 import { API_ROOT } from '../../api';
 import { useLanguage } from '../../contexts/LanguageContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const stripMarkdown = (text: string): string => {
+  if (!text) return "";
+  return text
+    .replace(/[#*`~_\-]/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 const localized = {
   vi: {
@@ -135,10 +146,9 @@ const FeedbackItem: React.FC<{ fb: any }> = ({ fb }) => {
   const tLocal = localized[language] || localized.vi;
   const [expanded, setExpanded] = React.useState(false);
   const maxLength = 100;
-  const isLong = fb.answer && fb.answer.length > maxLength;
-  const displayText = expanded
-    ? fb.answer
-    : (isLong ? `${fb.answer.slice(0, maxLength)}...` : fb.answer);
+  const cleanAnswer = fb.answer ? stripMarkdown(fb.answer) : "";
+  const isLong = cleanAnswer.length > maxLength;
+  const displayText = isLong ? `${cleanAnswer.slice(0, maxLength)}...` : cleanAnswer;
 
   return (
     <div className="p-3.5 bg-amber-50/50 rounded-xl border border-amber-250/20 flex flex-col gap-1 text-xs hover:border-amber-400/40 transition-colors">
@@ -146,25 +156,34 @@ const FeedbackItem: React.FC<{ fb: any }> = ({ fb }) => {
         <span className="font-historical font-black text-amber-900">{fb.username || tLocal.anonymous_user}</span>
         <span className="text-[9px] text-stone-400 font-mono">{new Date(fb.created_at).toLocaleString()}</span>
       </div>
-      <p className="text-stone-600 font-serif italic mb-0.5">
+      <p className="text-stone-600 font-sans mb-0.5">
         <strong className="text-amber-800">{tLocal.question}:</strong> "{fb.question}"
       </p>
       <div>
-        <p className="text-stone-750 font-serif leading-relaxed">
-          <strong className="text-red-800 font-historical font-black">{tLocal.answer}:</strong> {displayText}
-        </p>
+        {expanded ? (
+          <div className="text-stone-750 font-sans leading-relaxed prose prose-stone prose-sm max-w-none mb-2">
+            <strong className="text-red-800 font-sans font-bold block mb-1">{tLocal.answer}:</strong>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {fb.answer}
+            </ReactMarkdown>
+          </div>
+        ) : (
+          <p className="text-stone-750 font-sans leading-relaxed">
+            <strong className="text-red-800 font-sans font-bold">{tLocal.answer}:</strong> {displayText}
+          </p>
+        )}
         {isLong && (
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="text-[9px] text-[#b45309] font-historical font-black uppercase tracking-widest mt-1.5 hover:underline flex items-center gap-0.5"
+            className="text-[9px] text-[#b45309] font-sans font-bold uppercase tracking-widest mt-1.5 hover:underline flex items-center gap-0.5"
           >
             {expanded ? tLocal.collapse_memo : tLocal.read_more_memo}
           </button>
         )}
       </div>
       {fb.feedback_note && (
-        <p className="text-stone-500 font-serif border-l-2 border-red-300/60 pl-2 mt-1.5 italic">
+        <p className="text-stone-500 font-sans border-l-2 border-red-300/60 pl-2 mt-1.5">
           <strong>{tLocal.reason}:</strong> {fb.feedback_note}
         </p>
       )}
@@ -540,7 +559,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">{tLocal.total_scholars}</p>
+              <p className="text-[9px] text-stone-400 font-sans font-bold uppercase tracking-wider">{tLocal.total_scholars}</p>
               <h3 className="text-2xl font-black font-historical text-[#7f1d1d] mt-1">{totalUsers.toLocaleString()}</h3>
             </div>
             <div className="p-2.5 bg-red-50 text-[#7f1d1d] rounded-xl border border-red-100">
@@ -548,10 +567,10 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
-            <span className="text-stone-500 font-serif">{tLocal.commoners} <strong className="text-stone-700 font-bold">{regularUsersCount}</strong></span>
+            <span className="text-stone-500 font-sans">{tLocal.commoners} <strong className="text-stone-700 font-bold">{regularUsersCount}</strong></span>
             <button
               onClick={() => onTabChange('users')}
-              className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
+              className="text-[#b45309] font-sans font-bold hover:underline flex items-center gap-0.5"
             >
               {tLocal.view_details} <ArrowRight size={12} />
             </button>
@@ -562,7 +581,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">{tLocal.state_treasury}</p>
+              <p className="text-[9px] text-stone-400 font-sans font-bold uppercase tracking-wider">{tLocal.state_treasury}</p>
               <h3 className="text-2xl font-black font-historical text-amber-850 mt-1">{totalRevenue.toLocaleString()} đ</h3>
             </div>
             <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-100">
@@ -570,10 +589,10 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
-            <span className="text-stone-500 font-serif">Tokens: <strong className="text-amber-800 font-bold">{(totalTokensSold / 1000).toFixed(1)}k</strong></span>
+            <span className="text-stone-500 font-sans">Tokens: <strong className="text-amber-800 font-bold">{(totalTokensSold / 1000).toFixed(1)}k</strong></span>
             <button
               onClick={() => onTabChange('payments')}
-              className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
+              className="text-[#b45309] font-sans font-bold hover:underline flex items-center gap-0.5"
             >
               {tLocal.audit_treasury} <ArrowRight size={12} />
             </button>
@@ -584,7 +603,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-405 font-historical font-black uppercase tracking-wider">{tLocal.dialogues}</p>
+              <p className="text-[9px] text-stone-405 font-sans font-bold uppercase tracking-wider">{tLocal.dialogues}</p>
               <h3 className="text-2xl font-black font-historical text-[#7f1d1d] mt-1">{totalChatMessages.toLocaleString()}</h3>
             </div>
             <div className="p-2.5 bg-red-50 text-[#7f1d1d] rounded-xl border border-red-100">
@@ -592,10 +611,10 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
-            <span className="text-stone-500 font-serif">{tLocal.dialogues}</span>
+            <span className="text-stone-500 font-sans">{tLocal.dialogues}</span>
             <button
               onClick={() => onTabChange('chatlogs')}
-              className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
+              className="text-[#b45309] font-sans font-bold hover:underline flex items-center gap-0.5"
             >
               {tLocal.audit_dialogues} <ArrowRight size={12} />
             </button>
@@ -606,7 +625,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="paper-texture scroll-border rounded-2xl p-6 shadow-lg border border-stone-200 hover-lift relative overflow-hidden flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[9px] text-stone-400 font-historical font-black uppercase tracking-wider">{tLocal.online_now}</p>
+              <p className="text-[9px] text-stone-400 font-sans font-bold uppercase tracking-wider">{tLocal.online_now}</p>
               <h3 className="text-2xl font-black font-historical text-green-700 mt-1">{activeUsersTodayCount}</h3>
             </div>
             <div className="p-2.5 bg-green-50 text-green-700 rounded-xl border border-green-100">
@@ -614,13 +633,13 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-amber-800/10 flex items-center justify-between text-xs">
-            <span className="text-stone-500 font-serif flex items-center gap-1">
+            <span className="text-stone-500 font-sans flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
               {tLocal.chatting_now}
             </span>
             <button
               onClick={() => onTabChange('logins')}
-              className="text-[#b45309] font-historical font-black hover:underline flex items-center gap-0.5"
+              className="text-[#b45309] font-sans font-bold hover:underline flex items-center gap-0.5"
             >
               {tLocal.supervise} <ArrowRight size={12} />
             </button>
@@ -657,7 +676,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
 
             <div className="divide-y divide-amber-800/10">
               {recentTransactions.length === 0 ? (
-                <p className="p-6 text-center text-xs text-stone-450 italic font-serif">{tLocal.no_transactions}</p>
+                <p className="p-6 text-center text-xs text-stone-450 font-sans italic">{tLocal.no_transactions}</p>
               ) : (
                 recentTransactions.map((tx: any) => (
                   <div key={tx.id} className="p-4 hover:bg-amber-50/20 transition-colors flex items-center justify-between">
@@ -698,7 +717,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
 
             <div className="divide-y divide-amber-800/10 p-2 space-y-2">
               {negativeFeedback.length === 0 ? (
-                <div className="p-6 text-center text-xs text-stone-450 italic font-serif">
+                <div className="p-6 text-center text-xs text-stone-450 font-sans italic">
                   {tLocal.no_feedback}
                 </div>
               ) : (
@@ -768,7 +787,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
 
             <div className="p-4 space-y-4">
               {recentLogins.length === 0 ? (
-                <p className="text-center text-xs text-stone-450 italic font-serif py-4">{tLocal.no_logins}</p>
+                <p className="text-center text-xs text-stone-450 font-sans italic py-4">{tLocal.no_logins}</p>
               ) : (
                 recentLogins.map((lg: any, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 text-xs border-b border-amber-800/5 pb-2.5 last:border-0 last:pb-0">
@@ -777,7 +796,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                       <p className="font-historical font-black text-amber-900 truncate">{lg.username}</p>
                       <p className="text-[9px] text-stone-400 font-mono truncate">IP: {lg.ip_address || '127.0.0.1'}</p>
                     </div>
-                    <span className="text-[9px] text-stone-405 font-serif italic whitespace-nowrap">
+                    <span className="text-[9px] text-stone-405 font-sans italic whitespace-nowrap">
                       {lg.login_time ? new Date(lg.login_time).toLocaleTimeString() : tLocal.just_now}
                     </span>
                   </div>

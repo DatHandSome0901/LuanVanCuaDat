@@ -159,6 +159,7 @@ body {
 /* ChatGPT-style Scrollbar */
 .chatgpt-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .chatgpt-scrollbar::-webkit-scrollbar-track {
@@ -166,28 +167,28 @@ body {
 }
 
 .chatgpt-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0); /* Hidden by default */
+  background: rgba(139, 92, 26, 0.3); /* Visible warm amber-brown */
   border-radius: 10px;
   transition: background 0.3s ease;
 }
 
 .chatgpt-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1); /* Visible on container hover */
+  background: rgba(139, 92, 26, 0.55); /* Visible on container hover */
 }
 
 .chatgpt-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2) !important; /* Brighter on thumb hover */
+  background: rgba(139, 92, 26, 0.75) !important; /* Brighter on thumb hover */
 }
 
 /* For Firefox */
 .chatgpt-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0) transparent;
+  scrollbar-color: rgba(139, 92, 26, 0.3) transparent;
   transition: scrollbar-color 0.3s ease;
 }
 
 .chatgpt-scrollbar:hover {
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: rgba(139, 92, 26, 0.55) transparent;
 }
 
 /* --- VIETNAMESE HISTORICAL THEME --- */

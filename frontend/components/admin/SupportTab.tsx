@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../../api';
+import { api, API_ROOT } from '../../api';
 import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SupportRoom {
   id: number;
@@ -27,6 +30,43 @@ interface Message {
 }
 
 const SupportTab: React.FC = () => {
+  const { language } = useLanguage();
+
+  const txt = {
+    vi: {
+      title: '💬 Phòng Hỗ Trợ Đang Mở',
+      rooms_count: '{count} phòng',
+      loading_rooms: 'Đang tải danh sách phòng...',
+      empty_rooms: 'Không có sĩ tử nào cần hỗ trợ.',
+      room_id: 'ID Phòng',
+      initiated_at: 'Khởi tạo lúc',
+      active_status: '🟢 Đang Đàm Đạo',
+      sender_you: 'Bạn',
+      sender_ai: 'AI Trợ lý',
+      input_placeholder: 'Nhập câu trả lời cho sĩ tử...',
+      btn_send: 'Gửi phản hồi',
+      empty_title: 'Hệ Thống Trò Chuyện Đàm Đạo',
+      empty_desc: 'Kính mời các quan chọn phòng của sĩ tử ở danh sách bên trái để đàm thoại.',
+      send_error: 'Lỗi khi gửi tin nhắn'
+    },
+    en: {
+      title: '💬 Open Support Rooms',
+      rooms_count: '{count} rooms',
+      loading_rooms: 'Loading support rooms...',
+      empty_rooms: 'No scholars need support.',
+      room_id: 'Room ID',
+      initiated_at: 'Initiated at',
+      active_status: '🟢 Discussing',
+      sender_you: 'You',
+      sender_ai: 'AI Assistant',
+      input_placeholder: 'Type answer for scholar...',
+      btn_send: 'Send Response',
+      empty_title: 'Support Chat System',
+      empty_desc: 'Please select a scholar\'s room from the list on the left to start conversing.',
+      send_error: 'Error sending message'
+    }
+  }[language === 'en' ? 'en' : 'vi'];
+
   const [rooms, setRooms] = useState<SupportRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<SupportRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -104,7 +144,7 @@ const SupportTab: React.FC = () => {
       sender_type: 'admin',
       message: text,
       created_at: new Date().toISOString(),
-      username: 'Bạn'
+      username: txt.sender_you
     };
     setMessages(prev => [...prev, tempMsg]);
 
@@ -113,7 +153,7 @@ const SupportTab: React.FC = () => {
       const res = await api.getSupportMessages(selectedRoom.id);
       setMessages(res.messages || []);
     } catch (err: any) {
-      toast.error(err.message || 'Lỗi khi gửi tin nhắn');
+      toast.error(err.message || txt.send_error);
     } finally {
       setIsSending(false);
     }
@@ -125,22 +165,22 @@ const SupportTab: React.FC = () => {
       <div className="w-80 border-r border-stone-200/60 flex flex-col min-w-0 pr-4 shrink-0 h-full">
         <div className="pb-3 border-b border-stone-150 flex items-center justify-between shrink-0">
           <h3 className="font-serif font-bold text-amber-950 text-base">
-            💬 Phòng Hỗ Trợ Đang Mở
+            {txt.title}
           </h3>
           <span className="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full text-[10px]">
-            {rooms.length} phòng
+            {txt.rooms_count.replace('{count}', String(rooms.length))}
           </span>
         </div>
 
         {/* Room List scrollable */}
         <div className="flex-1 overflow-y-auto mt-3 space-y-2 chatgpt-scrollbar pr-1">
           {isLoadingRooms ? (
-            <div className="text-center py-8 text-stone-400 text-xs italic">
-              Đang tải danh sách phòng...
+            <div className="text-center py-8 text-stone-400 text-xs font-sans">
+              {txt.loading_rooms}
             </div>
           ) : rooms.length === 0 ? (
-            <div className="text-center py-8 text-stone-400 text-xs italic font-serif">
-              Không có sĩ tử nào cần hỗ trợ.
+            <div className="text-center py-8 text-stone-400 text-xs font-sans">
+              {txt.empty_rooms}
             </div>
           ) : (
             rooms.map((r) => {
@@ -193,11 +233,11 @@ const SupportTab: React.FC = () => {
                   <span>👤</span> {selectedRoom.username} ({selectedRoom.email})
                 </h4>
                 <p className="text-[9px] text-stone-400 font-semibold mt-0.5">
-                  ID Phòng: #{selectedRoom.id} • Khởi tạo lúc: {new Date(selectedRoom.created_at).toLocaleString()}
+                  {txt.room_id}: #{selectedRoom.id} • {txt.initiated_at}: {new Date(selectedRoom.created_at).toLocaleString()}
                 </p>
               </div>
               <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 border border-amber-600/10 rounded-lg">
-                🟢 Đang Đàm Đạo
+                {txt.active_status}
               </span>
             </div>
 
@@ -210,14 +250,31 @@ const SupportTab: React.FC = () => {
                 return (
                   <div key={m.id} className={`flex items-start gap-2.5 ${isSelf ? 'justify-end' : 'justify-start'}`}>
                     {!isSelf && (
-                      <div className="w-7 h-7 rounded-full bg-amber-800/10 flex items-center justify-center text-amber-900 font-historical font-black text-[10px] shrink-0 border border-amber-800/20">
-                        {isAi ? '🤖' : '👤'}
-                      </div>
+                      isAi ? (
+                        <img 
+                          src="/images/su_viet_bot.jpg" 
+                          alt="AI Assistant" 
+                          className="w-7 h-7 rounded-full object-cover border border-amber-500/30 shadow-md shrink-0"
+                        />
+                      ) : (
+                        m.picture_url ? (
+                          <img 
+                            src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url} 
+                            alt="User" 
+                            className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0" 
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-[#7f1d1d] font-sans font-bold text-[10px] shrink-0 border border-amber-900/20 shadow-inner">
+                            {selectedRoom?.username ? selectedRoom.username.slice(0, 2).toUpperCase() : 'GD'}
+                          </div>
+                        )
+                      )
                     )}
                     <div className={`max-w-[70%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="text-[9px] font-bold text-stone-500">
-                          {isSelf ? 'Bạn' : (isAi ? 'AI Trợ lý' : selectedRoom.username)}
+                          {isSelf ? txt.sender_you : (isAi ? txt.sender_ai : selectedRoom.username)}
                         </span>
                         <span className="text-[8px] text-stone-400">
                           {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -225,18 +282,35 @@ const SupportTab: React.FC = () => {
                       </div>
                       <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm font-medium ${
                         isSelf 
-                          ? 'bg-gradient-to-r from-amber-600 to-red-800 text-amber-50 rounded-tr-none' 
+                          ? 'bg-gradient-to-r from-amber-600 to-red-800 text-amber-50 rounded-tr-none font-sans' 
                           : (isAi 
-                              ? 'bg-amber-100/60 border border-amber-500/20 text-amber-950 rounded-tl-none italic' 
-                              : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none')
+                              ? 'bg-amber-100/60 border border-amber-500/20 text-amber-950 rounded-tl-none font-sans' 
+                              : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none font-sans')
                       }`}>
-                        {m.message}
+                        {isSelf ? (
+                          m.message
+                        ) : (
+                          <div className="prose prose-stone prose-sm max-w-none text-inherit leading-relaxed font-sans">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {m.message}
+                            </ReactMarkdown>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {isSelf && (
-                      <div className="w-7 h-7 rounded-full bg-red-950/10 flex items-center justify-center text-red-950 font-historical font-black text-[10px] shrink-0 border border-red-950/20">
-                        官
-                      </div>
+                      m.picture_url ? (
+                        <img 
+                          src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url} 
+                          alt="Admin" 
+                          className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0" 
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-[#7f1d1d] font-sans font-bold text-[10px] shrink-0 border border-amber-900/20 shadow-inner">
+                          {m.username ? m.username.slice(0, 2).toUpperCase() : 'AD'}
+                        </div>
+                      )
                     )}
                   </div>
                 );
@@ -254,7 +328,7 @@ const SupportTab: React.FC = () => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSend();
                 }}
-                placeholder="Nhập câu trả lời cho sĩ tử..."
+                placeholder={txt.input_placeholder}
                 className="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs font-semibold focus:outline-none focus:border-amber-500 transition-all"
               />
               <button
@@ -262,15 +336,15 @@ const SupportTab: React.FC = () => {
                 onClick={handleSend}
                 className="px-5 py-3 bg-gradient-to-r from-amber-600 to-red-800 hover:from-amber-700 hover:to-red-900 text-amber-50 text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 shrink-0"
               >
-                Gửi phản hồi
+                {txt.btn_send}
               </button>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-stone-400 font-serif border border-stone-150 rounded-2xl bg-stone-50/10">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-stone-400 font-sans border border-stone-150 rounded-2xl bg-stone-50/10">
             <span className="text-4xl mb-3">💬</span>
-            <h4 className="font-bold text-amber-950 text-sm mb-1">Hệ Thống Trò Chuyện Đàm Đạo</h4>
-            <p className="text-xs italic">Kính mời các quan chọn phòng của sĩ tử ở danh sách bên trái để đàm thoại.</p>
+            <h4 className="font-bold text-amber-950 text-sm mb-1 font-sans">{txt.empty_title}</h4>
+            <p className="text-xs text-stone-500 font-sans">{txt.empty_desc}</p>
           </div>
         )}
       </div>

@@ -57,15 +57,14 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl shadow-stone-200/50 border border-stone-100 p-8">
+    <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-stone-200/50 border border-stone-100 p-8">
         <div className="text-center mb-8">
-            <h2 className="text-3xl font-serif font-bold text-red-950 mb-2">
-                {isLogin ? t.auth_login_title : t.auth_register_title}
-            </h2>
-            <p className="text-stone-500 italic text-sm">
-                {isLogin ? t.auth_login_subtitle : t.auth_register_subtitle}
-            </p>
+          <h2 className="text-3xl font-serif font-bold text-red-950 mb-2">
+            {isLogin ? t.auth_login_title : t.auth_register_title}
+          </h2>
+          <p className="text-stone-500 italic text-sm">
+            {isLogin ? t.auth_login_subtitle : t.auth_register_subtitle}
+          </p>
         </div>
 
         {error && (
@@ -121,9 +120,9 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         </form>
 
         <div className="my-8 flex items-center gap-4 text-stone-300">
-            <div className="h-px bg-stone-100 flex-1"></div>
-            <span className="text-xs uppercase tracking-widest font-bold">{t.auth_or}</span>
-            <div className="h-px bg-stone-100 flex-1"></div>
+          <div className="h-px bg-stone-100 flex-1"></div>
+          <span className="text-xs uppercase tracking-widest font-bold">{t.auth_or}</span>
+          <div className="h-px bg-stone-100 flex-1"></div>
         </div>
 
         <button
@@ -131,10 +130,10 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
           className="w-full bg-white border border-stone-200 text-stone-700 font-medium py-3 rounded-xl hover:bg-stone-50 transition-all flex items-center justify-center gap-3"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M12 11.01V13h6.32a5.42 5.42 0 0 1-2.32 3.53l3.65 2.82A11.96 11.96 0 0 0 24 12c0-.68-.07-1.36-.2-2.01H12z"/>
-            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.97-2.91L16.32 18.27A7.14 7.14 0 0 1 12 19.5c-3.13 0-5.83-2.12-6.78-4.97L1.44 17.5A11.94 11.94 0 0 0 12 24z"/>
-            <path fill="#4285F4" d="M5.22 14.53A7.14 7.14 0 0 1 4.5 12c0-.88.16-1.72.44-2.5l-3.71-2.88A11.93 11.93 0 0 0 0 12c0 2.45.74 4.73 2.01 6.63l3.21-2.1z"/>
-            <path fill="#FBBC05" d="M12 4.5c1.76 0 3.34.6 4.58 1.78l3.43-3.43A11.95 11.95 0 0 0 12 0 11.94 11.94 0 0 0 1.44 6.62l3.78 2.91c.95-2.85 3.65-4.97 6.78-4.97z"/>
+            <path fill="#EA4335" d="M12 11.01V13h6.32a5.42 5.42 0 0 1-2.32 3.53l3.65 2.82A11.96 11.96 0 0 0 24 12c0-.68-.07-1.36-.2-2.01H12z" />
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.97-2.91L16.32 18.27A7.14 7.14 0 0 1 12 19.5c-3.13 0-5.83-2.12-6.78-4.97L1.44 17.5A11.94 11.94 0 0 0 12 24z" />
+            <path fill="#4285F4" d="M5.22 14.53A7.14 7.14 0 0 1 4.5 12c0-.88.16-1.72.44-2.5l-3.71-2.88A11.93 11.93 0 0 0 0 12c0 2.45.74 4.73 2.01 6.63l3.21-2.1z" />
+            <path fill="#FBBC05" d="M12 4.5c1.76 0 3.34.6 4.58 1.78l3.43-3.43A11.95 11.95 0 0 0 12 0 11.94 11.94 0 0 0 1.44 6.62l3.78 2.91c.95-2.85 3.65-4.97 6.78-4.97z" />
           </svg>
           {t.auth_google}
         </button>
@@ -149,24 +148,8 @@ const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
           </button>
         </p>
 
-        {/* WEB ONLY: DOWNLOAD APK */}
-        {!Capacitor.isNativePlatform() && (
-          <div className="mt-10 pt-8 border-t border-stone-100">
-            <div className="text-center mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
-               {t.auth_apk_title}
-            </div>
-            <a 
-              href="https://rehydrate-doing-crust.ngrok-free.dev/download/apk" 
-              download="ChatbotLichSu.apk"
-              className="flex items-center justify-center gap-3 w-full py-4 bg-stone-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all active:scale-95"
-            >
-              <span className="text-xl">📲</span>
-              <span>{t.auth_apk_btn}</span>
-            </a>
-          </div>
-        )}
 
-      </div>
+
     </div>
   );
 };

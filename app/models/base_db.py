@@ -53,7 +53,8 @@ class BaseDB:
                 password TEXT,
                 email TEXT UNIQUE,
                 full_name TEXT,
-                picture_url TEXT,
+                                picture_url TEXT,
+                cover_url TEXT,
                 is_admin BOOLEAN DEFAULT 0,
                 token_balance REAL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -587,7 +588,7 @@ class UserDB(BaseDB):
         self.cursor.execute(query)
         return [dict(row) for row in self.cursor.fetchall()]
 
-    def update_user_info(self, user_id, full_name=None, picture_url=None, is_admin=None):
+    def update_user_info(self, user_id, full_name=None, picture_url=None, is_admin=None, cover_url=None):
         fields = []
         params = []
         if full_name is not None:
@@ -596,6 +597,9 @@ class UserDB(BaseDB):
         if picture_url is not None:
             fields.append("picture_url = ?")
             params.append(picture_url)
+        if cover_url is not None:
+            fields.append("cover_url = ?")
+            params.append(cover_url)
         if is_admin is not None:
             fields.append("is_admin = ?")
             params.append(is_admin)

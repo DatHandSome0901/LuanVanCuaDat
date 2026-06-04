@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../../api';
+import { api, API_ROOT } from '../../api';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { User } from '../../types';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface PaymentReportModalProps {
   user: User | null;
@@ -173,7 +175,7 @@ const PaymentReportModal: React.FC<PaymentReportModalProps> = ({ user, onClose }
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [supportMessages]);
+  }, [supportMessages, isSending]);
 
   const handleSubmit = async () => {
     if (!reportNote.trim()) {
@@ -258,22 +260,7 @@ ${reportNote.trim()}`;
     setSupportMessages(prev => [...prev, tempUserMsg]);
 
     try {
-      const res = await api.sendSupportMessage(supportRoom.id, text);
-      if (res.ai_replied && res.ai_response) {
-        setTimeout(() => {
-          const tempAiMsg = {
-            id: Date.now() + 1,
-            sender_type: 'ai',
-            sender_id: null,
-            message: res.ai_response,
-            created_at: new Date().toISOString(),
-            username: 'AI Trợ lý',
-            picture_url: undefined
-          };
-          setSupportMessages(prev => [...prev, tempAiMsg]);
-        }, 800);
-      }
-      
+      await api.sendSupportMessage(supportRoom.id, text);
       const msgRes = await api.getSupportMessages(supportRoom.id);
       setSupportMessages(msgRes.messages || []);
     } catch (err: any) {
@@ -285,7 +272,7 @@ ${reportNote.trim()}`;
 
   return (
     <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[210]">
-       <div className="bg-white rounded-[32px] p-6 md:p-8 max-w-2xl w-full max-h-[90vh] flex flex-col relative animate-in zoom-in duration-300 shadow-2xl">
+       <div className="bg-white rounded-[32px] p-6 md:p-8 max-w-2xl w-full h-[650px] max-h-[90vh] flex flex-col relative animate-in zoom-in duration-300 shadow-2xl">
           {/* Close button */}
           <button 
               onClick={onClose}
@@ -518,11 +505,11 @@ ${reportNote.trim()}`;
                {/* Online Status Header */}
                <div className="px-4 py-2.5 bg-white border-b border-stone-150 flex items-center justify-between shrink-0">
                  <div className="flex items-center gap-2">
-                   <span className={`w-2.5 h-2.5 rounded-full ${isAdminOnline ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                   <span className={`w-2 h-2 rounded-full shrink-0 ${isAdminOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
                    <span className="text-xs font-bold text-stone-700">
                      {isAdminOnline 
-                       ? (isVi ? '🟢 Ban Quản Trị Đang Trực Tuyến' : '🟢 Admin is Online') 
-                       : (isVi ? '🟡 Trợ Lý AI (Admin Đang Vắng Mặt)' : '🟡 AI Assistant (Admin Offline)')
+                       ? (isVi ? 'Ban Quản Trị Đang Trực Tuyến' : 'Admin is Online') 
+                       : (isVi ? 'Trợ Lý AI (Admin Đang Vắng Mặt)' : 'AI Assistant (Admin Offline)')
                      }
                    </span>
                  </div>
@@ -549,9 +536,26 @@ ${reportNote.trim()}`;
                      return (
                        <div key={m.id} className={`flex items-start gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
                          {!isUser && (
-                           <div className="w-7 h-7 rounded-full bg-amber-800/10 flex items-center justify-center text-amber-900 font-historical font-black text-[10px] shrink-0 border border-amber-800/20">
-                             {isAi ? '🤖' : '官'}
-                           </div>
+                           isAi ? (
+                             <img 
+                               src="/images/su_viet_bot.jpg" 
+                               alt="AI Assistant" 
+                               className="w-7 h-7 rounded-full object-cover border border-amber-500/30 shadow-md shrink-0"
+                             />
+                           ) : (
+                             m.picture_url ? (
+                               <img 
+                                 src={m.picture_url.startsWith('/') ? `${API_ROOT}${m.picture_url}` : m.picture_url} 
+                                 alt="Admin" 
+                                 className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm shrink-0" 
+                                 referrerPolicy="no-referrer"
+                               />
+                             ) : (
+                               <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-[#7f1d1d] font-sans font-bold text-[10px] shrink-0 border border-amber-900/20 shadow-inner">
+                                 {m.username ? m.username.slice(0, 2).toUpperCase() : 'AD'}
+                               </div>
+                             )
+                           )
                          )}
                          <div className={`max-w-[75%] flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
                            <div className="flex items-center gap-1.5 mb-0.5">
@@ -564,22 +568,66 @@ ${reportNote.trim()}`;
                            </div>
                            <div className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm font-medium ${
                              isUser 
-                               ? 'bg-gradient-to-r from-red-950 to-stone-900 text-amber-100 rounded-tr-none' 
+                               ? 'bg-gradient-to-r from-red-950 to-stone-900 text-amber-100 rounded-tr-none font-sans' 
                                : (isAi 
-                                   ? 'bg-amber-100/70 border border-amber-500/25 text-amber-950 rounded-tl-none italic' 
-                                   : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none')
+                                   ? 'bg-amber-100/70 border border-amber-500/25 text-amber-950 rounded-tl-none font-sans' 
+                                   : 'bg-white border border-stone-200 text-stone-850 rounded-tl-none font-sans')
                            }`}>
-                             {m.message}
+                             {isUser ? (
+                               m.message
+                             ) : (
+                               <div className="prose prose-stone prose-sm max-w-none text-inherit leading-relaxed font-sans">
+                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                   {m.message}
+                                 </ReactMarkdown>
+                                </div>
+                             )}
                            </div>
                          </div>
                          {isUser && (
-                           <div className="w-7 h-7 rounded-full bg-[#7f1d1d]/10 flex items-center justify-center text-[#7f1d1d] font-historical font-black text-[10px] shrink-0 border border-red-950/20">
-                             👤
-                           </div>
+                           user?.picture_url ? (
+                             <img 
+                               src={user.picture_url.startsWith('/') ? `${API_ROOT}${user.picture_url}` : user.picture_url} 
+                               alt="User" 
+                               className="w-7 h-7 rounded-full object-cover border border-amber-900/20 shadow-sm" 
+                               referrerPolicy="no-referrer"
+                             />
+                           ) : (
+                             <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-[#7f1d1d] font-sans font-bold text-[10px] shrink-0 border border-amber-900/20 shadow-inner">
+                               {user?.username ? user.username.slice(0, 2).toUpperCase() : 'GD'}
+                             </div>
+                           )
                          )}
                        </div>
                      );
                    })
+                 )}
+                 {isSending && (
+                   <div className="flex items-start gap-2.5 justify-start animate-pulse">
+                     <img 
+                       src="/images/su_viet_bot.jpg" 
+                       alt="AI Assistant" 
+                       className="w-7 h-7 rounded-full object-cover border border-amber-500/30 shadow-md shrink-0"
+                     />
+                     <div className="max-w-[75%] flex flex-col items-start">
+                       <div className="flex items-center gap-1.5 mb-0.5">
+                         <span className="text-[9px] font-bold text-stone-500">
+                           {isVi ? 'AI Trợ Lý' : 'AI Agent'}
+                         </span>
+                         <span className="text-[8px] text-stone-400">
+                           {isVi ? 'Đang soạn sớ...' : 'Thinking...'}
+                         </span>
+                       </div>
+                       <div className="px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm font-medium bg-amber-100/50 border border-amber-500/20 text-stone-600 rounded-tl-none font-sans flex items-center gap-1.5">
+                         <span>{isVi ? 'Đang suy nghĩ' : 'Thinking'}</span>
+                         <span className="flex gap-1">
+                           <span className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                           <span className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                           <span className="w-1.5 h-1.5 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                         </span>
+                       </div>
+                     </div>
+                   </div>
                  )}
                  <div ref={messagesEndRef} />
                </div>

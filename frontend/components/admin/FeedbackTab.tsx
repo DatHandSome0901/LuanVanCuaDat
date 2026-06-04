@@ -5,6 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ThumbsDown, ArrowRight, Clock, User, Calendar, CheckCircle, ChevronRight, X } from "lucide-react";
 import { confirmAction } from "../../utils/swal";
 import { useLanguage } from "../../contexts/LanguageContext";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const stripMarkdown = (text: string): string => {
+  if (!text) return "";
+  return text
+    .replace(/[#*`~_\-]/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 const localized = {
   vi: {
@@ -143,7 +154,7 @@ export default function FeedbackTab() {
                                         {item.question || tLocal.no_question}
                                     </p>
                                     <p className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed font-sans">
-                                        {item.answer}
+                                        {stripMarkdown(item.answer)}
                                     </p>
                                     <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-stone-100">
                                         <Calendar size={10} className="text-stone-400" />
@@ -203,8 +214,10 @@ export default function FeedbackTab() {
                             {/* Answer */}
                             <div>
                               <div className="text-[9px] font-historical font-black uppercase tracking-widest text-[#b45309]/80 mb-2">{tLocal.answer_label}</div>
-                              <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-800/20 text-xs font-sans text-stone-700 leading-relaxed whitespace-pre-wrap">
-                                {selected.answer}
+                              <div className="p-5 bg-amber-50/40 rounded-xl border border-amber-800/20 text-xs text-stone-750 leading-relaxed font-sans prose prose-stone prose-sm max-w-none">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {selected.answer}
+                                </ReactMarkdown>
                               </div>
                             </div>
 

@@ -19,6 +19,7 @@ ACCESS_TOKEN_EXPIRE_HOURS = 24
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     picture_url: Optional[str] = None
+    cover_url: Optional[str] = None
     current_password: Optional[str] = None
     new_password: Optional[str] = None
 
@@ -255,9 +256,14 @@ async def update_profile(data: ProfileUpdate, user=Depends(get_current_user)):
         user_db.close()
         raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
         
-    # Update full_name, picture_url
-    if data.full_name is not None or data.picture_url is not None:
-        user_db.update_user_info(db_user["id"], full_name=data.full_name, picture_url=data.picture_url)
+    # Update full_name, picture_url, cover_url
+    if data.full_name is not None or data.picture_url is not None or data.cover_url is not None:
+        user_db.update_user_info(
+            db_user["id"], 
+            full_name=data.full_name, 
+            picture_url=data.picture_url,
+            cover_url=data.cover_url
+        )
         
     # Update password
     if data.new_password:
@@ -278,10 +284,13 @@ def check_login(user=Depends(get_current_user)):
     user_db = UserDB()
     db_user = user_db.get_by_email(user["email"])
     user_db.close()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    # Exclude password for security
+    safe_user = {k: v for k, v in db_user.items() if k != "password"}
+    safe_user["is_admin"] = bool(safe_user["is_admin"])
     return {
         "message": "✅ Token hợp lệ, người dùng đang đăng nhập!",
-        "user": {
-            **user,
-            "token_balance": db_user["token_balance"]
-        },
+        "user": safe_user,
     }

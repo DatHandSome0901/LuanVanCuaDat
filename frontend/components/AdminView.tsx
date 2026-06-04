@@ -63,7 +63,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
     landing_footer_mst: '',
     landing_footer_representative: '',
     landing_footer_address: '',
-    landing_footer_phone: ''
+    landing_footer_phone: '',
+    system_prompt: ''
   } as any);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChat, setSelectedChat] = useState<any | null>(null);
@@ -141,6 +142,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           landing_footer_representative: settingsRes.landing_footer_representative,
           landing_footer_address: settingsRes.landing_footer_address,
           landing_footer_phone: settingsRes.landing_footer_phone,
+          system_prompt: settingsRes.system_prompt,
           negativeFeedback: feedbackRes || []
         }));
       } else if (activeTab === 'users') {
@@ -187,7 +189,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           landing_footer_phone: res.landing_footer_phone,
           landing_footer_about_us: res.landing_footer_about_us,
           landing_footer_terms: res.landing_footer_terms,
-          landing_footer_privacy: res.landing_footer_privacy
+          landing_footer_privacy: res.landing_footer_privacy,
+          system_prompt: res.system_prompt
         }));
       } else if (activeTab === 'logins') {
         const res = await api.adminGetActiveUsers();
@@ -358,7 +361,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
       landing_footer_phone: data.landing_footer_phone,
       landing_footer_about_us: data.landing_footer_about_us,
       landing_footer_terms: data.landing_footer_terms,
-      landing_footer_privacy: data.landing_footer_privacy
+      landing_footer_privacy: data.landing_footer_privacy,
+      system_prompt: data.system_prompt
     };
 
     try {

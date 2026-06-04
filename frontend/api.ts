@@ -455,7 +455,8 @@ async getSiteConfig(): Promise<{
     landing_footer_phone?: string,
     landing_footer_about_us?: string,
     landing_footer_terms?: string,
-    landing_footer_privacy?: string
+    landing_footer_privacy?: string,
+    system_prompt?: string
   }> {
     const response = await fetch(`${BASE_URL}/admin/settings`, {
       headers: getHeaders(),
@@ -498,7 +499,8 @@ async getSiteConfig(): Promise<{
     landing_footer_phone?: string,
     landing_footer_about_us?: string,
     landing_footer_terms?: string,
-    landing_footer_privacy?: string
+    landing_footer_privacy?: string,
+    system_prompt?: string
   }): Promise<any> {
     const response = await fetch(`${BASE_URL}/admin/settings`, {
       method: 'POST',
@@ -506,6 +508,15 @@ async getSiteConfig(): Promise<{
       body: JSON.stringify(settings),
     });
     if (!response.ok) throw new Error('Cập nhật cấu hình thất bại');
+    return response.json();
+  },
+
+  async adminSendWeeklyReport(): Promise<any> {
+    const response = await fetch(`${BASE_URL}/admin/send-weekly-report`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Gửi báo cáo tuần thất bại');
     return response.json();
   },
 

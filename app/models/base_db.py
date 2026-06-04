@@ -135,6 +135,12 @@ class BaseDB:
         except:
             pass
 
+        # 🔥 Migration: Thêm cột era vào chat_logs nếu chưa có
+        try:
+            self.cursor.execute("ALTER TABLE chat_logs ADD COLUMN era TEXT DEFAULT 'Khác'")
+        except:
+            pass
+
         # Create settings table
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS settings (
@@ -428,11 +434,53 @@ class BaseDB:
             
         return "neutral", 0.0
 
+    def determine_historical_era(self, question):
+        q = (question or "").lower()
+        
+        # 1. Hùng Vương & An Dương Vương
+        if any(w in q for w in ["hùng vương", "an dương vương", "mỵ châu", "trọng thủy", "sơn tinh", "thủy tinh", "bánh chưng", "phù đổng", "thánh gióng", "cổ loa", "văn lang", "âu lạc"]):
+            return "Hùng Vương & An Dương Vương"
+            
+        # 2. Bắc Thuộc & Khởi Nghĩa
+        if any(w in q for w in ["hai bà trưng", "bà triệu", "lý nam đế", "mai thúc loan", "phùng hưng", "ngô quyền", "khúc thừa dụ", "dương đình nghệ", "bạch đằng 938", "bắc thuộc"]):
+            return "Bắc Thuộc & Khởi Nghĩa"
+            
+        # 3. Đinh - Tiền Lê
+        if any(w in q for w in ["đinh bộ lĩnh", "đinh tiên hoàng", "lê hoàn", "lê đại hành", "hoa lư", "nhà đinh", "tiền lê"]):
+            return "Đinh - Tiền Lê"
+            
+        # 4. Nhà Lý
+        if any(w in q for w in ["nhà lý", "lý thái tổ", "lý công uẩn", "lý thường kiệt", "thăng long", "nam quốc sơn hà", "y lý", "triều lý"]):
+            return "Nhà Lý"
+            
+        # 5. Nhà Trần - Hồ
+        if any(w in q for w in ["nhà trần", "trần hưng đạo", "trần quốc tuấn", "trần nhân tông", "trần thái tông", "hồ quý ly", "bạch đằng 1288", "nguyên mông", "đông bộ đầu", "hịch tướng sĩ", "nhà hồ"]):
+            return "Nhà Trần - Hồ"
+            
+        # 6. Hậu Lê - Mạc
+        if any(w in q for w in ["nhà lê", "lê thái tổ", "lê lợi", "nguyễn trãi", "bình ngô đại cáo", "lam sơn", "hồ gươm", "hoàn kiếm", "nhà mạc", "lê thánh tông", "trịnh nguyễn"]):
+            return "Hậu Lê - Mạc"
+            
+        # 7. Tây Sơn
+        if any(w in q for w in ["tây sơn", "nguyễn huệ", "quang trung", "ngọc hồi", "khương thượng", "rạch gầm", "xoài mút"]):
+            return "Tây Sơn"
+            
+        # 8. Nhà Nguyễn
+        if any(w in q for w in ["nhà nguyễn", "gia long", "nguyễn ánh", "minh mạng", "thiệu trị", "tự đức", "khải định", "bảo đại", "triều nguyễn"]):
+            return "Nhà Nguyễn"
+            
+        # 9. Cận - Hiện Đại
+        if any(w in q for w in ["kháng chiến", "chống pháp", "chống mỹ", "bác hồ", "hồ chí minh", "điện biên phủ", "võ nguyên giáp", "1975", "giải phóng", "độc lập", "tuyên ngôn", "pháp thuộc", "cận đại", "hiện đại"]):
+            return "Cận - Hiện Đại"
+            
+        return "Khác"
+
     def save_chat_log(self, user_id, question, answer, tokens_charged):
         sentiment, score = self.analyze_sentiment(question, answer)
+        era = self.determine_historical_era(question)
         self.cursor.execute(
-            "INSERT INTO chat_logs (user_id, question, answer, tokens_charged, sentiment, sentiment_score) VALUES (?, ?, ?, ?, ?, ?)",
-            (user_id, question, answer, float(tokens_charged), sentiment, score)
+            "INSERT INTO chat_logs (user_id, question, answer, tokens_charged, sentiment, sentiment_score, era) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (user_id, question, answer, float(tokens_charged), sentiment, score, era)
         )
         self.conn.commit()
 

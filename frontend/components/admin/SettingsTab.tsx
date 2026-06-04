@@ -215,6 +215,8 @@ const localized = {
     llm_model: "Mô Hình Trí Tuệ (LLM)",
     no_ans_fallback: "Lời Cáo Lỗi Khi Mất Kết Nối Tri Thức",
     no_ans_fallback_placeholder: "Lời cáo lỗi khi AI không tìm được câu trả lời...",
+    system_prompt_label: "📜 Hành Cung Kính Báo (System Prompt / Khẩu Khí Chatbot)",
+    system_prompt_placeholder: "Cấu hình khẩu khí và cách hành văn của chatbot Sử Gia Lạc Việt...",
     config_footer: "Cấu Hình Thông Tin Chân Trang (Footer)",
     footer_company: "Tên Công Ty / Chủ Thể",
     footer_mst: "Mã Số Thuế (MST)",
@@ -300,6 +302,8 @@ const localized = {
     llm_model: "AI Engine Model (LLM)",
     no_ans_fallback: "Connection Offline Apology Prompt",
     no_ans_fallback_placeholder: "Apology message when AI fails to retrieve answers...",
+    system_prompt_label: "📜 Chatbot System Prompt (Personality & Knowledge)",
+    system_prompt_placeholder: "Configure the custom instruction and tone for the AI Historical Agent...",
     config_footer: "Footer Information Configuration",
     footer_company: "Company Name / Entity",
     footer_mst: "Tax ID (MST)",
@@ -1268,6 +1272,21 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   rows={2}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs italic text-stone-600 leading-relaxed"
                   placeholder={tLocal.no_ans_fallback_placeholder}
+                />
+              </div>
+
+              {/* System Prompt Customizer */}
+              <div>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">
+                  {tLocal.system_prompt_label}
+                </label>
+                <textarea 
+                  name="system_prompt"
+                  value={data.system_prompt || ''}
+                  onChange={onChange}
+                  rows={6}
+                  className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs text-stone-700 leading-relaxed"
+                  placeholder={tLocal.system_prompt_placeholder}
                 />
               </div>
             </div>

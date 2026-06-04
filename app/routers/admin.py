@@ -69,6 +69,7 @@ class SettingsUpdate(BaseModel):
     landing_contact_zalo_num: Optional[str] = None
     landing_contact_zalo_link: Optional[str] = None
     landing_contact_fb_link: Optional[str] = None
+    system_prompt: Optional[str] = None
 
 def update_index_html_seo(site_title: str, description: str, keywords: str, author: str, favicon_url: str, logo_url: str):
     import re
@@ -361,6 +362,8 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
     favicon_url = db.get_setting("favicon_url", html_seo.get('favicon_url', ""))
     no_answer_fallback = db.get_setting("no_answer_fallback", "Xin lỗi, hiện tại tôi chưa tìm thấy câu trả lời chính xác cho vấn đề này.")
     llm_name = db.get_setting("llm_name", "openai")
+    from chatbot.utils.custom_prompt import CustomPrompt
+    system_prompt = db.get_setting("system_prompt", CustomPrompt.GENERATE_ANSWER_PROMPT)
     
     game_enabled = db.get_setting("game_enabled", "1")
     landing_hero_title = db.get_setting("landing_hero_title", "Khám phá tinh hoa")
@@ -424,7 +427,8 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
         "landing_contact_email": landing_contact_email,
         "landing_contact_zalo_num": landing_contact_zalo_num,
         "landing_contact_zalo_link": landing_contact_zalo_link,
-        "landing_contact_fb_link": landing_contact_fb_link
+        "landing_contact_fb_link": landing_contact_fb_link,
+        "system_prompt": system_prompt
     }
 
 @router.post("/settings")
@@ -472,7 +476,8 @@ async def update_settings(
         ("landing_contact_email", data.landing_contact_email),
         ("landing_contact_zalo_num", data.landing_contact_zalo_num),
         ("landing_contact_zalo_link", data.landing_contact_zalo_link),
-        ("landing_contact_fb_link", data.landing_contact_fb_link)
+        ("landing_contact_fb_link", data.landing_contact_fb_link),
+        ("system_prompt", data.system_prompt)
     ]
 
     for key, new_val in fields:
@@ -828,3 +833,162 @@ async def feedback_to_pending(message_id: int, current_user: dict = Depends(get_
         return {"msg": "Đã đưa vào danh sách chờ duyệt"}
     finally:
         db.close()
+
+@router.post("/send-weekly-report")
+async def send_weekly_report(admin: dict = Depends(get_current_admin)):
+    admin_email = admin.get("email")
+    if not admin_email:
+        raise HTTPException(status_code=400, detail="Tài khoản admin không có email")
+    
+    db = UserDB()
+    try:
+        # Get count of users created in last 7 days
+        db.cursor.execute("SELECT COUNT(*) as count FROM users WHERE datetime(created_at) >= datetime('now', '-7 days')")
+        new_users = db.cursor.fetchone()["count"]
+        
+        # Get total users
+        db.cursor.execute("SELECT COUNT(*) as count FROM users")
+        total_users = db.cursor.fetchone()["count"]
+
+        # Get payments in last 7 days (status = 'completed')
+        db.cursor.execute("SELECT COUNT(*) as count, SUM(amount_vnd) as total_vnd FROM payments WHERE status = 'completed' AND datetime(created_at) >= datetime('now', '-7 days')")
+        payment_row = db.cursor.fetchone()
+        new_payments_count = payment_row["count"] or 0
+        new_payments_vnd = payment_row["total_vnd"] or 0
+
+        # Get total payments (completed)
+        db.cursor.execute("SELECT COUNT(*) as count, SUM(amount_vnd) as total_vnd FROM payments WHERE status = 'completed'")
+        total_payment_row = db.cursor.fetchone()
+        total_payments_count = total_payment_row["count"] or 0
+        total_payments_vnd = total_payment_row["total_vnd"] or 0
+
+        # Get chat logs in last 7 days
+        db.cursor.execute("SELECT COUNT(*) as count FROM chat_logs WHERE datetime(created_at) >= datetime('now', '-7 days')")
+        new_chats = db.cursor.fetchone()["count"]
+        
+        # Get total chats
+        db.cursor.execute("SELECT COUNT(*) as count FROM chat_logs")
+        total_chats = db.cursor.fetchone()["count"]
+
+        # Get sentiment distribution (last 7 days)
+        db.cursor.execute("""
+            SELECT sentiment, COUNT(*) as count 
+            FROM chat_logs 
+            WHERE datetime(created_at) >= datetime('now', '-7 days')
+            GROUP BY sentiment
+        """)
+        sentiments = {row["sentiment"]: row["count"] for row in db.cursor.fetchall()}
+        
+        # Get era distribution (last 7 days)
+        db.cursor.execute("""
+            SELECT era, COUNT(*) as count 
+            FROM chat_logs 
+            WHERE datetime(created_at) >= datetime('now', '-7 days')
+            GROUP BY era
+        """)
+        eras = {row["era"]: row["count"] for row in db.cursor.fetchall()}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi truy vấn dữ liệu báo cáo: {str(e)}")
+    finally:
+        db.close()
+
+    sentiment_list_html = ""
+    for s, cnt in sentiments.items():
+        lbl = {
+            "positive": "Tích cực (Positive)",
+            "neutral": "Bình thường (Neutral)",
+            "inquisitive": "Tò mò/Hỏi han (Inquisitive)",
+            "frustrated": "Bực bội (Frustrated)",
+            "jailbreak": "Tấn công/Jailbreak"
+        }.get(s, s)
+        sentiment_list_html += f"<li style='margin-bottom: 6px;'><strong>{lbl}</strong>: <span style='color: #7f1d1d; font-weight: bold;'>{cnt}</span> lượt</li>"
+        
+    if not sentiment_list_html:
+        sentiment_list_html = "<li>Không ghi nhận tương tác nào</li>"
+        
+    era_list_html = ""
+    for er, cnt in eras.items():
+        era_list_html += f"<li style='margin-bottom: 6px;'><strong>{er}</strong>: <span style='color: #7f1d1d; font-weight: bold;'>{cnt}</span> câu hỏi</li>"
+        
+    if not era_list_html:
+        era_list_html = "<li>Không ghi nhận tương tác nào</li>"
+
+    subject = "[Sử Việt AI] Ngự Tiền Tấu Chương - Báo Cáo Tuần Hệ Thống"
+    body = f"""
+    <html>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #444; background-color: #fcfbf7; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: #fff; border: 1px solid #e5d8bc; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #7f1d1d 0%, #451a03 100%); padding: 30px; text-align: center; border-bottom: 3px solid #d97706;">
+            <h1 style="color: #fef3c7; margin: 0; font-family: 'Georgia', serif; font-size: 24px; letter-spacing: 1px; font-weight: bold; text-transform: uppercase;">Ngự Tiền Tấu Chương</h1>
+            <p style="color: #fbcfe8; margin: 8px 0 0 0; font-size: 13px; font-style: italic; opacity: 0.9;">Báo cáo tổng kết tuần của chuyên gia Lịch sử Việt Nam AI</p>
+          </div>
+          
+          <!-- Content -->
+          <div style="padding: 24px 30px;">
+            <p style="font-size: 14px; color: #666; margin-top: 0;">Kính gửi tôn quan quản trị,</p>
+            <p style="font-size: 14px; text-indent: 20px;">Hệ thống Sử Việt AI xin tấu trình tình hình hoạt động của triều đình và sĩ tử trong <strong>7 ngày qua</strong>:</p>
+            
+            <!-- Stats Grid -->
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr>
+                <td style="width: 50%; padding-right: 8px;">
+                  <div style="background-color: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 8px; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: bold;">Sĩ Tử Mới Đăng Khoa</p>
+                    <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #7f1d1d;">+{new_users} <span style="font-size: 12px; font-weight: normal; color: #666;">(Tổng: {total_users})</span></p>
+                  </div>
+                </td>
+                <td style="width: 50%; padding-left: 8px;">
+                  <div style="background-color: #fef2f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 8px; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #991b1b; font-weight: bold;">Ngân Khố Mới Nhận</p>
+                    <p style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: #991b1b;">+{new_payments_vnd:,} đ <span style="font-size: 11px; font-weight: normal; color: #666;">({new_payments_count} sớ)</span></p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+            
+            <div style="background-color: #f0fdf4; border: 1px solid #dcfce7; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+              <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #166534; font-weight: bold;">Số Lượt Đàm Luận (Chats)</p>
+              <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #166534;">+{new_chats} <span style="font-size: 12px; font-weight: normal; color: #666;">(Tổng: {total_chats})</span></p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
+            
+            <!-- Era Chart summary -->
+            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px; text-transform: uppercase;">📊 Bản Đồ Triều Đại Được Quan Tâm</h3>
+            <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; line-height: 1.8;">
+              {era_list_html}
+            </ul>
+
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
+            
+            <!-- Sentiment Summary -->
+            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px; text-transform: uppercase;">🎭 Phân Tích Cảm Xúc Của Sĩ Tử</h3>
+            <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; line-height: 1.8;">
+              {sentiment_list_html}
+            </ul>
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
+            
+            <!-- Footer text -->
+            <p style="font-size: 13px; text-align: center; color: #888; font-style: italic; margin-bottom: 0;">Sớ tấu trình tự động được lập từ Sử Việt AI triều chính.<br/>Hệ thống kính chúc tôn quan vạn sự an khang!</p>
+          </div>
+          
+          <!-- Banner footer -->
+          <div style="background-color: #f4f1ea; padding: 15px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #e5d8bc;">
+            CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG • Đại Việt AI
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    smtp_username = os.getenv("SMTP_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    if not smtp_username or not smtp_password:
+        return {"msg": "Đã soạn sớ báo cáo tuần. Tuy nhiên do cấu hình SMTP chưa hoàn chỉnh trong .env, email tạm thời chỉ được ghi vào logs hệ thống."}
+
+    from app.utils.email_helper import send_email_in_background
+    send_email_in_background(admin_email, subject, body)
+    return {"msg": "Đã gửi tấu chương báo cáo tuần đến hòm thư quan quản trị thành công!"}

@@ -15,10 +15,22 @@ class AnswerGenerator:
     """
 
     def __init__(self, llm) -> None:
+        # ✅ Load dynamic system prompt from database
+        try:
+            from app.models.base_db import UserDB
+            db = UserDB()
+            system_prompt = db.get_setting("system_prompt", CustomPrompt.GENERATE_ANSWER_PROMPT)
+            db.close()
+            if not system_prompt or not system_prompt.strip():
+                system_prompt = CustomPrompt.GENERATE_ANSWER_PROMPT
+        except Exception as e:
+            print(f"[Warning] Failed to load dynamic system prompt: {e}. Using default.")
+            system_prompt = CustomPrompt.GENERATE_ANSWER_PROMPT
+
         # Tạo prompt với MessagesPlaceholder để nhúng lịch sử hội thoại
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", CustomPrompt.GENERATE_ANSWER_PROMPT),
+                ("system", system_prompt),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
                 ("human", "User question: {question} \n\n Context: {context}"),
             ]

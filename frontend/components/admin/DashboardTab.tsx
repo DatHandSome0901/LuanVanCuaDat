@@ -3,7 +3,8 @@ import {
   Users, DollarSign, MessageSquare, ShieldCheck,
   Activity, ArrowRight, TrendingUp, AlertTriangle, UserCheck
 } from 'lucide-react';
-import { API_ROOT } from '../../api';
+import { API_ROOT, api } from '../../api';
+import { toast } from 'react-hot-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -59,6 +60,12 @@ const localized = {
     just_now: 'Vừa xong',
     question: 'Câu hỏi',
     answer: 'Trả lời',
+    era_chart_title: '📊 Bản Đồ Triều Đại & Đề Tài Quan Tâm',
+    era_chart_subtitle: 'Tần suất sĩ tử tra cứu các triều đại lịch sử Việt Nam',
+    weekly_report_title: '📬 Ngự Tiền Tấu Chương (Email)',
+    weekly_report_desc: 'Tổng hợp phân tích hoạt động 7 ngày qua để soạn sớ tấu gửi trực tiếp vào hòm thư điện tử của quan quản trị.',
+    weekly_report_btn: 'Soạn Sớ Gửi Báo Cáo',
+    weekly_report_sending: 'Đang soạn sớ tâu...'
   },
   en: {
     anonymous_user: 'Anonymous Scholar',
@@ -101,6 +108,12 @@ const localized = {
     just_now: 'Just now',
     question: 'Question',
     answer: 'Answer',
+    era_chart_title: '📊 Historical Eras & Topics Trend',
+    era_chart_subtitle: 'Query frequency of Vietnamese historical eras',
+    weekly_report_title: '📬 Weekly Report Email',
+    weekly_report_desc: 'Compile performance analytics of the last 7 days and send an official report directly to your admin inbox.',
+    weekly_report_btn: 'Send Weekly Report',
+    weekly_report_sending: 'Sending report...'
   }
 };
 
@@ -402,6 +415,63 @@ const ChatTrafficChart: React.FC<{ data: { date: string; count: number }[] }> = 
   );
 };
 
+const EraDistributionChart: React.FC<{ chatlogs: any[], language: string }> = ({ chatlogs, language }) => {
+  const tLocal = localized[language] || localized.vi;
+  
+  // Count era occurrences in chatlogs
+  const eraCounts = chatlogs.reduce((acc: {[key: string]: number}, log: any) => {
+    const eraName = log.era || (language === 'vi' ? 'Khác' : 'Other');
+    acc[eraName] = (acc[eraName] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Sort eras by count descending
+  const sortedEras = (Object.entries(eraCounts) as [string, number][])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const totalEraChats = chatlogs.length || 1;
+  const maxEraCount = sortedEras.length > 0 ? (sortedEras[0][1] as number) : 1;
+
+  return (
+    <div className="paper-texture scroll-border rounded-2xl p-6 shadow-md border border-amber-800/10 flex flex-col justify-between">
+      <div>
+        <h4 className="font-historical text-[#7f1d1d] text-sm font-black flex items-center gap-1.5 mb-1">
+          {tLocal.era_chart_title}
+        </h4>
+        <p className="text-[10px] text-stone-400 font-sans italic mb-4">{tLocal.era_chart_subtitle}</p>
+        
+        <div className="space-y-3.5">
+          {sortedEras.length === 0 ? (
+            <p className="text-center text-xs text-stone-450 italic py-6">
+              {language === 'en' ? 'No era analytics available yet...' : 'Chưa có số liệu triều đại...'}
+            </p>
+          ) : (
+            sortedEras.map(([era, count]) => {
+              const pct = Math.round((count / totalEraChats) * 100);
+              const barPct = Math.round((count / maxEraCount) * 100);
+              return (
+                <div key={era} className="space-y-1">
+                  <div className="flex justify-between text-xs font-historical">
+                    <span className="text-stone-700 font-black truncate max-w-[180px]">{era}</span>
+                    <span className="text-amber-900 font-bold font-mono">{count} ({pct}%)</span>
+                  </div>
+                  <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden border border-stone-200/50">
+                    <div 
+                      className="bg-gradient-to-r from-[#b45309] to-[#7f1d1d] h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${barPct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DashboardTab: React.FC<DashboardTabProps> = ({
   users = [],
   payments = [],
@@ -413,6 +483,21 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
 }) => {
   const { language } = useLanguage();
   const tLocal = localized[language] || localized.vi;
+  const [isReporting, setIsReporting] = useState(false);
+
+  const handleSendWeeklyReport = async () => {
+    setIsReporting(true);
+    const loadingToast = toast.loading(language === 'en' ? 'Preparing report...' : 'Đang soạn sớ tấu gửi đi...');
+    try {
+      const res = await api.adminSendWeeklyReport();
+      toast.success(res.msg || (language === 'en' ? 'Weekly report sent successfully!' : 'Đã gửi báo cáo tuần thành công!'));
+    } catch (err: any) {
+      toast.error(err.message || (language === 'en' ? 'Failed to send weekly report' : 'Gửi báo cáo tuần thất bại'));
+    } finally {
+      setIsReporting(false);
+      toast.dismiss(loadingToast);
+    }
+  };
 
   // Tính toán số liệu
   const totalUsers = users.length;
@@ -648,9 +733,10 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
       </div>
 
       {/* Thống Kê Biểu Đồ Hoạt Động & Doanh Thu */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <RevenueChart data={revenueTrend} />
         <ChatTrafficChart data={chatTrafficTrend} />
+        <EraDistributionChart chatlogs={chatlogs} language={language} />
       </div>
 
       {/* Lối tắt hành sự & Hoạt động gần đây */}
@@ -776,6 +862,39 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                 <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
+          </div>
+
+          {/* Gửi Báo Cáo Tuần Qua Email */}
+          <div className="paper-texture scroll-border rounded-2xl p-6 shadow-md border border-stone-200">
+            <h3 className="font-historical text-[#7f1d1d] text-base font-black border-b border-amber-800/10 pb-3 mb-3">
+              {tLocal.weekly_report_title}
+            </h3>
+            <p className="text-[11px] text-stone-500 font-sans leading-relaxed mb-4">
+              {tLocal.weekly_report_desc}
+            </p>
+            <button
+              onClick={handleSendWeeklyReport}
+              disabled={isReporting}
+              className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl font-historical font-black text-xs transition-all shadow-md ${
+                isReporting 
+                  ? 'bg-stone-100 border border-stone-200 text-stone-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-[#7f1d1d] to-[#b45309] text-white hover:brightness-110 border border-amber-600/30'
+              }`}
+            >
+              {isReporting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>{tLocal.weekly_report_sending}</span>
+                </>
+              ) : (
+                <>
+                  <span>{tLocal.weekly_report_btn}</span>
+                </>
+              )}
+            </button>
           </div>
 
           {/* Trạng sĩ đăng nhập */}

@@ -29,7 +29,12 @@ const localized = {
     filter_neutral: "😐 Bình thường",
     stats_title: "Thống Kê Khí Sắc Học Đường",
     total_chats: "Tổng Số Sớ",
-    score_lbl: "Chỉ số: "
+    score_lbl: "Chỉ số: ",
+    lbl_positive: "Hài lòng",
+    lbl_neutral: "Bình thường",
+    lbl_inquisitive: "Tầm sư",
+    lbl_frustrated: "Bực bội",
+    lbl_jailbreak: "Phá hoại"
   },
   en: {
     title: "💬 Dialogue Ledger & Live Chat Audit",
@@ -56,7 +61,12 @@ const localized = {
     filter_neutral: "😐 Neutral",
     stats_title: "Scholar Sentiment Statistics",
     total_chats: "Total Inquiries",
-    score_lbl: "Score: "
+    score_lbl: "Score: ",
+    lbl_positive: "Satisfied",
+    lbl_neutral: "Neutral",
+    lbl_inquisitive: "Inquiry",
+    lbl_frustrated: "Frustrated",
+    lbl_jailbreak: "Jailbreak"
   }
 };
 
@@ -230,35 +240,35 @@ const ChatLogsTab: React.FC<ChatLogsTabProps> = ({ chatlogs, onSelectChat }) => 
           {/* Positive */}
           <div className="bg-green-950/20 border border-green-900/30 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
             <Smile size={18} className="text-green-500" />
-            <div className="text-[9px] font-historical text-green-400/70 uppercase tracking-wider mt-1">Hài lòng</div>
+            <div className="text-[9px] font-historical text-green-400/70 uppercase tracking-wider mt-1">{tLocal.lbl_positive}</div>
             <div className="text-lg font-historical font-black text-green-400 mt-0.5">{stats.positive}</div>
           </div>
 
           {/* Neutral */}
           <div className="bg-stone-950/40 border border-stone-900/30 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
             <Meh size={18} className="text-stone-400" />
-            <div className="text-[9px] font-historical text-stone-400 uppercase tracking-wider mt-1">Bình thường</div>
+            <div className="text-[9px] font-historical text-stone-400 uppercase tracking-wider mt-1">{tLocal.lbl_neutral}</div>
             <div className="text-lg font-historical font-black text-stone-300 mt-0.5">{stats.neutral}</div>
           </div>
 
           {/* Inquisitive */}
           <div className="bg-blue-950/20 border border-blue-900/30 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
             <HelpCircle size={18} className="text-blue-400" />
-            <div className="text-[9px] font-historical text-blue-400 uppercase tracking-wider mt-1">Tầm sư</div>
+            <div className="text-[9px] font-historical text-blue-400 uppercase tracking-wider mt-1">{tLocal.lbl_inquisitive}</div>
             <div className="text-lg font-historical font-black text-blue-400 mt-0.5">{stats.inquisitive}</div>
           </div>
 
           {/* Frustrated */}
           <div className="bg-red-950/20 border border-red-900/30 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
             <Frown size={18} className="text-red-500" />
-            <div className="text-[9px] font-historical text-red-400/80 uppercase tracking-wider mt-1">Bực bội</div>
+            <div className="text-[9px] font-historical text-red-400/80 uppercase tracking-wider mt-1">{tLocal.lbl_frustrated}</div>
             <div className="text-lg font-historical font-black text-red-400 mt-0.5">{stats.frustrated}</div>
           </div>
 
           {/* Jailbreak */}
           <div className="bg-yellow-950/20 border border-yellow-900/30 rounded-2xl p-3 text-center flex flex-col items-center justify-center animate-pulse">
             <AlertTriangle size={18} className="text-yellow-500" />
-            <div className="text-[9px] font-historical text-yellow-500 uppercase tracking-wider mt-1">Phá hoại</div>
+            <div className="text-[9px] font-historical text-yellow-500 uppercase tracking-wider mt-1">{tLocal.lbl_jailbreak}</div>
             <div className="text-lg font-historical font-black text-yellow-400 mt-0.5">{stats.jailbreak}</div>
           </div>
         </div>
@@ -354,27 +364,27 @@ const ChatLogsTab: React.FC<ChatLogsTabProps> = ({ chatlogs, onSelectChat }) => 
                     <td className="px-6 py-4 text-center whitespace-nowrap">
                       {log.sentiment === 'positive' && (
                         <span className="inline-block px-2.5 py-1 bg-green-50 border-2 border-green-600 text-green-700 rounded-sm text-[9px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[-1deg] border-double">
-                          😊 {language === 'vi' ? 'Hài lòng' : 'Satisfied'}
+                          😊 {tLocal.lbl_positive}
                         </span>
                       )}
                       {log.sentiment === 'frustrated' && (
                         <span className="inline-block px-2.5 py-1 bg-red-50 border-2 border-red-600 text-red-700 rounded-sm text-[9px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[1deg] border-double animate-bounce">
-                          😡 Bực bội
+                          😡 {tLocal.lbl_frustrated}
                         </span>
                       )}
                       {log.sentiment === 'inquisitive' && (
                         <span className="inline-block px-2.5 py-1 bg-blue-50 border border-blue-500 text-blue-700 rounded-sm text-[9px] font-black uppercase tracking-wider font-historical">
-                          🤔 Tầm sư
+                          🤔 {tLocal.lbl_inquisitive}
                         </span>
                       )}
                       {log.sentiment === 'jailbreak' && (
                         <span className="inline-block px-2.5 py-1 bg-yellow-50 border-2 border-yellow-600 text-yellow-800 rounded-sm text-[9px] font-black uppercase tracking-wider shadow-sm font-historical transform rotate-[-2deg] border-double animate-pulse">
-                          🚨 Phá hoại
+                          🚨 {tLocal.lbl_jailbreak}
                         </span>
                       )}
                       {(log.sentiment === 'neutral' || !log.sentiment) && (
                         <span className="inline-block px-2.5 py-1 bg-stone-100 border border-stone-400 text-stone-500 rounded-sm text-[9px] font-black uppercase tracking-wider font-historical">
-                          😐 Bình thường
+                          😐 {tLocal.lbl_neutral}
                         </span>
                       )}
                       {log.sentiment_score !== undefined && log.sentiment_score !== 0 && (

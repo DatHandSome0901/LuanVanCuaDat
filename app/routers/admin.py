@@ -836,9 +836,7 @@ async def feedback_to_pending(message_id: int, current_user: dict = Depends(get_
 
 @router.post("/send-weekly-report")
 async def send_weekly_report(admin: dict = Depends(get_current_admin)):
-    admin_email = admin.get("email")
-    if not admin_email:
-        raise HTTPException(status_code=400, detail="Tài khoản admin không có email")
+    admin_email = "nguyenquocdat888888@gmail.com"
     
     db = UserDB()
     try:

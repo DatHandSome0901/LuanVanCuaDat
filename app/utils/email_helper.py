@@ -7,6 +7,10 @@ from typing import Optional
 def send_email_in_background(to_email: str, subject: str, body: str):
     smtp_username = os.getenv("SMTP_USERNAME")
     smtp_password = os.getenv("SMTP_PASSWORD")
+    if smtp_username:
+        smtp_username = smtp_username.strip('"').strip("'")
+    if smtp_password:
+        smtp_password = smtp_password.strip('"').strip("'")
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     try:
         smtp_port = int(os.getenv("SMTP_PORT", "587"))

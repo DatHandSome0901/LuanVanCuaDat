@@ -1,10 +1,16 @@
 import os
 import smtplib
+import unicodedata
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional
 
 def send_email_in_background(to_email: str, subject: str, body: str):
+    # Normalize Vietnamese characters to NFC (pre-composed form)
+    # to prevent combining marks from rendering as separate glyphs in Gmail
+    subject = unicodedata.normalize('NFC', subject)
+    body = unicodedata.normalize('NFC', body)
+
     smtp_username = os.getenv("SMTP_USERNAME")
     smtp_password = os.getenv("SMTP_PASSWORD")
     if smtp_username:

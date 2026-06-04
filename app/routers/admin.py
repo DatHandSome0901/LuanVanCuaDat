@@ -919,7 +919,7 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
         <div style="max-width: 650px; margin: 0 auto; background-color: #fff; border: 1px solid #e5d8bc; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #7f1d1d 0%, #451a03 100%); padding: 30px; text-align: center; border-bottom: 3px solid #d97706;">
-            <h1 style="color: #fef3c7; margin: 0; font-family: 'Georgia', serif; font-size: 24px; letter-spacing: 1px; font-weight: bold; text-transform: uppercase;">Ngự Tiền Tấu Chương</h1>
+            <h1 style="color: #fef3c7; margin: 0; font-family: 'Georgia', serif; font-size: 24px; letter-spacing: 1px; font-weight: bold;">NGỰ TIỀN TẤU CHƯƠNG</h1>
             <p style="color: #fbcfe8; margin: 8px 0 0 0; font-size: 13px; font-style: italic; opacity: 0.9;">Báo cáo tổng kết tuần của chuyên gia Lịch sử Việt Nam AI</p>
           </div>
           
@@ -933,13 +933,13 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
               <tr>
                 <td style="width: 50%; padding-right: 8px;">
                   <div style="background-color: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 8px; text-align: center;">
-                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: bold;">Sĩ Tử Mới Đăng Khoa</p>
+                    <p style="margin: 0; font-size: 11px; color: #b45309; font-weight: bold;">SĨ TỬ MỚI ĐĂNG KHOA</p>
                     <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #7f1d1d;">+{new_users} <span style="font-size: 12px; font-weight: normal; color: #666;">(Tổng: {total_users})</span></p>
                   </div>
                 </td>
                 <td style="width: 50%; padding-left: 8px;">
                   <div style="background-color: #fef2f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 8px; text-align: center;">
-                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #991b1b; font-weight: bold;">Ngân Khố Mới Nhận</p>
+                    <p style="margin: 0; font-size: 11px; color: #991b1b; font-weight: bold;">NGÂN KHỐ MỚI NHẬN</p>
                     <p style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: #991b1b;">+{new_payments_vnd:,} đ <span style="font-size: 11px; font-weight: normal; color: #666;">({new_payments_count} sớ)</span></p>
                   </div>
                 </td>
@@ -947,14 +947,14 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
             </table>
             
             <div style="background-color: #f0fdf4; border: 1px solid #dcfce7; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-              <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #166534; font-weight: bold;">Số Lượt Đàm Luận (Chats)</p>
+              <p style="margin: 0; font-size: 11px; color: #166534; font-weight: bold;">SỐ LƯỢT ĐÀM LUẬN (CHATS)</p>
               <p style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; color: #166534;">+{new_chats} <span style="font-size: 12px; font-weight: normal; color: #666;">(Tổng: {total_chats})</span></p>
             </div>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
             
             <!-- Era Chart summary -->
-            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px; text-transform: uppercase;">📊 Bản Đồ Triều Đại Được Quan Tâm</h3>
+            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px;">📊 BẢN ĐỒ TRIỀU ĐẠI ĐƯỢC QUAN TÂM</h3>
             <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; line-height: 1.8;">
               {era_list_html}
             </ul>
@@ -962,7 +962,7 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
             
             <!-- Sentiment Summary -->
-            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px; text-transform: uppercase;">🎭 Phân Tích Cảm Xúc Của Sĩ Tử</h3>
+            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px;">🎭 PHÂN TÍCH CẢM XÚC CỦA SĨ TỬ</h3>
             <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; line-height: 1.8;">
               {sentiment_list_html}
             </ul>

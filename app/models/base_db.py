@@ -118,10 +118,22 @@ class BaseDB:
                 question TEXT,
                 answer TEXT,
                 tokens_charged REAL,
+                sentiment TEXT DEFAULT 'neutral',
+                sentiment_score REAL DEFAULT 0.0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+
+        # 🔥 Migration: Thêm cột sentiment và sentiment_score vào chat_logs nếu chưa có
+        try:
+            self.cursor.execute("ALTER TABLE chat_logs ADD COLUMN sentiment TEXT DEFAULT 'neutral'")
+        except:
+            pass
+        try:
+            self.cursor.execute("ALTER TABLE chat_logs ADD COLUMN sentiment_score REAL DEFAULT 0.0")
+        except:
+            pass
 
         # Create settings table
         self.cursor.execute("""
@@ -375,10 +387,52 @@ class BaseDB:
         self.cursor.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, str(value)))
         self.conn.commit()
 
+    def analyze_sentiment(self, question, answer):
+        q_lower = (question or "").lower()
+        
+        # Check jailbreak keywords
+        jailbreak_keywords = [
+            "ignore instructions", "ignore previous", "bỏ qua hướng dẫn", 
+            "bỏ qua quy tắc", "hãy đóng vai", "system prompt", "system instructions", 
+            "write a python", "viết code", "mã độc", "hack", "bypass", "jailbreak"
+        ]
+        if any(k in q_lower for k in jailbreak_keywords):
+            return "jailbreak", -0.8
+            
+        # Check negative/frustrated keywords
+        negative_keywords = [
+            "sai rồi", "không đúng", "tệ", "kém", "ngu", "lỗi", "nhảm", 
+            "vớ vẩn", "nhảm nhí", "bậy bạ", "dở", "chán", "hạch", "tào lao",
+            "đáp án sai", "thông tin sai", "lừa đảo"
+        ]
+        if any(k in q_lower for k in negative_keywords):
+            return "frustrated", -0.6
+            
+        # Check positive/satisfied keywords
+        positive_keywords = [
+            "cảm ơn", "cam on", "tuyệt vời", "tuyet voi", "chính xác", "chinh xac",
+            "đúng rồi", "dung roi", "rất tốt", "rat tot", "hay quá", "hay qua",
+            "hữu ích", "huu ich", "perfect", "cám ơn"
+        ]
+        if any(k in q_lower for k in positive_keywords):
+            return "positive", 0.8
+            
+        # Check inquisitive / questions
+        inquisitive_keywords = [
+            "tại sao", "tai sao", "khi nào", "khi nao", "ai là", "ai la",
+            "thế nào", "the nao", "ở đâu", "o dau", "bao nhiêu", "bao nhieu",
+            "như thế nào", "nhu the nao", "giải thích", "giai thich"
+        ]
+        if any(k in q_lower for k in inquisitive_keywords):
+            return "inquisitive", 0.1
+            
+        return "neutral", 0.0
+
     def save_chat_log(self, user_id, question, answer, tokens_charged):
+        sentiment, score = self.analyze_sentiment(question, answer)
         self.cursor.execute(
-            "INSERT INTO chat_logs (user_id, question, answer, tokens_charged) VALUES (?, ?, ?, ?)",
-            (user_id, question, answer, float(tokens_charged))
+            "INSERT INTO chat_logs (user_id, question, answer, tokens_charged, sentiment, sentiment_score) VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, question, answer, float(tokens_charged), sentiment, score)
         )
         self.conn.commit()
 

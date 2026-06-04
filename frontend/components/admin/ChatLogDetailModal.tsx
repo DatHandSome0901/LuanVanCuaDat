@@ -61,11 +61,30 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-stone-100">
-                <div className="flex gap-4">
+                <div className="flex gap-6">
                     <div className="text-center">
                         <p className="text-[10px] text-stone-400 font-bold uppercase">{tLocal.lbl_token}</p>
                         <p className="text-xl font-black text-amber-600">{chat.tokens_charged}</p>
                     </div>
+                    {chat.sentiment && (
+                        <div className="text-left border-l border-stone-100 pl-6">
+                            <p className="text-[10px] text-stone-400 font-bold uppercase">
+                                {language === 'vi' ? 'Khí sắc / Thái độ' : 'Sentiment'}
+                            </p>
+                            <p className="text-xs font-bold text-stone-700 mt-1 flex items-center gap-1.5">
+                                {chat.sentiment === 'positive' && '😊 Tích cực / Hài lòng'}
+                                {chat.sentiment === 'frustrated' && '😡 Tiêu cực / Bực bội'}
+                                {chat.sentiment === 'inquisitive' && '🤔 Nghi vấn / Tầm sư'}
+                                {chat.sentiment === 'jailbreak' && '🚨 Phá hoại / Jailbreak'}
+                                {chat.sentiment === 'neutral' && '😐 Bình thường'}
+                                {chat.sentiment_score !== undefined && chat.sentiment_score !== 0 && (
+                                    <span className="text-[10px] text-stone-400 font-mono">
+                                        ({chat.sentiment_score > 0 ? '+' : ''}{chat.sentiment_score.toFixed(1)})
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                    )}
                 </div>
                 <div className="text-right text-xs text-stone-400 italic">
                     {tLocal.lbl_verified} {new Date(chat.created_at).toLocaleString()}

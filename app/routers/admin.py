@@ -919,7 +919,7 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
         <div style="max-width: 650px; margin: 0 auto; background-color: #fff; border: 1px solid #e5d8bc; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #7f1d1d 0%, #451a03 100%); padding: 30px; text-align: center; border-bottom: 3px solid #d97706;">
-            <h1 style="color: #fef3c7; margin: 0; font-family: 'Georgia', serif; font-size: 24px; letter-spacing: 1px; font-weight: bold;">NGỰ TIỀN TẤU CHƯƠNG</h1>
+            <h1 style="color: #fef3c7; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 24px; font-weight: bold;">NGỰ TIỀN TẤU CHƯƠNG</h1>
             <p style="color: #fbcfe8; margin: 8px 0 0 0; font-size: 13px; font-style: italic; opacity: 0.9;">Báo cáo tổng kết tuần của chuyên gia Lịch sử Việt Nam AI</p>
           </div>
           
@@ -954,7 +954,7 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
             
             <!-- Era Chart summary -->
-            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px;">📊 BẢN ĐỒ TRIỀU ĐẠI ĐƯỢC QUAN TÂM</h3>
+            <h3 style="color: #7f1d1d; font-family: Arial, Helvetica, sans-serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px;">📊 BẢN ĐỒ TRIỀU ĐẠI ĐƯỢC QUAN TÂM</h3>
             <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; line-height: 1.8;">
               {era_list_html}
             </ul>
@@ -962,7 +962,7 @@ async def send_weekly_report(admin: dict = Depends(get_current_admin)):
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
             
             <!-- Sentiment Summary -->
-            <h3 style="color: #7f1d1d; font-family: 'Georgia', serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px;">🎭 PHÂN TÍCH CẢM XÚC CỦA SĨ TỬ</h3>
+            <h3 style="color: #7f1d1d; font-family: Arial, Helvetica, sans-serif; font-size: 15px; margin-top: 0; border-bottom: 2px solid #f59e0b; padding-bottom: 6px;">🎭 PHÂN TÍCH CẢM XÚC CỦA SĨ TỬ</h3>
             <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; line-height: 1.8;">
               {sentiment_list_html}
             </ul>

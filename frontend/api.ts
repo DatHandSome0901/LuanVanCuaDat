@@ -22,8 +22,8 @@ const isDev = import.meta.env.DEV;
 const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
 const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(currentHostname);
 
-// IP mặc định cho điện thoại thật (Dùng trực tiếp IP LAN để ổn định nhất)
-const DEFAULT_NATIVE_API = 'https://rehydrate-doing-crust.ngrok-free.dev';
+// IP mặc định cho điện thoại thật (Proxy qua Vercel để tránh lỗi CORS và trang cảnh báo Ngrok)
+const DEFAULT_NATIVE_API = 'https://frontend-neon-gamma-98.vercel.app';
 
 // Logic chọn API URL:
 // - LAN access (isIP=true, e.g. 192.168.1.8:3000): dùng cùng IP, cổng 2643

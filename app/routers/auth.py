@@ -107,15 +107,17 @@ async def google_login(request: Request, frontend_url: str = Query("http://local
     # Tự động chọn địa chỉ trả về (Redirect URI)
     host = request.headers.get("host", "localhost:2643")
     
-    if "vercel.app" in frontend_url:
-        # Nếu đang dùng Vercel, bắt Google trả về Vercel (để Vercel tự trung chuyển về đây)
-        # Cách này sẽ giúp không bao giờ hiện cái bảng Ngrok khó chịu nữa
-        redirect_uri = f"{frontend_url}/api/v1/auth/google/callback"
+    if "vercel.app" in frontend_url or frontend_url.startswith("chatbot://"):
+        # Nếu đang dùng Vercel hoặc App di động (chatbot://), bắt Google trả về Vercel (để Vercel tự trung chuyển về đây)
+        # Cách này giúp bypass hoàn toàn trang cảnh báo Ngrok và lỗi redirect_uri_mismatch trên di động
+        vercel_host = "https://frontend-neon-gamma-98.vercel.app"
+        redirect_uri = f"{vercel_host}/api/v1/auth/google/callback"
     elif "localhost" in host:
         redirect_uri = f"http://{host}/api/v1/auth/google/callback"
     else:
         # Trường hợp dùng IP mạng LAN thì vẫn phải dùng Ngrok trực tiếp
-        ngrok_url = "https://rehydrate-doing-crust.ngrok-free.dev"
+        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+        ngrok_url = f"{scheme}://{host}"
         redirect_uri = f"{ngrok_url}/api/v1/auth/google/callback"
     
     params = {
@@ -137,12 +139,14 @@ async def google_callback(request: Request, code: str = Query(...), state: str =
     host = request.headers.get("host", "localhost:2643")
     frontend_url = state if state else "http://localhost:3000"
     
-    if "vercel.app" in frontend_url:
-        redirect_uri = f"{frontend_url}/api/v1/auth/google/callback"
+    if "vercel.app" in frontend_url or frontend_url.startswith("chatbot://"):
+        vercel_host = "https://frontend-neon-gamma-98.vercel.app"
+        redirect_uri = f"{vercel_host}/api/v1/auth/google/callback"
     elif "localhost" in host:
         redirect_uri = f"http://{host}/api/v1/auth/google/callback"
     else:
-        ngrok_url = "https://rehydrate-doing-crust.ngrok-free.dev"
+        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+        ngrok_url = f"{scheme}://{host}"
         redirect_uri = f"{ngrok_url}/api/v1/auth/google/callback"
     
     # Tiếp tục xử lý lấy token từ Google...

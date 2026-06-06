@@ -93,6 +93,39 @@ def update_capacitor_config(new_dev_server_url):
         return False
 
 
+def update_vercel_json(new_url):
+    """Cap nhat destination trong vercel.json."""
+    vercel_path = os.path.join("frontend", "vercel.json")
+    if not os.path.exists(vercel_path):
+        print(f"[-] Khong tim thay file: {vercel_path}")
+        return False
+    try:
+        with open(vercel_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        # Cap nhat rewrite destination
+        updated = False
+        if "rewrites" in data:
+            for rw in data["rewrites"]:
+                if rw.get("source") == "/api/v1/:path*":
+                    old_dest = rw.get("destination", "")
+                    new_dest = f"{new_url}/api/v1/:path*"
+                    if old_dest != new_dest:
+                        rw["destination"] = new_dest
+                        updated = True
+        
+        if updated:
+            with open(vercel_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            print(f"[+] Da cap nhat vercel.json destination sang: {new_url}")
+            return True
+        else:
+            print("[i] vercel.json destination da chinh xac, khong can cap nhat.")
+            return False
+    except Exception as e:
+        print(f"[-] Loi khi cap nhat vercel.json: {e}")
+        return False
+
 def update_env_file(new_ip):
     env_path = ".env"
     if not os.path.exists(env_path):
@@ -152,21 +185,63 @@ def run_update():
     # Dev server URL cho Capacitor DEV mode (Vite chay o port 5173, dung IP local)
     dev_server_url = f"http://{current_ip}:5173"
     print(f"[*] Vite dev server URL: {dev_server_url}")
-
     update_env_file(current_ip)
-    update_capacitor_config(dev_server_url)
-    api_changed = update_api_ts(native_api_url)
+    api_changed = update_api_ts("https://frontend-neon-gamma-98.vercel.app")
     cap_changed = update_capacitor_config(dev_server_url)
+    vercel_changed = update_vercel_json(native_api_url)
 
-    if api_changed or cap_changed:
+    if api_changed or cap_changed or vercel_changed:
         print("[!] Cau hinh da thay doi! Dang tu dong Build va Sync Android...")
         try:
+            # 1. Don dep truoc khi build de tranh lap vo han vao assets cua Android
+            print("[!] Dang don dep cac file APK cu...")
+            old_apks = [
+                os.path.join("frontend", "public", "app-release.apk"),
+                os.path.join("frontend", "dist", "app-release.apk"),
+                os.path.join("frontend", "android", "app", "src", "main", "assets", "public", "app-release.apk")
+            ]
+            for path in old_apks:
+                if os.path.exists(path):
+                    try:
+                        os.remove(path)
+                    except Exception:
+                        pass
+
+            # 2. Build web sach de lay assets sach copy sang Android
             subprocess.run(["npm", "run", "build"], cwd="frontend", shell=True, check=True)
             subprocess.run(["npx", "cap", "copy", "android"], cwd="frontend", shell=True, check=True)
-            print("\n[DONE] Da cap nhat va dong bo sang Android thanh cong!")
+            print("[+] Da cap nhat va dong bo web assets sang Android.")
+
+            # 3. Tu dong compile APK
+            gradle_env = os.environ.copy()
+            gradle_env["JAVA_HOME"] = r"C:\Program Files\Java\jdk-21"
+            android_dir = os.path.join("frontend", "android")
+            print("[!] Dang tu dong compile APK bang Gradle...")
+            subprocess.run([r".\gradlew.bat", "assembleDebug"], cwd=android_dir, env=gradle_env, shell=True, check=True)
+
+            # 4. Copy file APK vao public folder
+            import shutil
+            built_apk = os.path.join(android_dir, "app", "build", "outputs", "apk", "debug", "app-debug.apk")
+            if os.path.exists(built_apk):
+                shutil.copy2(built_apk, "app-debug.apk")
+                shutil.copy2(built_apk, os.path.join("frontend", "public", "app-release.apk"))
+                print("[+] Da tu dong cap nhat va ghi de cac file APK thanh cong!")
+            else:
+                print("[-] Canh bao: Khong tim thay file APK sau khi compile")
+
+            # 5. Build lai web lan 2 de Vite copy file app-release.apk moi tu public vao dist
+            print("[!] Re-building web frontend de dong goi APK vao folder dist...")
+            subprocess.run(["npm", "run", "build"], cwd="frontend", shell=True, check=True)
+
+            # 6. Deploy len Vercel
+            print("[!] Dang tu dong deploy len Vercel...")
+            subprocess.run(["vercel", "--prod", "--yes"], cwd="frontend", shell=True, check=True)
+            print("[+] Da deploy cap nhat len Vercel thanh cong!")
+
+            print("\n[DONE] Tat ca da duoc tu dong cap nhat thanh cong!")
             return True
         except Exception as e:
-            print(f"[-] Loi khi tu dong build: {e}")
+            print(f"[-] Loi khi tu dong build/compile/deploy: {e}")
             return False
     else:
         print("[+] Cau hinh van on, khong can Build lai.")

@@ -182,4 +182,8 @@ export interface SiteConfig {
   landing_contact_zalo_num?: string;
   landing_contact_zalo_link?: string;
   landing_contact_fb_link?: string;
+  app_landing_texts?: string;
+  app_landing_heroes?: string;
+  app_landing_badge?: string;
+  app_landing_motto?: string;
 }

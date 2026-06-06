@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { API_ROOT } from '../../api';
 import LandingPage from '../LandingPage';
+import LandingPageMobile from '../../mobile/LandingPageMobile';
 import { 
   Settings, RefreshCw, Upload, FileText, Image, DollarSign, 
   Brain, Save, Gamepad2, Layout, Edit, Check, Eye, Minimize2, Maximize2 
@@ -234,7 +235,18 @@ const localized = {
     preview_realtime: "Xem Trước Realtime",
     preview_url: "http://localhost:5173/preview",
     btn_minimize: "Thu nhỏ",
-    drag_tooltip: "Kéo thanh tiêu đề để di chuyển • Đúp chuột để phóng to"
+    drag_tooltip: "Kéo thanh tiêu đề để di chuyển • Đúp chuột để phóng to",
+    config_mobile_landing: "Cấu hình Landing Page Di động (Mobile)",
+    app_landing_texts_label: "Các dòng chữ chạy (Typewriter Texts)",
+    app_landing_texts_desc: "Mỗi dòng một câu, ngăn cách bằng xuống dòng",
+    app_landing_texts_placeholder: "Nhập các câu chạy chữ...\nVí dụ:\nHào khí Đông A...\nNgàn năm văn hiến...",
+    app_landing_heroes_label: "Tên các anh hùng nổi (Floating Hero Bubbles)",
+    app_landing_heroes_desc: "Ngăn cách bằng dấu phẩy",
+    app_landing_heroes_placeholder: "Gia Long, Quang Trung, Trần Hưng Đạo...",
+    app_landing_badge_label: "Nhãn huy hiệu (Logo Badge)",
+    app_landing_badge_placeholder: "Ví dụ: 18 Triều Đại",
+    app_landing_motto_label: "Khẩu hiệu di động (Motto)",
+    app_landing_motto_placeholder: "Ví dụ: Hào Khí Việt Nam"
   },
   en: {
     sync_btn: "Sync from HTML",
@@ -321,7 +333,18 @@ const localized = {
     preview_realtime: "Real-time Preview",
     preview_url: "http://localhost:5173/preview",
     btn_minimize: "Minimize",
-    drag_tooltip: "Drag title bar to move • Double click to expand"
+    drag_tooltip: "Drag title bar to move • Double click to expand",
+    config_mobile_landing: "Configure Mobile Landing Page",
+    app_landing_texts_label: "Typewriter Texts",
+    app_landing_texts_desc: "One sentence per line",
+    app_landing_texts_placeholder: "Enter typewriter texts...\nExample:\nDong A Spirit...\nA thousand years of culture...",
+    app_landing_heroes_label: "Floating Hero Bubbles",
+    app_landing_heroes_desc: "Comma separated names of heroes",
+    app_landing_heroes_placeholder: "Gia Long, Quang Trung, Tran Hung Dao...",
+    app_landing_badge_label: "Emblem Badge Label",
+    app_landing_badge_placeholder: "Example: 18 Dynasties",
+    app_landing_motto_label: "Mobile Motto",
+    app_landing_motto_placeholder: "Example: Vietnamese Heroism"
   }
 };
 
@@ -350,6 +373,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   const [statsItems, setStatsItems] = useState<Array<{ num: number | string; suffix: string; label: string; }>>(language === 'en' ? defaultStatsItemsEn : defaultStatsItemsVi);
   const [highlightsItems, setHighlightsItems] = useState(language === 'en' ? defaultHighlightsItemsEn : defaultHighlightsItemsVi);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [dragPosition, setDragPosition] = useState({ x: 24, y: 24 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -1124,6 +1148,83 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
             </div>
 
+            {/* --- SECTION 2.5: CẤU HÌNH TRANG LANDING DI ĐỘNG (MOBILE) --- */}
+            <div className="space-y-4 border-t border-stone-100 pt-4">
+              <div className="flex items-center gap-2 border-b border-stone-100 pb-2">
+                <div className="bg-amber-600/10 p-1.5 rounded-lg text-amber-700">
+                  <Gamepad2 size={16} />
+                </div>
+                <div>
+                  <h3 className="font-historical font-black text-xs text-stone-900 uppercase tracking-wider">
+                    {tLocal.config_mobile_landing}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">
+                    {tLocal.app_landing_texts_label}
+                  </label>
+                  <p className="text-[10px] text-stone-500 mb-1">{tLocal.app_landing_texts_desc}</p>
+                  <textarea
+                    name="app_landing_texts"
+                    value={data.app_landing_texts || ''}
+                    onChange={onChange}
+                    rows={3}
+                    className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
+                    placeholder={tLocal.app_landing_texts_placeholder}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">
+                    {tLocal.app_landing_heroes_label}
+                  </label>
+                  <p className="text-[10px] text-stone-500 mb-1">{tLocal.app_landing_heroes_desc}</p>
+                  <input
+                    type="text"
+                    name="app_landing_heroes"
+                    value={data.app_landing_heroes || ''}
+                    onChange={onChange}
+                    className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
+                    placeholder={tLocal.app_landing_heroes_placeholder}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">
+                    {tLocal.app_landing_badge_label}
+                  </label>
+                  <input
+                    type="text"
+                    name="app_landing_badge"
+                    value={data.app_landing_badge || ''}
+                    onChange={onChange}
+                    className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
+                    placeholder={tLocal.app_landing_badge_placeholder}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">
+                    {tLocal.app_landing_motto_label}
+                  </label>
+                  <input
+                    type="text"
+                    name="app_landing_motto"
+                    value={data.app_landing_motto || ''}
+                    onChange={onChange}
+                    className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs"
+                    placeholder={tLocal.app_landing_motto_placeholder}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* --- SECTION 3: EDIT ERA CARDS (SESSIONS) --- */}
             <div className="space-y-4 border-t border-stone-100 pt-4">
               <h4 className="font-historical text-[#7f1d1d] font-black border-b border-stone-100 pb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
@@ -1484,6 +1585,33 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   {tLocal.preview_url}
                 </span>
               </div>
+              
+              {/* Device Selector */}
+              <div className="flex items-center bg-stone-950 p-1 rounded-lg border border-stone-850">
+                <button
+                  type="button"
+                  onClick={() => setPreviewDevice('desktop')}
+                  className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${
+                    previewDevice === 'desktop'
+                      ? 'bg-amber-600 text-stone-950 shadow'
+                      : 'text-stone-400 hover:text-white'
+                  }`}
+                >
+                  Desktop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewDevice('mobile')}
+                  className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${
+                    previewDevice === 'mobile'
+                      ? 'bg-amber-600 text-stone-950 shadow'
+                      : 'text-stone-400 hover:text-white'
+                  }`}
+                >
+                  Mobile
+                </button>
+              </div>
+
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 text-stone-400 font-bold text-[10px] font-historical uppercase">
                   <Eye size={12} className="text-amber-500" />
@@ -1504,13 +1632,33 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             <div 
               ref={previewContainerRef}
               onClick={handlePreviewClick}
-              className="flex-1 overflow-y-auto bg-stone-50 scale-95 origin-top rounded-2xl border border-stone-200 preview-mode-active"
+              className={`flex-1 overflow-y-auto bg-stone-50 scale-95 origin-top rounded-2xl border border-stone-200 preview-mode-active ${
+                previewDevice === 'mobile' ? 'flex justify-center items-center py-6 bg-stone-950' : ''
+              }`}
             >
-              <LandingPage 
-                siteConfig={previewSiteConfig as any} 
-                onStart={() => {}} 
-                user={null} 
-              />
+              {previewDevice === 'desktop' ? (
+                <LandingPage 
+                  siteConfig={previewSiteConfig as any} 
+                  onStart={() => {}} 
+                  user={null} 
+                />
+              ) : (
+                /* Beautiful Phone Frame Simulator */
+                <div className="relative mx-auto my-4 w-[360px] h-[740px] rounded-[48px] border-[10px] border-stone-850 bg-[#0c0606] shadow-2xl overflow-hidden ring-4 ring-stone-800 flex flex-col shrink-0">
+                  {/* Speaker Notch */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-6 bg-stone-900 rounded-full z-50 flex items-center justify-center">
+                    <div className="w-12 h-1 bg-stone-800 rounded-full"></div>
+                  </div>
+                  {/* Mobile Screen Area */}
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden relative h-full">
+                    <LandingPageMobile 
+                      siteConfig={previewSiteConfig as any} 
+                      onStart={() => {}} 
+                      user={null} 
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -1545,16 +1693,30 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             <div 
               ref={miniPreviewContainerRef}
               onClick={handlePreviewClick}
-              className="flex-1 bg-stone-50 overflow-y-auto relative scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-stone-300 [&::-webkit-scrollbar-thumb]:rounded-full"
+              className={`flex-1 overflow-y-auto relative scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-stone-300 [&::-webkit-scrollbar-thumb]:rounded-full ${
+                previewDevice === 'mobile' ? 'bg-stone-950 flex items-center justify-center p-2' : 'bg-stone-50'
+              }`}
             >
               <div className="absolute inset-0 pointer-events-none bg-black/5 group-hover:bg-transparent z-10 transition-colors"></div>
-              <div className="w-[1120px] origin-top-left scale-[0.25]">
-                <LandingPage 
-                  siteConfig={previewSiteConfig as any} 
-                  onStart={() => {}} 
-                  user={null} 
-                />
-              </div>
+              {previewDevice === 'desktop' ? (
+                <div className="w-[1120px] origin-top-left scale-[0.25]">
+                  <LandingPage 
+                    siteConfig={previewSiteConfig as any} 
+                    onStart={() => {}} 
+                    user={null} 
+                  />
+                </div>
+              ) : (
+                <div className="w-[360px] h-[640px] origin-top scale-[0.22] shrink-0">
+                  <div className="rounded-[40px] border-8 border-stone-800 overflow-hidden h-full">
+                    <LandingPageMobile 
+                      siteConfig={previewSiteConfig as any} 
+                      onStart={() => {}} 
+                      user={null} 
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -36,6 +36,12 @@ const ConversationListMobile: React.FC<Props> = ({ onSelect, activeId }) => {
     } catch (err) { console.error(err); }
   };
 
+  const openConversation = (id: number) => {
+    localStorage.setItem("conversation_id", String(id));
+    window.dispatchEvent(new Event("load_conversation"));
+    onSelect(id);
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm(t.history_delete_confirm)) return;
     try {
@@ -113,7 +119,7 @@ const ConversationListMobile: React.FC<Props> = ({ onSelect, activeId }) => {
         dragConstraints={{ left: -168, right: 0 }}
         dragElastic={0.1}
         className={`relative z-10 flex items-center justify-between px-3 py-2.5 bg-white border border-stone-100 rounded-xl transition-colors ${activeId === c.id ? 'bg-stone-50 border-stone-200' : ''}`}
-        onClick={() => { if (editingId !== c.id) onSelect(c.id); }}
+        onClick={() => { if (editingId !== c.id) openConversation(c.id); }}
       >
         {editingId === c.id ? (
           <input

@@ -4,8 +4,6 @@ import ConversationListMobile from '../mobile/ConversationListMobile';
 import { Capacitor } from '@capacitor/core';
 import { motion } from 'framer-motion';
 
-const isNative = Capacitor.isNativePlatform();
-
 interface HistoryViewProps {
   onSelect: (id: number) => void;
   activeId?: number | null;
@@ -13,6 +11,16 @@ interface HistoryViewProps {
 }
 
 const HistoryView: React.FC<HistoryViewProps> = ({ onSelect, activeId, isSidebarOpen }) => {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768 || Capacitor.isNativePlatform());
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768 || Capacitor.isNativePlatform());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleNewChat = () => {
     localStorage.removeItem("conversation_id");
     window.dispatchEvent(new Event("new_chat"));
@@ -24,7 +32,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onSelect, activeId, isSidebar
       {/* HEADER */}
       <header className="h-16 border-b border-stone-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6">
         <h2 className="font-historical-premium text-xl font-bold text-red-950">Lịch sử</h2>
-        {isNative && (
+        {isMobile && (
            <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleNewChat}
@@ -39,7 +47,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onSelect, activeId, isSidebar
 
       {/* LIST CONTAINER */}
       <div className="flex-1 overflow-y-auto p-4">
-        {isNative && (
+        {isMobile && (
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={handleNewChat}
@@ -49,8 +57,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ onSelect, activeId, isSidebar
           </motion.button>
         )}
 
-        <div className={isNative ? "" : "bg-white rounded-3xl shadow-sm border border-stone-100 p-2"}>
-            {isNative ? (
+        <div className={isMobile ? "" : "bg-white rounded-3xl shadow-sm border border-stone-100 p-2"}>
+            {isMobile ? (
               <ConversationListMobile onSelect={onSelect} activeId={activeId} />
             ) : (
               <ConversationList onSelect={onSelect} activeId={activeId} />

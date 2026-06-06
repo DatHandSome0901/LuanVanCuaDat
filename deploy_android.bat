@@ -45,6 +45,12 @@ call npm run build
 if %ERRORLEVEL% NEQ 0 ( echo [LOI] Build that bai! & cd .. & pause & exit /b 1 )
 echo [OK] Build xong!
 
+REM Xoa cac file APK bi de quy de tranh lam phinh ung dung
+if exist dist\app-release.apk del dist\app-release.apk
+if exist dist\app-debug.apk del dist\app-debug.apk
+if exist android\app\src\main\assets\public\app-release.apk del android\app\src\main\assets\public\app-release.apk
+if exist android\app\src\main\assets\public\app-debug.apk del android\app\src\main\assets\public\app-debug.apk
+
 echo [2/3] Dang copy va dong bo Android...
 call npx cap copy android
 if %ERRORLEVEL% NEQ 0 ( echo [LOI] Cap copy that bai! & cd .. & pause & exit /b 1 )
@@ -77,6 +83,12 @@ cd frontend
 call npm run build
 if %ERRORLEVEL% NEQ 0 ( echo [LOI] Build that bai! & cd .. & pause & exit /b 1 )
 echo [OK] Build web xong!
+
+REM Xoa cac file APK bi de quy de tranh lam phinh ung dung
+if exist dist\app-release.apk del dist\app-release.apk
+if exist dist\app-debug.apk del dist\app-debug.apk
+if exist android\app\src\main\assets\public\app-release.apk del android\app\src\main\assets\public\app-release.apk
+if exist android\app\src\main\assets\public\app-debug.apk del android\app\src\main\assets\public\app-debug.apk
 
 echo [2/4] Dang copy sang Android...
 call npx cap copy android

@@ -22,17 +22,28 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   const [showGame, setShowGame] = useState(false);
   const { t, language } = useLanguage();
 
-  const texts = useMemo(() => [
-    t.mobile_text1,
-    t.mobile_text2,
-    t.mobile_text3
-  ].map(s => (s || '').normalize('NFC')), [t.mobile_text1, t.mobile_text2, t.mobile_text3]);
+  const texts = useMemo(() => {
+    if (siteConfig?.app_landing_texts) {
+      return siteConfig.app_landing_texts.split('\n').filter(s => s.trim() !== '').map(s => s.trim().normalize('NFC'));
+    }
+    return [
+      t.mobile_text1,
+      t.mobile_text2,
+      t.mobile_text3
+    ].map(s => (s || '').normalize('NFC'));
+  }, [siteConfig?.app_landing_texts, t.mobile_text1, t.mobile_text2, t.mobile_text3]);
 
-  const heroes = useMemo(() => [
-    t.mobile_hero_gialong, t.mobile_hero_quangtrung, t.mobile_hero_tranhungdao, t.mobile_hero_lythuongkiet,
-    t.mobile_hero_haibatrung, t.mobile_hero_laclongquan, t.mobile_hero_auco, t.mobile_hero_ngoquyen,
-    t.mobile_hero_dinhbolinh, t.mobile_hero_leloi, t.mobile_hero_batrieu, t.mobile_hero_phanboichau,
-  ].map(s => (s || '').normalize('NFC')), [
+  const heroes = useMemo(() => {
+    if (siteConfig?.app_landing_heroes) {
+      return siteConfig.app_landing_heroes.split(',').filter(s => s.trim() !== '').map(s => s.trim().normalize('NFC'));
+    }
+    return [
+      t.mobile_hero_gialong, t.mobile_hero_quangtrung, t.mobile_hero_tranhungdao, t.mobile_hero_lythuongkiet,
+      t.mobile_hero_haibatrung, t.mobile_hero_laclongquan, t.mobile_hero_auco, t.mobile_hero_ngoquyen,
+      t.mobile_hero_dinhbolinh, t.mobile_hero_leloi, t.mobile_hero_batrieu, t.mobile_hero_phanboichau,
+    ].map(s => (s || '').normalize('NFC'));
+  }, [
+    siteConfig?.app_landing_heroes,
     t.mobile_hero_gialong, t.mobile_hero_quangtrung, t.mobile_hero_tranhungdao, t.mobile_hero_lythuongkiet,
     t.mobile_hero_haibatrung, t.mobile_hero_laclongquan, t.mobile_hero_auco, t.mobile_hero_ngoquyen,
     t.mobile_hero_dinhbolinh, t.mobile_hero_leloi, t.mobile_hero_batrieu, t.mobile_hero_phanboichau
@@ -157,7 +168,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
                 className="w-20 h-20 rounded-[30px] border border-white/10 object-cover"
               />
             </motion.div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-red-900 text-[8px] font-black px-3 py-1 rounded-full shadow-xl border border-white/20 whitespace-nowrap">{t.mobile_tri_trieu_dai}</div>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-red-900 text-[8px] font-black px-3 py-1 rounded-full shadow-xl border border-white/20 whitespace-nowrap">{siteConfig?.app_landing_badge || t.mobile_tri_trieu_dai}</div>
           </div>
           
           <h1 className="text-[2.75rem] font-historical-premium tracking-tighter bg-gradient-to-b from-amber-100 via-amber-300 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] leading-none italic">
@@ -165,7 +176,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
           </h1>
           <div className="h-0.5 w-32 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent mt-3" />
         </motion.div>
-
+ 
         {/* MIDDLE: QUOTE & TYPEWRITER */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -180,7 +191,7 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
           <div className="flex items-center gap-4 opacity-50">
             <div className="h-px w-8 bg-amber-500/50" />
             <p className="text-amber-200 text-[10px] font-bold uppercase tracking-[0.3em]">
-              {t.mobile_hao_khi}
+              {siteConfig?.app_landing_motto || t.mobile_hao_khi}
             </p>
             <div className="h-px w-8 bg-amber-500/50" />
           </div>
@@ -231,33 +242,35 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
           </button>
 
           {/* SECONDARY GOLDEN CHƠI GAME BUTTON */}
-          <button
-            onClick={() => setShowGame(true)}
-            className="group relative w-full h-[64px] rounded-2xl overflow-hidden transition-all active:scale-[0.97]"
-          >
-            {/* GOLD/AMBER GLASS BASE */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/90 via-amber-800 to-yellow-950 backdrop-blur-md" />
-            
-            {/* BORDER INNER */}
-            <div className="absolute inset-[1px] rounded-[15px] border border-amber-300/30" />
-            
-            {/* SHINE & HIGHLIGHTS */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-white/10" />
-            
-            <div className="relative flex items-center justify-center gap-3">
-              <span className="text-xl">🛡️</span>
-              <span className="text-lg font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
-                {t.mobile_game}
-              </span>
-            </div>
-            
-            {/* ANIMATED GLOW STRIPE */}
-            <motion.div 
-              animate={{ left: ["-100%", "200%"] }}
-              transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
-              className="absolute top-0 bottom-0 w-32 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-[35deg]"
-            />
-          </button>
+          {siteConfig?.game_enabled !== 0 && (
+            <button
+              onClick={() => setShowGame(true)}
+              className="group relative w-full h-[64px] rounded-2xl overflow-hidden transition-all active:scale-[0.97]"
+            >
+              {/* GOLD/AMBER GLASS BASE */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/90 via-amber-800 to-yellow-950 backdrop-blur-md" />
+              
+              {/* BORDER INNER */}
+              <div className="absolute inset-[1px] rounded-[15px] border border-amber-300/30" />
+              
+              {/* SHINE & HIGHLIGHTS */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-white/10" />
+              
+              <div className="relative flex items-center justify-center gap-3">
+                <span className="text-xl">🛡️</span>
+                <span className="text-lg font-bold tracking-[0.1em] text-white uppercase italic drop-shadow-md">
+                  {t.mobile_game}
+                </span>
+              </div>
+              
+              {/* ANIMATED GLOW STRIPE */}
+              <motion.div 
+                animate={{ left: ["-100%", "200%"] }}
+                transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
+                className="absolute top-0 bottom-0 w-32 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-[35deg]"
+              />
+            </button>
+          )}
           
           <div className="flex flex-col items-center gap-1 opacity-40">
             <div className="text-[10px] text-amber-100 tracking-[0.4em] font-black uppercase">

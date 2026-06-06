@@ -87,6 +87,15 @@ const AppInner: React.FC = () => {
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showReportForm, setShowReportForm] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const id = localStorage.getItem('conversation_id');
@@ -97,8 +106,18 @@ const AppInner: React.FC = () => {
       const newId = localStorage.getItem('conversation_id');
       setActiveConversationId(newId ? Number(newId) : null);
     };
+
+    const newChatHandler = () => {
+      setActiveConversationId(null);
+      setChatHistory([]);
+    };
+
     window.addEventListener('conversation_changed', syncHandler);
-    return () => window.removeEventListener('conversation_changed', syncHandler);
+    window.addEventListener('new_chat', newChatHandler);
+    return () => {
+      window.removeEventListener('conversation_changed', syncHandler);
+      window.removeEventListener('new_chat', newChatHandler);
+    };
   }, []);
 
   useEffect(() => {
@@ -378,7 +397,7 @@ const AppInner: React.FC = () => {
         {/* CONTENT */}
         <div className={`flex-1 ${(currentView === 'chat' || currentView === 'admin') ? 'overflow-hidden' : 'overflow-y-auto'} ${isNative ? 'scrolling-touch' : ''} ${currentView !== 'landing' ? 'with-nav-padding' : ''}`}>
           {currentView === 'landing' ? (
-            isNative ? (
+            (isMobile || isNative) ? (
               <LandingPageMobile siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
             ) : (
               <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
@@ -433,7 +452,7 @@ const AppInner: React.FC = () => {
                 <HistoryView
                   activeId={activeConversationId}
                   onSelect={(id) => {
-                    setActiveConversationId(id);
+                    setActiveConversationId(id === -1 ? null : id);
                     setCurrentView('chat');
                   }}
                   isSidebarOpen={isSidebarOpen}

@@ -599,6 +599,8 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 
 const CTASection = ({ onStart, user }: any) => {
   const { t } = useLanguage();
+  const downloadUrl = typeof window !== 'undefined' ? `${window.location.origin}/app-release.apk` : '/app-release.apk';
+
   return (
   <section className="py-24 relative px-4 sm:px-6 lg:px-8">
     <div className="max-w-6xl mx-auto relative group">
@@ -626,7 +628,7 @@ const CTASection = ({ onStart, user }: any) => {
 
               {/* APK Download Button */}
               <a
-                href={`${API_ROOT}/download/apk`}
+                href={downloadUrl}
                 download="Su_Viet_AI.apk"
                 className="px-8 py-5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-all duration-300 border border-white/20 hover:border-white/40 text-base flex items-center gap-3 hover:-translate-y-1 active:scale-95 backdrop-blur-sm"
               >
@@ -642,7 +644,7 @@ const CTASection = ({ onStart, user }: any) => {
             <div className="flex flex-row items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md shrink-0 hover:bg-white/10 transition-colors">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=b45309&bgcolor=ffffff&qzone=2&data=${encodeURIComponent(
-                  `${API_ROOT}/download/apk`
+                  downloadUrl
                 )}`}
                 alt="QR Code"
                 className="w-24 h-24 rounded-2xl border border-amber-500/25 p-1 bg-white select-none pointer-events-none"

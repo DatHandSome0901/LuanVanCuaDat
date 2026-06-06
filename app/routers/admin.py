@@ -70,6 +70,10 @@ class SettingsUpdate(BaseModel):
     landing_contact_zalo_link: Optional[str] = None
     landing_contact_fb_link: Optional[str] = None
     system_prompt: Optional[str] = None
+    app_landing_texts: Optional[str] = None
+    app_landing_heroes: Optional[str] = None
+    app_landing_badge: Optional[str] = None
+    app_landing_motto: Optional[str] = None
 
 def update_index_html_seo(site_title: str, description: str, keywords: str, author: str, favicon_url: str, logo_url: str):
     import re
@@ -390,6 +394,11 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
     landing_contact_zalo_num = db.get_setting("landing_contact_zalo_num", "0896 498 997")
     landing_contact_zalo_link = db.get_setting("landing_contact_zalo_link", "https://zalo.me/0896498997")
     landing_contact_fb_link = db.get_setting("landing_contact_fb_link", "https://www.facebook.com/nguyen.quoc.at.383270")
+    
+    app_landing_texts = db.get_setting("app_landing_texts", "Ngược dòng thời gian...\nKhám phá hào khí dân tộc...\nTìm hiểu sử thi Việt Nam...")
+    app_landing_heroes = db.get_setting("app_landing_heroes", "👑 Gia Long, ⚔️ Quang Trung, 🏹 Trần Hưng Đạo, 📜 Lý Thường Kiệt, 🔥 Hai Bà Trưng, 🐉 Lạc Long Quân, 🌊 Âu Cơ, 🛡️ Ngô Quyền, 🏯 Đinh Bộ Lĩnh, 📖 Lê Lợi, 🐘 Bà Triệu, ⚡ Phan Bội Châu")
+    app_landing_badge = db.get_setting("app_landing_badge", "📜 TRIỀU ĐẠI VIỆT")
+    app_landing_motto = db.get_setting("app_landing_motto", "Hào Khí Ngàn Năm")
 
     db.close()
     return {
@@ -428,7 +437,11 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
         "landing_contact_zalo_num": landing_contact_zalo_num,
         "landing_contact_zalo_link": landing_contact_zalo_link,
         "landing_contact_fb_link": landing_contact_fb_link,
-        "system_prompt": system_prompt
+        "system_prompt": system_prompt,
+        "app_landing_texts": app_landing_texts,
+        "app_landing_heroes": app_landing_heroes,
+        "app_landing_badge": app_landing_badge,
+        "app_landing_motto": app_landing_motto
     }
 
 @router.post("/settings")
@@ -477,7 +490,11 @@ async def update_settings(
         ("landing_contact_zalo_num", data.landing_contact_zalo_num),
         ("landing_contact_zalo_link", data.landing_contact_zalo_link),
         ("landing_contact_fb_link", data.landing_contact_fb_link),
-        ("system_prompt", data.system_prompt)
+        ("system_prompt", data.system_prompt),
+        ("app_landing_texts", data.app_landing_texts),
+        ("app_landing_heroes", data.app_landing_heroes),
+        ("app_landing_badge", data.app_landing_badge),
+        ("app_landing_motto", data.app_landing_motto)
     ]
 
     for key, new_val in fields:
@@ -576,7 +593,11 @@ async def get_public_settings():
         "landing_contact_email": db.get_setting("landing_contact_email", "nguyenquocdat888888@gmail.com"),
         "landing_contact_zalo_num": db.get_setting("landing_contact_zalo_num", "0896 498 997"),
         "landing_contact_zalo_link": db.get_setting("landing_contact_zalo_link", "https://zalo.me/0896498997"),
-        "landing_contact_fb_link": db.get_setting("landing_contact_fb_link", "https://www.facebook.com/nguyen.quoc.at.383270")
+        "landing_contact_fb_link": db.get_setting("landing_contact_fb_link", "https://www.facebook.com/nguyen.quoc.at.383270"),
+        "app_landing_texts": db.get_setting("app_landing_texts", "Ngược dòng thời gian...\nKhám phá hào khí dân tộc...\nTìm hiểu sử thi Việt Nam..."),
+        "app_landing_heroes": db.get_setting("app_landing_heroes", "👑 Gia Long, ⚔️ Quang Trung, 🏹 Trần Hưng Đạo, 📜 Lý Thường Kiệt, 🔥 Hai Bà Trưng, 🐉 Lạc Long Quân, 🌊 Âu Cơ, 🛡️ Ngô Quyền, 🏯 Đinh Bộ Lĩnh, 📖 Lê Lợi, 🐘 Bà Triệu, ⚡ Phan Bội Châu"),
+        "app_landing_badge": db.get_setting("app_landing_badge", "📜 TRIỀU ĐẠI VIỆT"),
+        "app_landing_motto": db.get_setting("app_landing_motto", "Hào Khí Ngàn Năm")
     }
     db.close()
     return res

@@ -75,3 +75,6 @@ inspect_output.txt
 normalize_to_nfc.py
 scratch_dump_settings.txt
 
+# Built binaries
+*.apk
+

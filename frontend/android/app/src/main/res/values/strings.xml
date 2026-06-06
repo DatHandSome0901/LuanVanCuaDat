@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Luan Van Chatbot</string>
-    <string name="title_activity_main">Luan Van Chatbot</string>
+    <string name="app_name">Chatbot Historical</string>
+    <string name="title_activity_main">Chatbot Historical</string>
     <string name="package_name">com.historical.chatbot</string>
     <string name="custom_url_scheme">com.historical.chatbot</string>
 </resources>

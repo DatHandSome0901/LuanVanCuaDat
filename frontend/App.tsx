@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PaymentReportModal from './components/payment/PaymentReportModal';
 import { confirmAction } from './utils/swal';
 import SecureImage from './components/SecureImage';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 // Floating support ticket button (bottom-left)
 const ReportFloatBtn: React.FC<{
@@ -99,6 +100,20 @@ const AppInner: React.FC = () => {
     window.addEventListener('conversation_changed', syncHandler);
     return () => window.removeEventListener('conversation_changed', syncHandler);
   }, []);
+
+  useEffect(() => {
+    if (isNative) {
+      if (currentView === 'admin') {
+        ScreenOrientation.lock({ orientation: 'landscape' }).catch(err => {
+          console.error('Failed to lock screen to landscape:', err);
+        });
+      } else {
+        ScreenOrientation.lock({ orientation: 'portrait' }).catch(err => {
+          console.error('Failed to lock screen to portrait:', err);
+        });
+      }
+    }
+  }, [currentView, isNative]);
 
   console.log("DEBUG: App State", { isNative, currentView, API_ROOT });
 
@@ -330,7 +345,10 @@ const AppInner: React.FC = () => {
   }
 
   return (
-    <div className={`flex h-screen ${currentView === 'landing' ? 'bg-black' : 'bg-[#f8f6f2]'} ${isNative ? 'is-native' : ''}`}>
+    <div 
+      className={`flex w-full ${isNative ? '' : 'h-screen'} ${currentView === 'landing' ? 'bg-black' : 'bg-[#f8f6f2]'} ${isNative ? 'is-native' : ''}`}
+      style={isNative ? { height: 'calc(var(--vh, 1vh) * 100)' } : undefined}
+    >
       {/* Language Selector Overlay - shown on first visit */}
       <AnimatePresence>
         {!hasChosen && (

@@ -417,7 +417,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
         initial={false}
         animate={{ width: isAdminSidebarOpen ? 280 : 72 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="bg-[#171717] border-r border-white/10 flex flex-col h-screen shrink-0 relative overflow-hidden z-25 text-amber-100"
+        className="bg-[#171717] border-r border-white/10 flex flex-col h-full shrink-0 relative overflow-hidden z-25 text-amber-100"
       >
         <div className={`flex-1 flex flex-col min-h-0 ${isAdminSidebarOpen ? 'p-6' : 'p-3'} overflow-y-auto chatgpt-scrollbar`}>
           {/* Logo & Toggle Header */}
@@ -535,7 +535,25 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-2 md:gap-4 text-xs">
+            {onViewChange && (
+              <button
+                onClick={() => onViewChange('chat')}
+                className="md:hidden p-2 text-amber-200 hover:bg-white/10 rounded-lg transition-all"
+                title={t.admin_back_to_chat}
+              >
+                <ArrowLeft size={18} />
+              </button>
+            )}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="md:hidden p-2 text-red-400 hover:bg-red-450/10 rounded-lg transition-all"
+                title={t.admin_logout}
+              >
+                <LogOut size={18} />
+              </button>
+            )}
             <span className="text-amber-200/50 hidden md:inline">{t.admin_session_label}</span>
             <span className="font-mono text-[#b45309] px-2.5 py-1 bg-amber-950/40 border border-amber-900/30 rounded-lg">
               {t.admin_role_label.replace('{name}', user?.username || 'Admin')}
@@ -554,6 +572,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
               negativeFeedback={data.negativeFeedback}
               onTabChange={setActiveTab}
               llmName={data.llm_name}
+              onViewChange={onViewChange}
+              onLogout={onLogout}
             />
           )}
 

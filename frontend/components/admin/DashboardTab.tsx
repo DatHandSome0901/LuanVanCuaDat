@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
   Users, DollarSign, MessageSquare, ShieldCheck,
-  Activity, ArrowRight, TrendingUp, AlertTriangle, UserCheck
+  Activity, ArrowRight, TrendingUp, AlertTriangle, UserCheck,
+  ArrowLeft, LogOut
 } from 'lucide-react';
 import { API_ROOT, api } from '../../api';
 import { toast } from 'react-hot-toast';
@@ -125,6 +126,8 @@ interface DashboardTabProps {
   negativeFeedback?: any[];
   onTabChange: (tab: any) => void;
   llmName?: string;
+  onViewChange?: (view: any) => void;
+  onLogout?: () => void;
 }
 
 // Helper Avatar Component for User Profile Pictures or Initials
@@ -479,7 +482,9 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
   logins = [],
   negativeFeedback = [],
   onTabChange,
-  llmName = 'openai'
+  llmName = 'openai',
+  onViewChange,
+  onLogout
 }) => {
   const { language } = useLanguage();
   const tLocal = localized[language] || localized.vi;
@@ -861,6 +866,40 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                 </div>
                 <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
               </button>
+
+              {onViewChange && (
+                <button
+                  onClick={() => onViewChange('chat')}
+                  className="flex items-center justify-between p-3.5 bg-white hover:bg-amber-50/30 border border-amber-800/10 rounded-xl text-left transition-all hover-lift group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-150 shrink-0">
+                      <ArrowLeft size={14} />
+                    </div>
+                    <span className="text-xs font-historical font-black text-amber-900">
+                      {language === 'vi' ? 'Quay lại đàm luận' : 'Back to Chat'}
+                    </span>
+                  </div>
+                  <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
+
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="flex items-center justify-between p-3.5 bg-white hover:bg-red-50/20 border border-red-800/10 rounded-xl text-left transition-all hover-lift group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-red-50 text-red-700 flex items-center justify-center border border-red-100 shrink-0">
+                      <LogOut size={14} />
+                    </div>
+                    <span className="text-xs font-historical font-black text-red-900">
+                      {language === 'vi' ? 'Đăng xuất hệ thống' : 'Logout System'}
+                    </span>
+                  </div>
+                  <ArrowRight size={12} className="text-stone-400 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
             </div>
           </div>
 

@@ -97,7 +97,7 @@ const ChatView: React.FC<ChatViewProps> = ({
   }, []);
 
   useEffect(() => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
       const handleVoicesChanged = () => {
         window.speechSynthesis.getVoices();
       };
@@ -113,17 +113,21 @@ const ChatView: React.FC<ChatViewProps> = ({
 
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
   const stopSpeaking = useCallback(() => {
-    window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     setCurrentlySpeaking(null);
   }, [setCurrentlySpeaking]);
 
   const speakText = useCallback((id: string, text: string) => {
-    if (!('speechSynthesis' in window)) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || !window.speechSynthesis) {
       toast.error('Trình duyệt của bạn không hỗ trợ đọc văn bản (TTS).');
       return;
     }

@@ -617,24 +617,43 @@ const CTASection = ({ onStart, user }: any) => {
             )}
           </h2>
           <p className="text-xl text-stone-300 mb-12 leading-relaxed max-w-2xl mx-auto">{t.cta_subtext}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onClick={onStart} className="px-12 py-5 bg-gradient-to-r from-red-800 to-red-600 text-white font-bold rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(153,27,27,0.5)] hover:shadow-[0_0_40px_rgba(153,27,27,0.7)] text-xl flex items-center gap-3 hover:-translate-y-1 active:scale-95 group">
-              {user ? (user.is_admin ? t.cta_btn_admin : t.cta_btn_chat) : t.cta_btn_guest}
-              <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
-            </button>
+          <div className="flex flex-col lg:flex-row gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button onClick={onStart} className="px-12 py-5 bg-gradient-to-r from-red-800 to-red-600 text-white font-bold rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(153,27,27,0.5)] hover:shadow-[0_0_40px_rgba(153,27,27,0.7)] text-xl flex items-center gap-3 hover:-translate-y-1 active:scale-95 group">
+                {user ? (user.is_admin ? t.cta_btn_admin : t.cta_btn_chat) : t.cta_btn_guest}
+                <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
+              </button>
 
-            {/* APK Download Button */}
-            <a
-              href="https://rehydrate-doing-crust.ngrok-free.dev/download/apk"
-              download="ChatbotLichSu.apk"
-              className="px-8 py-5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-all duration-300 border border-white/20 hover:border-white/40 text-base flex items-center gap-3 hover:-translate-y-1 active:scale-95 backdrop-blur-sm"
-            >
-              <span className="text-2xl">📲</span>
+              {/* APK Download Button */}
+              <a
+                href={`${API_ROOT}/download/apk`}
+                download="Su_Viet_AI.apk"
+                className="px-8 py-5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-all duration-300 border border-white/20 hover:border-white/40 text-base flex items-center gap-3 hover:-translate-y-1 active:scale-95 backdrop-blur-sm"
+              >
+                <span className="text-2xl">📲</span>
+                <div className="text-left">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 leading-none mb-0.5">Tải về</div>
+                  <div>App Android (APK)</div>
+                </div>
+              </a>
+            </div>
+
+            {/* QR Code Container */}
+            <div className="flex flex-row items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md shrink-0 hover:bg-white/10 transition-colors">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=b45309&bgcolor=ffffff&qzone=2&data=${encodeURIComponent(
+                  `${API_ROOT}/download/apk`
+                )}`}
+                alt="QR Code"
+                className="w-24 h-24 rounded-2xl border border-amber-500/25 p-1 bg-white select-none pointer-events-none"
+              />
               <div className="text-left">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-white/60 leading-none mb-0.5">Tải về</div>
-                <div>App Android (APK)</div>
+                <div className="text-amber-400 font-historical-premium font-bold text-base mb-1">Quét tải App</div>
+                <div className="text-stone-300 text-xs max-w-[140px] leading-relaxed font-medium">
+                  Quét mã QR bằng máy ảnh điện thoại để tải trực tiếp file APK.
+                </div>
               </div>
-            </a>
+            </div>
           </div>
 
           <div className="flex -space-x-3 items-center justify-center mt-10">

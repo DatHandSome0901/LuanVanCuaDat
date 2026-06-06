@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { API_ROOT } from "../api";
 import { SiteConfig } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,17 +22,21 @@ const LandingPageMobile: React.FC<Props> = ({ siteConfig, onStart, user }) => {
   const [showGame, setShowGame] = useState(false);
   const { t, language } = useLanguage();
 
-  const texts = [
+  const texts = useMemo(() => [
     t.mobile_text1,
     t.mobile_text2,
     t.mobile_text3
-  ].map(s => s.normalize('NFC'));
+  ].map(s => (s || '').normalize('NFC')), [t.mobile_text1, t.mobile_text2, t.mobile_text3]);
 
-  const heroes = [
+  const heroes = useMemo(() => [
     t.mobile_hero_gialong, t.mobile_hero_quangtrung, t.mobile_hero_tranhungdao, t.mobile_hero_lythuongkiet,
     t.mobile_hero_haibatrung, t.mobile_hero_laclongquan, t.mobile_hero_auco, t.mobile_hero_ngoquyen,
     t.mobile_hero_dinhbolinh, t.mobile_hero_leloi, t.mobile_hero_batrieu, t.mobile_hero_phanboichau,
-  ].map(s => s.normalize('NFC'));
+  ].map(s => (s || '').normalize('NFC')), [
+    t.mobile_hero_gialong, t.mobile_hero_quangtrung, t.mobile_hero_tranhungdao, t.mobile_hero_lythuongkiet,
+    t.mobile_hero_haibatrung, t.mobile_hero_laclongquan, t.mobile_hero_auco, t.mobile_hero_ngoquyen,
+    t.mobile_hero_dinhbolinh, t.mobile_hero_leloi, t.mobile_hero_batrieu, t.mobile_hero_phanboichau
+  ]);
 
   useEffect(() => {
     let i = 0;

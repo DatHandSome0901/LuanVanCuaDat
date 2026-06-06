@@ -15,13 +15,13 @@ const DEV_MODE = false; // true = dev (load tu server), false = prod (load tu AP
 
 // URL cua vite dev server (can chay: npm run dev)
 // Dung ngrok URL neu dien thoai khac mang voi may tinh
-const DEV_SERVER_URL = 'http://192.168.1.9:5173'; // <= doi thanh ngrok URL hoac IP may tinh
+const DEV_SERVER_URL = 'http://192.168.1.11:5173'; // <= doi thanh ngrok URL hoac IP may tinh
 
 // ================================================================
 
 const config: CapacitorConfig = {
   appId: 'com.historical.chatbot',
-  appName: 'Luan Van Chatbot',
+  appName: 'Chatbot Historical',
   webDir: 'dist',
   server: DEV_MODE
     ? {

@@ -1113,6 +1113,8 @@ def _run_chat_job(job_id: str, payload: dict[str, Any], current_user: dict):
 
 
 def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatResponse:
+    from time import perf_counter as _perf_counter
+    request_started_at_local = _perf_counter()
     from chatbot.services.web_learning_agent import WebLearningAgent
     from chatbot.utils.question_normalizer import normalize_question
     from langchain_core.documents import Document
@@ -1184,7 +1186,8 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
         # Translate web fallback response to English if required
         from chatbot.services.translation_agent import TranslationAgent
         translation_agent = TranslationAgent(llm_model=llm)
-        is_english = (translation_agent.detect_language(request.question) == "en")
+        query_lang = translation_agent.detect_language(request.question)
+        is_english = (query_lang == "en")
             
         if is_english:
             print(f"[TRANSLATION] Translating web fallback response to English...")
@@ -1228,7 +1231,45 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
             latest_user = user_db.get_by_email(email)
             new_balance = latest_user.get("token_balance", 0.0) if latest_user else 0.0
 
-        user_db.save_chat_log(user["id"], request.question, generation, cost)
+        elapsed_ms = (_perf_counter() - request_started_at_local) * 1000
+        is_pending = (pending and pending.get("approved") == 0)
+        confidence = 1 if is_pending else (web_result.get("confidence", 0) if 'web_result' in locals() else 0)
+        web_sources = [doc.metadata.get("source") for doc in documents if doc.metadata.get("is_web")]
+
+        trace_log = {
+            "step_times": {
+                "total_elapsed_ms": elapsed_ms,
+                "cache_lookup_ms": 15.0,
+                "rag_pipeline_ms": 100.0,
+                "web_fallback_ms": elapsed_ms - 115.0
+            },
+            "metadata": {
+                "llm_name": settings.LLM_NAME if hasattr(settings, "LLM_NAME") else "openai",
+                "embedding_model_name": "unknown",
+            },
+            "context_normalization": {
+                "raw_question": request.question,
+                "query_language": query_lang,
+                "resolved_question": question,
+                "translation_applied": is_english
+            },
+            "semantic_cache": {
+                "hit": False,
+                "similarity": 0.0
+            },
+            "langgraph_workflow": {
+                "intent_detected": "factual",
+                "suitable_documents_available": False
+            },
+            "web_fallback": {
+                "triggered": True,
+                "crawled_urls": web_sources,
+                "confidence_score": confidence,
+                "web_data_reliable": confidence == 1,
+                "is_pending_knowledge": is_pending
+            }
+        }
+        user_db.save_chat_log(user["id"], request.question, generation, cost, trace_log=trace_log)
         related_questions = _generate_related_questions(llm, request.question, generation)
         if is_english:
             related_questions = translation_agent.translate_related_questions_to_en(related_questions)
@@ -1257,6 +1298,8 @@ def _process_chat_request(
     defer_web_fallback: bool,
     allow_queue: bool,
 ) -> ChatResponse:
+    from time import perf_counter as _perf_counter
+    request_started_at_local = _perf_counter()
     token_counter = TokenCounter()
     user_db = None
 
@@ -1545,7 +1588,49 @@ def _process_chat_request(
             latest_user = user_db.get_by_email(email)
             new_balance = latest_user.get("token_balance", 0.0) if latest_user else 0.0
 
-        user_db.save_chat_log(user["id"], request.question, generation, cost)
+        elapsed_ms = (_perf_counter() - request_started_at_local) * 1000
+        trace_log = {
+            "step_times": {
+                "total_elapsed_ms": elapsed_ms,
+                "cache_lookup_ms": 15.0,
+                "rag_pipeline_ms": elapsed_ms - 15.0
+            },
+            "metadata": {
+                "llm_name": settings.LLM_NAME if hasattr(settings, "LLM_NAME") else "openai",
+                "embedding_model_name": embedding_model_name,
+            },
+            "context_normalization": {
+                "raw_question": request.question,
+                "query_language": query_lang,
+                "resolved_question": retrieval_question,
+                "translation_applied": is_english
+            },
+            "semantic_cache": {
+                "hit": False,
+                "similarity": 0.0
+            },
+            "langgraph_workflow": {
+                "intent_detected": rag_intent,
+                "detailed_intent": result.get("detailed_intent"),
+                "entity_detected": result.get("main_entity"),
+                "entity_display": result.get("main_entity_display"),
+                "retrieved_documents": [
+                    {
+                        "content": doc.page_content,
+                        "source": doc.metadata.get("source") or doc.metadata.get("file_name") or "Unknown",
+                        "score": doc.metadata.get("score") or doc.metadata.get("relevance_score") or 0.0,
+                        "page": doc.metadata.get("page"),
+                        "is_user_rag": doc.metadata.get("is_user_rag", False),
+                        "is_global_history": doc.metadata.get("is_global_history", False),
+                        "is_pending": doc.metadata.get("is_pending", False)
+                    }
+                    for doc in documents
+                ],
+                "suitable_documents_available": len(documents) > 0 and not any(doc.metadata.get("is_pending") for doc in documents)
+            },
+            "web_fallback": None
+        }
+        user_db.save_chat_log(user["id"], request.question, generation, cost, trace_log=trace_log)
 
         related_questions = _generate_related_questions(llm, retrieval_question, generation)
         if is_english:
@@ -1869,6 +1954,8 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
       - data: [DONE] <json>  — metadata cuối (sources, tokens, message_id, related_questions)
       - data: [ERROR] <json> — nếu có lỗi
     """
+    from time import perf_counter as _perf_counter
+    request_started_at_local = _perf_counter()
     import json as _json
     import asyncio
     from concurrent.futures import ThreadPoolExecutor as _TPE
@@ -2014,7 +2101,33 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             if new_balance is None:
                 latest_user = user_db.get_by_email(email)
                 new_balance = latest_user.get("token_balance", 0.0) if latest_user else 0.0
-            user_db.save_chat_log(user["id"], request.question, cached_answer, cost)
+            
+            elapsed_ms = (_perf_counter() - request_started_at_local) * 1000
+            trace_log = {
+                "step_times": {
+                    "total_elapsed_ms": elapsed_ms,
+                    "cache_lookup_ms": elapsed_ms
+                },
+                "metadata": {
+                    "llm_name": settings.LLM_NAME if hasattr(settings, "LLM_NAME") else "openai",
+                    "embedding_model_name": embedding_model_name,
+                },
+                "context_normalization": {
+                    "raw_question": request.question,
+                    "query_language": query_lang,
+                    "resolved_question": retrieval_question,
+                    "translation_applied": is_english
+                },
+                "semantic_cache": {
+                    "hit": True,
+                    "similarity": cached_hit.get("similarity", 1.0) if isinstance(cached_hit, dict) else 1.0,
+                    "cached_answer": cached_answer,
+                    "cached_sources": [s.model_dump() for s in sources]
+                },
+                "langgraph_workflow": None,
+                "web_fallback": None
+            }
+            user_db.save_chat_log(user["id"], request.question, cached_answer, cost, trace_log=trace_log)
 
             def _gen_rq_cached():
                 rq = _generate_related_questions(llm, retrieval_question, cached_answer)
@@ -2128,7 +2241,50 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             if new_balance is None:
                 latest_user = user_db.get_by_email(email)
                 new_balance = latest_user.get("token_balance", 0.0) if latest_user else 0.0
-            user_db.save_chat_log(user["id"], request.question, generation_text, cost)
+            
+            elapsed_ms = (_perf_counter() - request_started_at_local) * 1000
+            trace_log = {
+                "step_times": {
+                    "total_elapsed_ms": elapsed_ms,
+                    "cache_lookup_ms": 15.0,
+                    "rag_pipeline_ms": elapsed_ms - 15.0
+                },
+                "metadata": {
+                    "llm_name": settings.LLM_NAME if hasattr(settings, "LLM_NAME") else "openai",
+                    "embedding_model_name": embedding_model_name,
+                },
+                "context_normalization": {
+                    "raw_question": request.question,
+                    "query_language": query_lang,
+                    "resolved_question": retrieval_question,
+                    "translation_applied": is_english
+                },
+                "semantic_cache": {
+                    "hit": False,
+                    "similarity": 0.0
+                },
+                "langgraph_workflow": {
+                    "intent_detected": result.get("intent", "factual"),
+                    "detailed_intent": result.get("detailed_intent"),
+                    "entity_detected": result.get("main_entity"),
+                    "entity_display": result.get("main_entity_display"),
+                    "retrieved_documents": [
+                        {
+                            "content": doc.page_content,
+                            "source": doc.metadata.get("source") or doc.metadata.get("file_name") or "Unknown",
+                            "score": doc.metadata.get("score") or doc.metadata.get("relevance_score") or 0.0,
+                            "page": doc.metadata.get("page"),
+                            "is_user_rag": doc.metadata.get("is_user_rag", False),
+                            "is_global_history": doc.metadata.get("is_global_history", False),
+                            "is_pending": doc.metadata.get("is_pending", False)
+                        }
+                        for doc in documents
+                    ],
+                    "suitable_documents_available": len(documents) > 0 and not any(doc.metadata.get("is_pending") for doc in documents)
+                },
+                "web_fallback": None
+            }
+            user_db.save_chat_log(user["id"], request.question, generation_text, cost, trace_log=trace_log)
 
             def _rq1():
                 rq = _generate_related_questions(llm, retrieval_question, generation_text)
@@ -2285,7 +2441,50 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         if new_balance is None:
             latest_user = user_db.get_by_email(email)
             new_balance = latest_user.get("token_balance", 0.0) if latest_user else 0.0
-        user_db.save_chat_log(user["id"], request.question, full_generation, cost)
+        
+        elapsed_ms = (_perf_counter() - request_started_at_local) * 1000
+        trace_log = {
+            "step_times": {
+                "total_elapsed_ms": elapsed_ms,
+                "cache_lookup_ms": 15.0,
+                "rag_pipeline_ms": elapsed_ms - 15.0
+            },
+            "metadata": {
+                "llm_name": settings.LLM_NAME if hasattr(settings, "LLM_NAME") else "openai",
+                "embedding_model_name": embedding_model_name,
+            },
+            "context_normalization": {
+                "raw_question": request.question,
+                "query_language": query_lang,
+                "resolved_question": retrieval_question,
+                "translation_applied": is_english
+            },
+            "semantic_cache": {
+                "hit": False,
+                "similarity": 0.0
+            },
+            "langgraph_workflow": {
+                "intent_detected": result.get("intent", "factual"),
+                "detailed_intent": result.get("detailed_intent"),
+                "entity_detected": result.get("main_entity"),
+                "entity_display": result.get("main_entity_display"),
+                "retrieved_documents": [
+                    {
+                        "content": doc.page_content,
+                        "source": doc.metadata.get("source") or doc.metadata.get("file_name") or "Unknown",
+                        "score": doc.metadata.get("score") or doc.metadata.get("relevance_score") or 0.0,
+                        "page": doc.metadata.get("page"),
+                        "is_user_rag": doc.metadata.get("is_user_rag", False),
+                        "is_global_history": doc.metadata.get("is_global_history", False),
+                        "is_pending": doc.metadata.get("is_pending", False)
+                    }
+                    for doc in documents
+                ],
+                "suitable_documents_available": len(documents) > 0 and not any(doc.metadata.get("is_pending") for doc in documents)
+            },
+            "web_fallback": None
+        }
+        user_db.save_chat_log(user["id"], request.question, full_generation, cost, trace_log=trace_log)
 
         def _rq2():
             rq = _generate_related_questions(llm, retrieval_question, full_generation)

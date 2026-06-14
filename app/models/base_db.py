@@ -141,6 +141,12 @@ class BaseDB:
         except:
             pass
 
+        # 🔥 Migration: Thêm cột trace_log vào chat_logs nếu chưa có
+        try:
+            self.cursor.execute("ALTER TABLE chat_logs ADD COLUMN trace_log TEXT")
+        except:
+            pass
+
         # Create settings table
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS settings (
@@ -523,12 +529,21 @@ class BaseDB:
             
         return "Khác"
 
-    def save_chat_log(self, user_id, question, answer, tokens_charged):
+    def save_chat_log(self, user_id, question, answer, tokens_charged, trace_log=None):
+        import json as _json
         sentiment, score = self.analyze_sentiment(question, answer)
         era = self.determine_historical_era(question)
+        
+        trace_log_str = None
+        if trace_log:
+            try:
+                trace_log_str = _json.dumps(trace_log, ensure_ascii=False)
+            except Exception as e:
+                print(f"⚠️ Error encoding trace_log: {e}")
+
         self.cursor.execute(
-            "INSERT INTO chat_logs (user_id, question, answer, tokens_charged, sentiment, sentiment_score, era) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (user_id, question, answer, float(tokens_charged), sentiment, score, era)
+            "INSERT INTO chat_logs (user_id, question, answer, tokens_charged, sentiment, sentiment_score, era, trace_log) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (user_id, question, answer, float(tokens_charged), sentiment, score, era, trace_log_str)
         )
         self.conn.commit()
 

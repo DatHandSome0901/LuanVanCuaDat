@@ -1451,7 +1451,31 @@ def _process_chat_request(
                 latest_user = user_db.get_by_email(email)
                 new_balance = latest_user.get("token_balance", 0.0) if latest_user else 0.0
                 
-            user_db.save_chat_log(user["id"], request.question, cached_answer, cost)
+            elapsed_ms = (_perf_counter() - request_started_at_local) * 1000
+            trace_log = {
+                "step_times": {
+                    "total_elapsed_ms": elapsed_ms,
+                    "cache_lookup_ms": elapsed_ms,
+                    "rag_pipeline_ms": 0.0
+                },
+                "metadata": {
+                    "llm_name": settings.LLM_NAME if hasattr(settings, "LLM_NAME") else "openai",
+                    "embedding_model_name": embedding_model_name,
+                },
+                "context_normalization": {
+                    "raw_question": request.question,
+                    "query_language": query_lang,
+                    "resolved_question": retrieval_question,
+                    "translation_applied": is_english
+                },
+                "semantic_cache": {
+                    "hit": True,
+                    "similarity": cached_hit["similarity"]
+                },
+                "langgraph_workflow": None,
+                "web_fallback": None
+            }
+            user_db.save_chat_log(user["id"], request.question, cached_answer, cost, trace_log=trace_log)
             related_questions = _generate_related_questions(llm, retrieval_question, cached_answer)
             if is_english:
                 related_questions = translation_agent.translate_related_questions_to_en(related_questions)

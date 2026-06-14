@@ -1259,6 +1259,14 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
                 "hit": False,
                 "similarity": 0.0
             },
+            "pipeline_execution_status": {
+                "semantic_cache_hit": False,
+                "user_rag_retrieved": False,
+                "global_history_retrieved": False,
+                "web_fallback_triggered": True,
+                "web_verification_reliable": confidence == 1,
+                "auto_learning_saved": confidence == 1
+            },
             "langgraph_workflow": {
                 "intent_detected": "factual",
                 "suitable_documents_available": False
@@ -1472,6 +1480,14 @@ def _process_chat_request(
                     "hit": True,
                     "similarity": cached_hit["similarity"]
                 },
+                "pipeline_execution_status": {
+                    "semantic_cache_hit": True,
+                    "user_rag_retrieved": False,
+                    "global_history_retrieved": False,
+                    "web_fallback_triggered": False,
+                    "web_verification_reliable": False,
+                    "auto_learning_saved": False
+                },
                 "langgraph_workflow": None,
                 "web_fallback": None
             }
@@ -1636,6 +1652,14 @@ def _process_chat_request(
             "semantic_cache": {
                 "hit": False,
                 "similarity": 0.0
+            },
+            "pipeline_execution_status": {
+                "semantic_cache_hit": False,
+                "user_rag_retrieved": any(doc.metadata.get("is_user_rag", False) for doc in documents),
+                "global_history_retrieved": any(doc.metadata.get("is_global_history", False) for doc in documents),
+                "web_fallback_triggered": False,
+                "web_verification_reliable": False,
+                "auto_learning_saved": False
             },
             "langgraph_workflow": {
                 "intent_detected": rag_intent,

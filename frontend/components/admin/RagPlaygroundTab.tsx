@@ -399,6 +399,70 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
                   )}
                 </div>
 
+                {/* Pipeline feature status panel */}
+                {(() => {
+                  const statusInfo = trace.pipeline_execution_status || {
+                    semantic_cache_hit: !!trace.semantic_cache?.hit,
+                    user_rag_retrieved: !!(trace.langgraph_workflow?.retrieved_documents?.some((doc: any) => doc.is_user_rag)),
+                    global_history_retrieved: !!(trace.langgraph_workflow?.retrieved_documents?.some((doc: any) => doc.is_global_history)),
+                    web_fallback_triggered: !!trace.web_fallback?.triggered,
+                    web_verification_reliable: !!(trace.web_fallback?.confidence_score === 1 || trace.web_fallback?.web_data_reliable),
+                    auto_learning_saved: !!(trace.web_fallback?.confidence_score === 1 && trace.web_fallback?.is_pending_knowledge)
+                  };
+
+                  return (
+                    <div className="bg-stone-50 border border-stone-200/60 p-4 rounded-2xl space-y-3">
+                      <h4 className="text-[10px] font-black uppercase tracking-wider text-stone-500 border-b border-stone-150 pb-1.5 flex justify-between items-center">
+                        <span>{language === 'vi' ? 'Trạng thái kích hoạt tính năng RAG' : 'RAG Component Activation Status'}</span>
+                        <span className="text-[8px] bg-stone-200 text-stone-600 px-1 py-0.2 rounded lowercase font-mono">live telemetry</span>
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2 text-[10px] font-sans">
+                        <div className="flex items-center justify-between p-2 rounded bg-white border border-stone-150 shadow-sm">
+                          <span className="text-stone-500 font-medium">⚡ Semantic Cache:</span>
+                          <span className={`font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ${statusInfo.semantic_cache_hit ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'}`}>
+                            {statusInfo.semantic_cache_hit ? (language === 'vi' ? 'TRÚNG (HIT)' : 'HIT') : (language === 'vi' ? 'TRƯỢT (MISS)' : 'MISS')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2 rounded bg-white border border-stone-150 shadow-sm">
+                          <span className="text-stone-500 font-medium">📁 User RAG (Ghi chú):</span>
+                          <span className={`font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ${statusInfo.user_rag_retrieved ? 'bg-emerald-100 text-emerald-800 animate-pulse' : 'bg-stone-100 text-stone-400'}`}>
+                            {statusInfo.user_rag_retrieved ? (language === 'vi' ? 'CÓ DÙNG' : 'ACTIVE') : (language === 'vi' ? 'KHÔNG' : 'INACTIVE')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2 rounded bg-white border border-stone-150 shadow-sm">
+                          <span className="text-stone-500 font-medium">📚 Global History:</span>
+                          <span className={`font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ${statusInfo.global_history_retrieved ? 'bg-emerald-100 text-emerald-800 animate-pulse' : 'bg-stone-100 text-stone-400'}`}>
+                            {statusInfo.global_history_retrieved ? (language === 'vi' ? 'CÓ DÙNG' : 'ACTIVE') : (language === 'vi' ? 'KHÔNG' : 'INACTIVE')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2 rounded bg-white border border-stone-150 shadow-sm">
+                          <span className="text-stone-500 font-medium">🌐 Web Fallback:</span>
+                          <span className={`font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ${statusInfo.web_fallback_triggered ? 'bg-amber-100 text-amber-800 animate-bounce' : 'bg-stone-100 text-stone-400'}`}>
+                            {statusInfo.web_fallback_triggered ? (language === 'vi' ? 'KÍCH HOẠT' : 'ACTIVE') : (language === 'vi' ? 'KHÔNG' : 'INACTIVE')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2 rounded bg-white border border-stone-150 shadow-sm">
+                          <span className="text-stone-500 font-medium">🛡️ Web Verification:</span>
+                          <span className={`font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ${statusInfo.web_verification_reliable ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'}`}>
+                            {statusInfo.web_verification_reliable ? (language === 'vi' ? 'TIN CẬY' : 'RELIABLE') : (language === 'vi' ? 'KHÔNG DÙNG' : 'INACTIVE')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2 rounded bg-white border border-stone-150 shadow-sm">
+                          <span className="text-stone-500 font-medium">💾 Auto Learning (Lưu):</span>
+                          <span className={`font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ${statusInfo.auto_learning_saved ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'}`}>
+                            {statusInfo.auto_learning_saved ? (language === 'vi' ? 'ĐÃ LƯU' : 'SAVED') : (language === 'vi' ? 'KHÔNG' : 'INACTIVE')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="relative pl-1 max-h-[520px] overflow-y-auto pr-3 scrollbar-thin">
                   
                   {/* Step 1: User Query */}

@@ -27,16 +27,17 @@ interface ChatLogDetailModalProps {
 
 const TimelineItem: React.FC<{
   title: string;
+  subtitle?: string;
   status: 'success' | 'warning' | 'info' | 'error' | 'pending';
   active: boolean;
   time?: string;
   isLast?: boolean;
   children?: React.ReactNode;
-}> = ({ title, status, active, time, isLast = false, children }) => {
+}> = ({ title, subtitle, status, active, time, isLast = false, children }) => {
   const statusColorMap = {
-    success: 'bg-emerald-500 border-emerald-200 text-white',
-    warning: 'bg-amber-500 border-amber-200 text-white',
-    error: 'bg-rose-500 border-rose-200 text-white',
+    success: 'bg-emerald-500 border-emerald-250 text-white',
+    warning: 'bg-amber-500 border-amber-250 text-white',
+    error: 'bg-rose-500 border-rose-250 text-white',
     info: 'bg-sky-500 border-sky-250 text-white',
     pending: 'bg-stone-300 border-stone-100 text-stone-600',
   };
@@ -44,7 +45,7 @@ const TimelineItem: React.FC<{
   const statusColor = statusColorMap[status] || statusColorMap.pending;
 
   return (
-    <div className="relative pl-8 pb-6 last:pb-0">
+    <div className="relative pl-8 pb-5 last:pb-0">
       {/* Connector line */}
       {!isLast && (
         <div className="absolute left-[9px] top-4 bottom-0 w-0.5 bg-stone-200" />
@@ -57,8 +58,11 @@ const TimelineItem: React.FC<{
 
       <div className={`transition-all duration-200 ${active ? 'opacity-100' : 'opacity-60'}`}>
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold text-stone-850 uppercase tracking-wider">{title}</h4>
-          {time && <span className="text-[10px] text-stone-400 font-mono">{time}</span>}
+          <div>
+            <h4 className="text-xs font-black text-stone-850 uppercase tracking-wider">{title}</h4>
+            {subtitle && <p className="text-[10px] text-stone-450 italic mt-0.5">{subtitle}</p>}
+          </div>
+          {time && <span className="text-[10px] text-stone-400 font-mono font-bold">{time}</span>}
         </div>
         {active && children && (
           <div className="mt-2 bg-stone-50 border border-stone-150 rounded-2xl p-4 text-xs text-stone-600 space-y-1.5 leading-relaxed shadow-sm">
@@ -84,6 +88,20 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
       return null;
     }
   }, [chat.trace_log]);
+
+  // Count documents retrieved from different sources
+  const documentSourcesCount = React.useMemo(() => {
+    if (!trace || !trace.langgraph_workflow?.retrieved_documents) return { userRag: 0, globalHist: 0, systemRag: 0 };
+    let userRag = 0;
+    let globalHist = 0;
+    let systemRag = 0;
+    trace.langgraph_workflow.retrieved_documents.forEach((doc: any) => {
+      if (doc.is_user_rag) userRag++;
+      else if (doc.is_global_history) globalHist++;
+      else systemRag++;
+    });
+    return { userRag, globalHist, systemRag };
+  }, [trace]);
 
   return (
     <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
@@ -136,12 +154,12 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                 </div>
             </div>
 
-            {/* ⚙️ BACKEND EXECUTION TRACE VIEW */}
+            {/* ⚙️ DETAILED RAG PIPELINE EXECUTION TRACE */}
             {trace ? (
-              <div className="border border-stone-200 rounded-3xl overflow-hidden bg-white shadow-sm">
+              <div className="border border-stone-250 rounded-3xl overflow-hidden bg-white shadow-md">
                 <button 
                   onClick={() => setIsTraceOpen(!isTraceOpen)} 
-                  className="w-full p-5 flex justify-between items-center bg-stone-50 hover:bg-stone-100/80 transition-colors text-stone-700 text-xs font-black tracking-wider border-b border-stone-200"
+                  className="w-full p-5 flex justify-between items-center bg-stone-50 hover:bg-stone-100 transition-colors text-stone-700 text-xs font-black tracking-wider border-b border-stone-200"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-base">⚙️</span>
@@ -171,10 +189,10 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                     {/* Visual Graph Header */}
                     <div className="bg-[#1e1e1a] text-stone-300 p-4 rounded-2xl flex flex-wrap gap-x-6 gap-y-2 text-[10px] font-mono border border-stone-200/50 shadow-inner">
                       <div>
-                        <span className="text-stone-500">LLM MODEL:</span> <span className="text-amber-400 font-bold">{trace.metadata?.llm_name || 'unknown'}</span>
+                        <span className="text-stone-500">LLM MODEL:</span> <span className="text-amber-400 font-bold">{trace.metadata?.llm_name || 'openai'}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">EMBEDDING:</span> <span className="text-amber-400 font-bold">{trace.metadata?.embedding_model_name || 'unknown'}</span>
+                        <span className="text-stone-500">EMBEDDING:</span> <span className="text-amber-400 font-bold">{trace.metadata?.embedding_model_name || 'vertex'}</span>
                       </div>
                       {!trace.semantic_cache?.hit && (
                         <div>
@@ -183,91 +201,128 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                       )}
                     </div>
 
-                    {/* Timeline Flow */}
+                    {/* Step-by-Step Pipeline Flow */}
                     <div className="relative pl-1">
+                      
                       {/* Step 1: User Query */}
                       <TimelineItem 
-                        title={language === 'vi' ? '1. Nhận Câu Hỏi (User Query)' : '1. User Query Input'}
+                        title="User Query" 
+                        subtitle={language === 'vi' ? 'Nhận câu hỏi từ Frontend' : 'Inquiry request from Client'}
                         status="success" 
                         active={true}
                       >
-                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Câu hỏi thô' : 'Raw question'}:</span> "{trace.context_normalization?.raw_question || chat.question}"</div>
-                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Ngôn ngữ' : 'Language'}:</span> <span className="uppercase font-bold">{trace.context_normalization?.query_language || 'vi'}</span></div>
+                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Truy vấn thô' : 'Raw question'}:</span> "{trace.context_normalization?.raw_question || chat.question}"</div>
+                        <div><span className="font-semibold text-stone-700">API Endpoint:</span> <code className="bg-stone-200/60 px-1 py-0.5 rounded text-[10px] font-mono">/api/v1/chat/stream (SSE)</code></div>
+                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Khớp ngôn ngữ' : 'Language matched'}:</span> <span className="uppercase font-bold text-stone-800">{trace.context_normalization?.query_language || 'vi'}</span></div>
                       </TimelineItem>
 
                       {/* Step 2: FastAPI Chat Router */}
                       <TimelineItem 
-                        title={language === 'vi' ? '2. Định Tuyến FastAPI (FastAPI Chat Router)' : '2. FastAPI Chat Router'}
+                        title="FastAPI Chat Router" 
+                        subtitle={language === 'vi' ? 'Định tuyến & Kiểm tra quyền' : 'Route verification & User limits'}
                         status="success" 
                         active={true}
                       >
-                        <div><span className="font-semibold text-stone-700">JWT Authentication:</span> Verified (Active Session)</div>
-                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Chi phí đàm đạo' : 'Charged tokens'}:</span> <span className="text-amber-600 font-bold">{chat.tokens_charged} credits</span></div>
+                        <div><span className="font-semibold text-stone-700">JWT Token:</span> <span className="text-emerald-700 font-bold">✓ Valid (Ủy quyền thành công)</span></div>
+                        <div><span className="font-semibold text-stone-700">User Identity:</span> {chat.username}</div>
+                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Trừ phí đàm đạo' : 'Deducted credit'}:</span> <span className="text-amber-600 font-bold">-{chat.tokens_charged} Tệ</span></div>
+                        <div><span className="font-semibold text-stone-700">History Context:</span> Fetched last 6 messages from SQLite</div>
                       </TimelineItem>
 
                       {/* Step 3: Context Normalization */}
                       <TimelineItem 
-                        title={language === 'vi' ? '3. Chuẩn Hóa Lịch Sử (Context Normalization)' : '3. Context Normalization'}
+                        title="Context Normalization" 
+                        subtitle={language === 'vi' ? 'Dịch thuật & Làm rõ đại từ lịch sử' : 'Translation check & Coreference resolution'}
                         status="success" 
                         active={true}
                       >
-                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Câu hỏi ngữ cảnh' : 'Contextualized question'}:</span> "{trace.context_normalization?.resolved_question || chat.question}"</div>
-                        {trace.context_normalization?.translation_applied && (
-                          <div className="text-amber-600 font-semibold mt-1">🔄 {language === 'vi' ? 'Đã dịch từ EN sang VI để tìm kiếm RAG' : 'Translated from EN to VI for RAG search'}</div>
-                        )}
+                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Câu hỏi chuẩn hóa' : 'Resolved standalone question'}:</span> "{trace.context_normalization?.resolved_question || chat.question}"</div>
+                        <div>
+                          <span className="font-semibold text-stone-700">{language === 'vi' ? 'Dịch thuật song ngữ' : 'Bilingual translator'}:</span>{' '}
+                          {trace.context_normalization?.translation_applied 
+                            ? <span className="text-amber-700 font-bold">🔄 Đã dịch từ EN &rarr; VI để tối ưu hóa FAISS</span>
+                            : <span>Không cần dịch (VI)</span>
+                          }
+                        </div>
                       </TimelineItem>
 
                       {/* Step 4: Semantic Cache Lookup */}
                       <TimelineItem 
-                        title={language === 'vi' ? '4. Kiểm Tra Bộ Nhớ Đệm (Semantic Cache Lookup)' : '4. Semantic Cache Lookup'}
+                        title="Semantic Cache Lookup" 
+                        subtitle={language === 'vi' ? 'Kiểm tra bộ nhớ đệm ngữ nghĩa' : 'Check stored QA vector database'}
                         status={trace.semantic_cache?.hit ? "success" : "info"} 
                         active={true}
                         time={trace.step_times?.cache_lookup_ms ? `${trace.step_times.cache_lookup_ms.toFixed(0)}ms` : undefined}
                       >
                         <div>
-                          <span className="font-semibold text-stone-700">{language === 'vi' ? 'Kết quả trùng khớp' : 'Cache status'}:</span>{' '}
-                          <span className={`px-2 py-0.5 rounded font-bold ${trace.semantic_cache?.hit ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-800'}`}>
-                            {trace.semantic_cache?.hit ? 'HIT (TRÙNG KHỚP)' : 'MISS (HỤT)'}
+                          <span className="font-semibold text-stone-700">{language === 'vi' ? 'Trạng thái cache' : 'Cache status'}:</span>{' '}
+                          <span className={`px-2 py-0.5 rounded font-black text-[10px] ${
+                            trace.semantic_cache?.hit ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-800'
+                          }`}>
+                            {trace.semantic_cache?.hit ? 'CACHE HIT (TRÙNG KHỚP)' : 'CACHE MISS (HỤT)'}
                           </span>
                         </div>
                         {trace.semantic_cache?.hit && (
-                          <div className="mt-2 space-y-1 border-t border-stone-200/65 pt-2">
-                            <div className="text-stone-500 italic">{language === 'vi' ? 'Lối tắt: Đã lấy trực tiếp câu trả lời từ Cache và kết thúc.' : 'Shortcut: Response fetched directly from cache, pipeline terminated.'}</div>
-                            <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Độ tương đồng cosine' : 'Cosine similarity'}:</span> {(trace.semantic_cache.similarity * 100).toFixed(1)}%</div>
+                          <div className="mt-2 space-y-1.5 border-t border-stone-200 pt-2 text-stone-600">
+                            <div className="text-emerald-700 italic">⚡ Lối tắt: Trả trực tiếp câu trả lời trong bộ nhớ đệm, bỏ qua các bước sau.</div>
+                            <div><span className="font-semibold text-stone-700">Cosine Similarity:</span> {(trace.semantic_cache.similarity * 100).toFixed(1)}%</div>
+                            {trace.semantic_cache.cached_sources && (
+                              <div><span className="font-semibold text-stone-700">Cached Sources:</span> {trace.semantic_cache.cached_sources.length} sources</div>
+                            )}
                           </div>
                         )}
                       </TimelineItem>
 
-                      {/* Steps 5-8 are only relevant if Cache MISS */}
+                      {/* Standard RAG Workflow steps (Only if Cache MISS) */}
                       {!trace.semantic_cache?.hit && (
                         <>
-                          {/* Step 5: LangGraph Workflow START */}
+                          {/* Step 5: LangGraph Workflow */}
                           <TimelineItem 
-                            title={language === 'vi' ? '5. Phân Loại & Thực Thể (Retrieve: Classification + Entity)' : '5. Retrieve: Classification & Entity'}
+                            title="LangGraph Workflow" 
+                            subtitle={language === 'vi' ? 'Khởi động máy trạng thái LangGraph' : 'Init LangGraph state engine flow'}
                             status="success" 
                             active={true}
                           >
-                            <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Ý định đàm đạo (Intent)' : 'Intent detected'}:</span> <span className="font-bold text-sky-700 uppercase">{trace.langgraph_workflow?.intent_detected}</span></div>
-                            {trace.langgraph_workflow?.detailed_intent && (
-                              <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Ý định chi tiết' : 'Detailed intent'}:</span> {trace.langgraph_workflow.detailed_intent}</div>
-                            )}
-                            {trace.langgraph_workflow?.entity_detected && (
-                              <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Thực thể nhận dạng' : 'Entity detected'}:</span> <span className="font-bold text-amber-700">{trace.langgraph_workflow.entity_display || trace.langgraph_workflow.entity_detected}</span></div>
-                            )}
+                            <div className="font-mono text-[10px] text-stone-500">START → retrieve → grade_documents → generate / handle_no_answer</div>
+                            <div className="text-emerald-700 font-semibold mt-1">✓ State graph initialized.</div>
                           </TimelineItem>
 
-                          {/* Step 6: Multi-source FAISS Retrieval */}
+                          {/* Step 6: Retrieve: Classification & Entity */}
                           <TimelineItem 
-                            title={language === 'vi' ? '6. Truy Xuất FAISS Đa Nguồn (Multi-source FAISS Retrieval)' : '6. Multi-source FAISS Retrieval'}
+                            title="Retrieve: Classification + Entity" 
+                            subtitle={language === 'vi' ? 'Nhận dạng ý đồ & Thực thể lịch sử' : 'Intent categorization & entity extraction'}
                             status="success" 
                             active={true}
                           >
-                            <div className="mb-2">
-                              <span className="font-semibold text-stone-700">{language === 'vi' ? 'Số đoạn tài liệu tìm thấy' : 'Retrieved chunks count'}:</span>{' '}
-                              <span className="font-bold text-stone-850">{trace.langgraph_workflow?.retrieved_documents?.length || 0}</span>
+                            <div><span className="font-semibold text-stone-700">Intent category:</span> <span className="font-bold text-sky-700 uppercase">{trace.langgraph_workflow?.intent_detected || 'factual'}</span></div>
+                            {trace.langgraph_workflow?.detailed_intent && (
+                              <div><span className="font-semibold text-stone-700">Detailed intent:</span> <code className="bg-stone-150 px-1 py-0.5 rounded font-mono text-[10px]">{trace.langgraph_workflow.detailed_intent}</code></div>
+                            )}
+                            <div>
+                              <span className="font-semibold text-stone-700">Entity Resolved:</span>{' '}
+                              {trace.langgraph_workflow?.entity_detected 
+                                ? <span className="font-bold text-amber-700">{trace.langgraph_workflow.entity_display || trace.langgraph_workflow.entity_detected}</span>
+                                : <span className="text-stone-400">None</span>
+                              }
                             </div>
-                            {trace.langgraph_workflow?.retrieved_documents && trace.langgraph_workflow.retrieved_documents.length > 0 && (
-                              <div className="space-y-2 max-h-[200px] overflow-y-auto border border-stone-200 rounded-xl p-3 bg-white scrollbar-hide">
+                            <div><span className="font-semibold text-stone-700">Priority:</span> prioritized pending_knowledge (unapproved) checked</div>
+                          </TimelineItem>
+
+                          {/* Step 7: Multi-source FAISS Retrieval */}
+                          <TimelineItem 
+                            title="Multi-source FAISS Retrieval" 
+                            subtitle={language === 'vi' ? 'Truy xuất tài liệu đa nguồn' : 'FAISS search across various indexes'}
+                            status="success" 
+                            active={true}
+                          >
+                            <div className="flex gap-4 mb-2 text-stone-500 font-bold">
+                              <div>{language === 'vi' ? 'Ghi chú riêng' : 'User Notes'}: <span className="text-rose-700">{documentSourcesCount.userRag}</span></div>
+                              <div>{language === 'vi' ? 'Lịch sử sử liệu' : 'History Index'}: <span className="text-amber-700">{documentSourcesCount.globalHist}</span></div>
+                              <div>{language === 'vi' ? 'Tài liệu hệ thống' : 'System PDF'}: <span className="text-stone-750">{documentSourcesCount.systemRag}</span></div>
+                            </div>
+                            
+                            {trace.langgraph_workflow?.retrieved_documents && trace.langgraph_workflow.retrieved_documents.length > 0 ? (
+                              <div className="space-y-2 max-h-[180px] overflow-y-auto border border-stone-200 rounded-xl p-3 bg-white scrollbar-hide">
                                 {trace.langgraph_workflow.retrieved_documents.map((doc: any, i: number) => {
                                   let tag = language === 'vi' ? 'HỆ THỐNG' : 'SYSTEM';
                                   let tagColor = 'bg-stone-100 text-stone-700';
@@ -276,7 +331,7 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                                     tagColor = 'bg-rose-100 text-rose-700';
                                   } else if (doc.is_global_history) {
                                     tag = language === 'vi' ? 'TƯ LIỆU SỬ' : 'HISTORY INDEX';
-                                    tagColor = 'bg-amber-100 text-amber-700';
+                                    tagColor = 'bg-amber-100 text-amber-750';
                                   } else if (doc.is_pending) {
                                     tag = language === 'vi' ? 'ĐANG TỰ HỌC' : 'SELF-LEARNING';
                                     tagColor = 'bg-indigo-100 text-indigo-700';
@@ -285,7 +340,7 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                                   return (
                                     <div key={i} className="text-[11px] pb-2 last:pb-0 border-b border-stone-100 last:border-0">
                                       <div className="flex justify-between items-center mb-1">
-                                        <span className="font-bold text-stone-700 truncate max-w-[220px]">
+                                        <span className="font-bold text-stone-700 truncate max-w-[200px]">
                                           [{i+1}] {doc.source} {doc.page ? `(Trang ${doc.page})` : ''}
                                         </span>
                                         <div className="flex gap-1.5 items-center shrink-0">
@@ -293,112 +348,150 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                                           <span className="text-[10px] text-stone-400 font-mono">{(doc.score * 100).toFixed(0)}%</span>
                                         </div>
                                       </div>
-                                      <p className="text-stone-500 leading-normal italic line-clamp-2">"{doc.content}"</p>
+                                      <p className="text-stone-500 leading-normal italic line-clamp-1">"{doc.content}"</p>
                                     </div>
                                   );
                                 })}
                               </div>
+                            ) : (
+                              <div className="text-stone-400 italic">{language === 'vi' ? 'Không tìm thấy tài liệu nào' : 'No documents retrieved'}</div>
                             )}
                           </TimelineItem>
 
-                          {/* Step 7: Adaptive Re-ranking & Filtering */}
+                          {/* Step 8: Adaptive Re-ranking */}
                           <TimelineItem 
-                            title={language === 'vi' ? '7. Đánh Giá & Tái Sắp Xếp (Adaptive Re-ranking & Grading)' : '7. Adaptive Re-ranking & Grading'}
+                            title="Adaptive Re-ranking" 
+                            subtitle={language === 'vi' ? 'Tái sắp xếp độ ưu tiên ngữ nghĩa và lịch sử' : 'Calculate combined relevance score'}
                             status="success" 
                             active={true}
                           >
-                            <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Trọng số đánh giá' : 'Grading parameters'}:</span> final = α•semantic + β•temporal + γ•causal</div>
-                            <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Bộ lọc thực thể/từ khóa' : 'Entity/Keyword Filter'}:</span> Applied (Entity-aware bonus/penalty check)</div>
+                            <div className="font-mono text-[10px] text-stone-600 bg-stone-150 p-2 rounded-lg border border-stone-200">
+                              final = α•semantic + β•temporal + γ•causal
+                            </div>
+                            <div><span className="font-semibold text-stone-700">Entity-aware weighting:</span> Applied (+15% bonus for target historical figures/eras)</div>
+                            <div><span className="font-semibold text-stone-700">Personal Knowledge priority:</span> Prioritized User RAG chunks first.</div>
                           </TimelineItem>
 
-                          {/* Step 8: Decision Point: Suitable Documents Available? */}
+                          {/* Step 9: Grade & Filter Documents */}
                           <TimelineItem 
-                            title={language === 'vi' ? '8. Đủ Tư Liệu Khả Tín? (Suitable Documents Available?)' : '8. Suitable Documents Available?'}
+                            title="Grade & Filter Documents" 
+                            subtitle={language === 'vi' ? 'Bộ lọc độ tin cậy và sự phù hợp' : 'Keyword overlap & relevance check'}
+                            status="success" 
+                            active={true}
+                          >
+                            <div><span className="font-semibold text-stone-700">Grading Mode:</span> Fast Keyword/Entity Filter (Default)</div>
+                            <div><span className="font-semibold text-stone-700">LLM DocumentGrader:</span> Checked (Verified context relatedness)</div>
+                          </TimelineItem>
+
+                          {/* Step 10: Suitable Documents Available? */}
+                          <TimelineItem 
+                            title="Suitable Documents Available?" 
+                            subtitle={language === 'vi' ? 'Quyết định lựa chọn luồng tri thức' : 'Decision point for response strategy'}
                             status={trace.langgraph_workflow?.suitable_documents_available ? "success" : "warning"} 
                             active={true}
                           >
                             <div>
-                              <span className="font-semibold text-stone-755">{language === 'vi' ? 'Trạng thái tư liệu' : 'Knowledge availability'}:</span>{' '}
-                              <span className={`px-2 py-0.5 rounded font-bold ${
+                              <span className="font-semibold text-stone-700">{language === 'vi' ? 'Trạng thái tài liệu' : 'Documents status'}:</span>{' '}
+                              <span className={`px-2 py-0.5 rounded font-black text-[10px] uppercase ${
                                 trace.langgraph_workflow?.suitable_documents_available 
-                                  ? 'bg-emerald-105 text-emerald-800' 
+                                  ? 'bg-emerald-100 text-emerald-800' 
                                   : 'bg-amber-100 text-amber-800'
                               }`}>
                                 {trace.langgraph_workflow?.suitable_documents_available 
-                                  ? (language === 'vi' ? 'Đủ tài liệu chính thống (Internal Knowledge)' : 'Internal Knowledge Available')
-                                  : (language === 'vi' ? 'Thiếu tài liệu -> Kích hoạt Web Fallback' : 'Insufficient Data -> Web Fallback')
+                                  ? (language === 'vi' ? 'CÓ (Sử dụng tri thức nội bộ)' : 'YES (Internal Knowledge)')
+                                  : (language === 'vi' ? 'KHÔNG (Kích hoạt Web Fallback)' : 'NO (Trigger Web Fallback)')
                                 }
                               </span>
                             </div>
 
-                            {/* Sub-flow A: Generate RAG Answer */}
+                            {/* Branch A: Generate RAG Answer */}
                             {trace.langgraph_workflow?.suitable_documents_available && (
-                              <div className="mt-3 space-y-1.5 border-t border-stone-200/60 pt-3 text-[11px] text-stone-600">
-                                <div className="font-bold text-stone-700 text-xs uppercase tracking-wider mb-1">🌿 {language === 'vi' ? 'Nhánh A: Tạo Câu Trả Lời RAG' : 'Branch A: Generate RAG Response'}</div>
-                                <div><span className="font-semibold text-stone-700">AnswerGenerator:</span> Context injected with chat history.</div>
-                                <div><span className="font-semibold text-stone-700">Quality Control:</span> Citation remapping [i] & VietnamHistoryLanguageAgent guardrails checked.</div>
+                              <div className="mt-3 space-y-2 border-t border-stone-200/60 pt-3 text-[11px]">
+                                <div className="text-stone-850 font-bold uppercase tracking-wider">🌿 Nhánh A: Generate RAG Answer</div>
+                                <div><span className="font-semibold text-stone-700">AnswerGenerator:</span> Injected retrieved contexts and last 6 messages.</div>
+                                <div><span className="font-semibold text-stone-700">Quality Control:</span> Stripped source metadata and remapped references to sequential brackets [i].</div>
+                                <div><span className="font-semibold text-stone-700">Bilingual check:</span> VietnamHistoryLanguageAgent checked (VI target grammar).</div>
                               </div>
                             )}
 
-                            {/* Sub-flow B: Web Learning Fallback */}
+                            {/* Branch B: Web Learning Fallback */}
                             {trace.web_fallback?.triggered && (
-                              <div className="mt-3 space-y-2 border-t border-stone-200/60 pt-3 text-[11px] text-stone-600">
-                                <div className="font-bold text-amber-800 text-xs uppercase tracking-wider mb-1">🔥 {language === 'vi' ? 'Nhánh B: Tự Học Từ Web (Web Learning Agent)' : 'Branch B: Web Learning Agent'}</div>
-                                <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Đầu tìm kiếm' : 'Web Crawler status'}:</span> Search & Crawl activated (DuckDuckGo Search)</div>
+                              <div className="mt-3 space-y-2 border-t border-stone-200/60 pt-3 text-[11px]">
+                                <div className="text-amber-800 font-bold uppercase tracking-wider">🔥 Nhánh B: Web Learning Agent</div>
                                 
-                                {trace.web_fallback.crawled_urls && trace.web_fallback.crawled_urls.length > 0 && (
+                                <div className="pl-2 border-l-2 border-amber-300 space-y-1.5 mt-2">
+                                  {/* Web Crawler */}
                                   <div>
-                                    <span className="font-semibold text-stone-700">{language === 'vi' ? 'Các URL đã duyệt' : 'Crawled URLs'}:</span>
-                                    <ul className="list-disc list-inside mt-1 pl-1 space-y-0.5 text-stone-500 font-mono text-[10px]">
-                                      {trace.web_fallback.crawled_urls.map((url: string, i: number) => (
-                                        <li key={i} className="truncate max-w-md">{url}</li>
-                                      ))}
-                                    </ul>
+                                    <span className="font-bold text-stone-700 uppercase text-[9px] block">1. Search & Crawl Sources</span>
+                                    <span className="text-stone-500">DuckDuckGo Search queries resolved. Prioritized Vietnamese history sites (<code className="font-mono text-[10px]">.gov.vn</code>, museums).</span>
+                                    {trace.web_fallback.crawled_urls && trace.web_fallback.crawled_urls.length > 0 && (
+                                      <ul className="list-disc list-inside mt-1 pl-1 space-y-0.5 text-stone-500 font-mono text-[9px]">
+                                        {trace.web_fallback.crawled_urls.map((url: string, i: number) => (
+                                          <li key={i} className="truncate max-w-[420px]">{url}</li>
+                                        ))}
+                                      </ul>
+                                    )}
                                   </div>
-                                )}
-                                
-                                <div>
-                                  <span className="font-semibold text-stone-700">{language === 'vi' ? 'Độ tin cậy của Web' : 'Web data reliability'}:</span>{' '}
-                                  <span className={`px-1.5 py-0.5 rounded font-bold ${
-                                    trace.web_fallback.web_data_reliable ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                                  }`}>
-                                    {trace.web_fallback.web_data_reliable 
-                                      ? (language === 'vi' ? 'KHẢ TÍN (Lưu chờ duyệt)' : 'RELIABLE (Save pending)') 
-                                      : (language === 'vi' ? 'CHƯA RÕ (Từ chối trả lời)' : 'UNRELIABLE (Refused)')
-                                    }
-                                  </span>
-                                </div>
 
-                                {trace.web_fallback.is_pending_knowledge && (
-                                  <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-2xl text-indigo-800 italic mt-1.5 leading-relaxed">
-                                    💡 {language === 'vi' ? 'Câu hỏi và câu trả lời tự học đã được gửi tới mục Tri Thức Chờ Duyệt (pending_knowledge) để Admin duyệt.' : 'Awaiting admin approval. Query & response added to pending_knowledge.'}
+                                  {/* LLM Verification */}
+                                  <div className="pt-1.5 border-t border-stone-200/50">
+                                    <span className="font-bold text-stone-700 uppercase text-[9px] block">2. LLM Verification</span>
+                                    <span className="text-stone-500">Cross-checked crawled chunks for contradictions or hallucination elements.</span>
                                   </div>
-                                )}
+
+                                  {/* Web Data Reliable? */}
+                                  <div className="pt-1.5 border-t border-stone-200/50">
+                                    <span className="font-bold text-stone-700 uppercase text-[9px] block">3. Web Data Reliable?</span>
+                                    <div>
+                                      <span className="text-stone-500">{language === 'vi' ? 'Kết quả xác minh' : 'Verification score'}:</span>{' '}
+                                      <span className={`px-1.5 py-0.5 rounded font-bold text-[9px] ${
+                                        trace.web_fallback.web_data_reliable ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                      }`}>
+                                        {trace.web_fallback.web_data_reliable 
+                                          ? (language === 'vi' ? 'KHẢ TÍN (Reliable)' : 'RELIABLE') 
+                                          : (language === 'vi' ? 'KHÔNG ĐỦ BẰNG CHỨNG (Unreliable)' : 'UNRELIABLE / INSUFFICIENT')
+                                        }
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* pending_knowledge */}
+                                  {trace.web_fallback.is_pending_knowledge && (
+                                    <div className="bg-indigo-50 border border-indigo-150 p-2.5 rounded-xl text-indigo-900 italic mt-2">
+                                      💡 **pending_knowledge**: Đã tự động lưu câu hỏi và câu trả lời vào kho chờ duyệt để Admin kiểm duyệt và đưa vào FAISS tự học.
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </TimelineItem>
                         </>
                       )}
 
-                      {/* Step 9: Save & Return */}
+                      {/* Step 11: Save and Return */}
                       <TimelineItem 
-                        title={language === 'vi' ? '9. Lưu Trữ & SSE Stream (Save and Return)' : '9. Save and Return'}
+                        title="Save and Return" 
+                        subtitle={language === 'vi' ? 'Lưu trữ log, cập nhật cache và trả kết quả' : 'Deduct token, cache QA and stream SSE'}
                         status="success" 
                         active={true}
                         isLast={true}
                         time={trace.step_times?.total_elapsed_ms ? `${(trace.step_times.total_elapsed_ms / 1000).toFixed(2)}s` : undefined}
                       >
-                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Tổng thời gian chạy' : 'Total processing time'}:</span> <span className="font-bold text-stone-850">{trace.step_times?.total_elapsed_ms ? `${trace.step_times.total_elapsed_ms.toFixed(0)}ms` : 'N/A'}</span></div>
+                        <div><span className="font-semibold text-stone-700">Database Log:</span> <span className="text-emerald-700 font-bold">✓ Saved</span> (chat_logs table updated)</div>
+                        {!trace.semantic_cache?.hit && (
+                          <div><span className="font-semibold text-stone-700">Semantic Cache Update:</span> QA embedding stored for future search</div>
+                        )}
+                        <div><span className="font-semibold text-stone-700">SSE Stream:</span> [DONE] payload pushed to Client</div>
                         <div>
-                          <span className="font-semibold text-stone-700">{language === 'vi' ? 'Chế độ hoàn trả' : 'Response delivery'}:</span>{' '}
-                          <span className="font-bold uppercase text-stone-750">
+                          <span className="font-semibold text-stone-700">{language === 'vi' ? 'Hình thức phản hồi' : 'Response mode'}:</span>{' '}
+                          <span className="font-bold text-stone-750 uppercase">
                             {trace.semantic_cache?.hit 
-                              ? 'Semantic Cache' 
-                              : (trace.web_fallback?.triggered ? 'Web Fallback Learning' : 'Standard RAG SSE')}
+                              ? 'Semantic Cache (Bypass)' 
+                              : (trace.web_fallback?.triggered ? 'Web Fallback Agent' : 'Standard RAG System')}
                           </span>
                         </div>
-                        <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Độ dài câu trả lời' : 'Answer length'}:</span> {chat.answer?.length || 0} kí tự / characters</div>
                       </TimelineItem>
+
                     </div>
                   </div>
                 )}

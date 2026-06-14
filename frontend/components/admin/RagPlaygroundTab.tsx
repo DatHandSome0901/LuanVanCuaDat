@@ -4,6 +4,8 @@ import remarkGfm from 'remark-gfm';
 import { api } from '../../api';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Terminal, Send, AlertTriangle, HelpCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+
 
 interface RagPlaygroundTabProps {
   initialQuestion?: string;
@@ -63,6 +65,8 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'timeline' | 'json'>('timeline');
+
 
   useEffect(() => {
     if (initialQuestion) {
@@ -240,9 +244,27 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
 
           {/* Right Column: Execution Trace Timeline */}
           <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-6 space-y-6">
-            <h3 className="text-sm font-black uppercase tracking-wider text-stone-500 border-b border-stone-100 pb-3">
-              {language === 'vi' ? 'Hành vết vận hành chi tiết' : 'Pipeline execution trace'}
-            </h3>
+            <div className="flex justify-between items-center border-b border-stone-100 pb-3">
+              <h3 className="text-sm font-black uppercase tracking-wider text-stone-500">
+                {language === 'vi' ? 'Hành vết vận hành chi tiết' : 'Pipeline execution trace'}
+              </h3>
+              {trace && (
+                <div className="flex bg-stone-100 p-1 rounded-xl text-[10px] font-bold">
+                  <button
+                    onClick={() => setViewMode('timeline')}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'timeline' ? 'bg-white text-stone-850 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
+                  >
+                    {language === 'vi' ? 'Sơ đồ luồng' : 'Timeline'}
+                  </button>
+                  <button
+                    onClick={() => setViewMode('json')}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'json' ? 'bg-white text-stone-850 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
+                  >
+                    {language === 'vi' ? 'Dữ liệu JSON' : 'JSON Trace'}
+                  </button>
+                </div>
+              )}
+            </div>
 
             {isLoading ? (
               <div className="py-20 flex flex-col items-center justify-center space-y-4">
@@ -250,7 +272,29 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
                 <p className="text-xs text-stone-400 italic">Đang thu thập dữ liệu hành vết...</p>
               </div>
             ) : trace ? (
-              <div className="space-y-6 animate-in fade-in duration-300">
+              viewMode === 'json' ? (
+                <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-stone-400 italic font-sans">
+                      {language === 'vi' ? 'Dữ liệu JSON hạn vết thô từ Backend' : 'Raw JSON trace logs from Backend'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(trace, null, 2));
+                        toast.success(language === 'vi' ? 'Đã sao chép vào bộ nhớ tạm!' : 'Copied JSON trace to clipboard!');
+                      }}
+                      className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-800 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                    >
+                      {language === 'vi' ? 'Sao chép JSON' : 'Copy JSON'}
+                    </button>
+                  </div>
+                  <pre className="bg-[#1e1e1a] text-amber-200/90 p-5 rounded-2xl text-[10px] font-mono overflow-auto max-h-[500px] border border-stone-200/50 shadow-inner scrollbar-thin">
+                    {JSON.stringify(trace, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <div className="space-y-6 animate-in fade-in duration-300">
+
                 
                 {/* Node info box */}
                 <div className="bg-[#1e1e1a] text-stone-300 p-4 rounded-xl flex flex-wrap gap-x-6 gap-y-2 text-[9px] font-mono border border-stone-200/50 shadow-inner">
@@ -524,7 +568,8 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
 
                 </div>
               </div>
-            ) : (
+            )) : (
+
               <div className="py-20 flex flex-col items-center justify-center space-y-4 text-stone-400 italic">
                 <HelpCircle className="w-8 h-8" />
                 <p className="text-xs">{language === 'vi' ? 'Gửi câu hỏi để tạo vết chạy' : 'Submit a query to generate trace'}</p>

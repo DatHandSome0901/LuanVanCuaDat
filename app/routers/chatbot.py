@@ -34,6 +34,7 @@ import uuid
 router = APIRouter(tags=["Chatbot"])
 vietnam_history_language_agent = VietnamHistoryLanguageAgent()
 from chatbot.services.translation_agent import TranslationAgent
+from app.config import settings
 
 
 # ===============================

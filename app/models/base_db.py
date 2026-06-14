@@ -364,6 +364,54 @@ class BaseDB:
         )
         """)
 
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_rag_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            conversation_id INTEGER,
+            message_id INTEGER,
+            original_question TEXT,
+            assistant_answer TEXT,
+            selected_text TEXT,
+            corrected_text TEXT,
+            content TEXT NOT NULL,
+            content_type TEXT NOT NULL, -- 'manual_note', 'correction', 'personal_context', 'hypothesis', 'saved_idea', 'user_argument', etc.
+            tags TEXT,
+            metadata_json TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+        """)
+
+        # ==========================================
+        # GLOBAL CRAWLED HISTORY ITEMS
+        # ==========================================
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS global_history_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            url TEXT UNIQUE,
+            domain TEXT,
+            topic TEXT,
+            period TEXT,
+            entity_person TEXT,
+            event TEXT,
+            source_type TEXT,
+            raw_content TEXT,
+            content_hash TEXT,
+            status TEXT DEFAULT 'active',
+            error_message TEXT,
+            crawled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+        
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_global_history_topic ON global_history_items(topic)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_global_history_domain ON global_history_items(domain)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_global_history_hash ON global_history_items(content_hash)")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_global_history_url ON global_history_items(url)")
+
         self.conn.commit()
 
     def log_login(self, user_id, ip_address, user_agent):
@@ -1140,3 +1188,91 @@ class UserDB(BaseDB):
         """
         self.cursor.execute(query)
         return [dict(row) for row in self.cursor.fetchall()]
+
+    def save_user_rag_item(self, user_id, content, content_type, conversation_id=None, message_id=None, original_question=None, assistant_answer=None, selected_text=None, corrected_text=None, tags=None, metadata_json=None):
+        self.cursor.execute(
+            """
+            INSERT INTO user_rag_items (
+                user_id, content, content_type, conversation_id, message_id, 
+                original_question, assistant_answer, selected_text, corrected_text, 
+                tags, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id, content, content_type, conversation_id, message_id,
+                original_question, assistant_answer, selected_text, corrected_text,
+                tags, metadata_json
+            )
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def update_user_rag_item(self, user_id, item_id, content, content_type):
+        self.cursor.execute(
+            """
+            UPDATE user_rag_items 
+            SET content = ?, content_type = ?, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ? AND user_id = ?
+            """,
+            (content, content_type, item_id, user_id)
+        )
+        self.conn.commit()
+
+    def get_user_rag_items(self, user_id):
+        self.cursor.execute(
+            "SELECT * FROM user_rag_items WHERE user_id = ? ORDER BY created_at DESC",
+            (user_id,)
+        )
+        return [dict(row) for row in self.cursor.fetchall()]
+
+    def delete_user_rag_item(self, user_id, item_id):
+        self.cursor.execute(
+            "DELETE FROM user_rag_items WHERE id = ? AND user_id = ?",
+            (item_id, user_id)
+        )
+        self.conn.commit()
+
+    def save_global_history_item(self, title, url, domain, topic, period, entity_person, event, source_type, raw_content, content_hash, status='active', error_message=None):
+        self.cursor.execute(
+            """
+            INSERT OR REPLACE INTO global_history_items (
+                title, url, domain, topic, period, entity_person, event, 
+                source_type, raw_content, content_hash, status, error_message, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """,
+            (
+                title, url, domain, topic, period, entity_person, event,
+                source_type, raw_content, content_hash, status, error_message
+            )
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    def get_global_history_items(self, topic=None):
+        if topic:
+            self.cursor.execute(
+                "SELECT * FROM global_history_items WHERE topic = ? AND status = 'active' ORDER BY crawled_at DESC",
+                (topic,)
+            )
+        else:
+            self.cursor.execute(
+                "SELECT * FROM global_history_items WHERE status = 'active' ORDER BY crawled_at DESC"
+            )
+        return [dict(row) for row in self.cursor.fetchall()]
+
+    def is_url_crawled(self, url):
+        self.cursor.execute(
+            "SELECT 1 FROM global_history_items WHERE url = ?",
+            (url,)
+        )
+        return self.cursor.fetchone() is not None
+
+    def is_content_hash_exists(self, content_hash):
+        if not content_hash:
+            return False
+        self.cursor.execute(
+            "SELECT 1 FROM global_history_items WHERE content_hash = ?",
+            (content_hash,)
+        )
+        return self.cursor.fetchone() is not None
+

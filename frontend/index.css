@@ -1,5 +1,5 @@
 /* --- PREMIUM GLOBAL STYLES --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&subset=vietnamese&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 
 /* Only apply mobile optimizations on small screens */
@@ -104,7 +104,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
   color: #1c1917;
   min-height: 100vh;
   min-height: calc(var(--vh, 1vh) * 100);
@@ -126,11 +126,11 @@ body {
 }
 
 .font-historical {
-  font-family: 'Playfair Display', 'Lora', 'Times New Roman', Times, serif;
+  font-family: 'Playfair Display', 'Lora', 'Be Vietnam Pro', 'Times New Roman', Times, serif !important;
 }
 
 .font-serif {
-  font-family: 'Lora', 'Times New Roman', Times, serif;
+  font-family: 'Lora', 'Be Vietnam Pro', 'Times New Roman', Times, serif !important;
 }
 
 

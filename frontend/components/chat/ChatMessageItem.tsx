@@ -3,9 +3,13 @@ import remarkGfm from "remark-gfm";
 import React from 'react';
 import { ChatMessage } from '../../types';
 import toast from 'react-hot-toast';
-import { API_ROOT } from '../../api';
+import { API_ROOT, saveSelectionRag } from '../../api';
 import SecureImage from '../SecureImage';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cleanVietnameseSelection } from '../../utils/text';
+import { createPortal } from 'react-dom';
+
 
 interface ChatMessageItemProps {
   msg: ChatMessage;
@@ -18,6 +22,7 @@ interface ChatMessageItemProps {
   onTypingFrame?: () => void;
   isSpeaking?: boolean;
   onSpeakToggle?: (id: string, text: string) => void;
+  previousMessageContent?: string;
 }
 
 const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ 
@@ -30,11 +35,97 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   onRelatedQuestionClick, 
   onTypingFrame,
   isSpeaking = false,
-  onSpeakToggle
+  onSpeakToggle,
+  previousMessageContent
 }) => {
   const { t } = useLanguage();
   const [imgError, setImgError] = React.useState(false);
   const [currentRating, setCurrentRating] = React.useState(msg.rating || 0);
+
+  const [selectionRange, setSelectionRange] = React.useState<{ x: number; y: number; text: string } | null>(null);
+  const [selectedText, setSelectedText] = React.useState('');
+  const [showCorrectionModal, setShowCorrectionModal] = React.useState(false);
+  const [correctedText, setCorrectedText] = React.useState('');
+  const [noteType, setNoteType] = React.useState('correction');
+  const [savingSelection, setSavingSelection] = React.useState(false);
+
+  const isVi = t.sidebar_personal_rag === 'Kho tri thức';
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (msg.role !== 'assistant' || showCursor) return;
+    
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (!selection) return;
+      const rawText = selection.toString().trim();
+      const cleanedText = cleanVietnameseSelection(rawText);
+      
+      if (cleanedText.length > 3) {
+        try {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          setSelectionRange({
+            x: rect.left + rect.width / 2,
+            y: rect.top - 40,
+            text: cleanedText
+          });
+        } catch (err) {
+          setSelectionRange({
+            x: e.clientX,
+            y: e.clientY - 40,
+            text: cleanedText
+          });
+        }
+      } else {
+        setSelectionRange(null);
+      }
+    }, 10);
+  };
+
+  const handleSaveSelection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedText || !correctedText.trim()) return;
+    
+    setSavingSelection(true);
+    try {
+      const conversationIdStr = localStorage.getItem("conversation_id");
+      const conversationId = conversationIdStr ? Number(conversationIdStr) : undefined;
+      const msgIdNum = typeof msg.id === 'number' ? msg.id : undefined;
+
+      await saveSelectionRag({
+        conversationId,
+        messageId: msgIdNum,
+        originalQuestion: previousMessageContent ? cleanVietnameseSelection(previousMessageContent) : undefined,
+        assistantAnswer: cleanVietnameseSelection(msg.content || ''),
+        selectedText: cleanVietnameseSelection(selectedText),
+        correctedText: cleanVietnameseSelection(correctedText),
+        noteType: noteType
+      });
+
+      toast.success(isVi ? 'Đã lưu đính chính vào RAG cá nhân!' : 'Saved correction to personal RAG!');
+      setShowCorrectionModal(false);
+      setSelectionRange(null);
+      setSelectedText('');
+      setCorrectedText('');
+    } catch (err: any) {
+      toast.error(err.message || 'Không thể lưu tri thức');
+    } finally {
+      setSavingSelection(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const handleDocClick = () => {
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (!selection || selection.toString().trim() === '') {
+          setSelectionRange(null);
+        }
+      }, 100);
+    };
+    document.addEventListener('mouseup', handleDocClick);
+    return () => document.removeEventListener('mouseup', handleDocClick);
+  }, []);
 
   // isStreaming = true → content arrives live from SSE, display directly
   // animate = true  → content is already complete, fake typewriter it
@@ -42,24 +133,24 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   const shouldAnimateText = msg.role === 'assistant' && Boolean(msg.animate) && !isStreamingMsg;
 
   const [displayContent, setDisplayContent] = React.useState(
-    shouldAnimateText ? '' : msg.content
+    shouldAnimateText ? '' : (msg.content || '').normalize('NFC')
   );
   const [isTypingText, setIsTypingText] = React.useState(shouldAnimateText);
 
   // For streaming messages: always keep displayContent in sync with msg.content
   React.useEffect(() => {
     if (isStreamingMsg) {
-      setDisplayContent(msg.content);
+      setDisplayContent((msg.content || '').normalize('NFC'));
       return;
     }
 
     if (!shouldAnimateText) {
-      setDisplayContent(msg.content);
+      setDisplayContent((msg.content || '').normalize('NFC'));
       setIsTypingText(false);
       return;
     }
 
-    const fullText = msg.content || '';
+    const fullText = (msg.content || '').normalize('NFC');
     let index = 0;
     let cancelled = false;
 
@@ -168,7 +259,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         {!showCursor && (
         <button 
           onClick={() => {
-            navigator.clipboard.writeText(msg.content);
+            navigator.clipboard.writeText((msg.content || '').normalize('NFC'));
             toast.success('Đã chép vào bộ nhớ.');
           }}
           className={`absolute ${
@@ -187,7 +278,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         {/* Speak Button (Floating above Copy Button) */}
         {!showCursor && msg.role === 'assistant' && onSpeakToggle && (
         <button 
-          onClick={() => onSpeakToggle(String(msg.id), msg.content)}
+          onClick={() => onSpeakToggle(String(msg.id), (msg.content || '').normalize('NFC'))}
           className={`absolute -right-12 bottom-14 p-2.5 bg-white border border-stone-100 rounded-xl transition-all shadow-sm opacity-0 group-hover:opacity-100 flex items-center justify-center z-20 ${
             isSpeaking 
               ? 'bg-red-50 border-red-200 text-red-700 hover:text-red-800' 
@@ -208,7 +299,10 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         )}
 
 
-        <div className={`prose prose-sm md:prose-base max-w-none leading-[1.9] overflow-x-hidden relative z-10 ${msg.role === 'user' ? 'prose-invert font-medium' : 'prose-stone prose-headings:text-red-900 prose-headings:font-historical-premium prose-strong:text-red-950 prose-p:text-stone-800'}`}>
+        <div 
+          onMouseUp={handleMouseUp}
+          className={`prose prose-sm md:prose-base max-w-none leading-[1.9] overflow-x-hidden relative z-10 ${msg.role === 'user' ? 'prose-invert font-medium' : 'prose-stone prose-headings:text-red-900 prose-headings:font-historical-premium prose-strong:text-red-950 prose-p:text-stone-800'}`}
+        >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {displayContent}
           </ReactMarkdown>
@@ -333,6 +427,141 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         ))}
       </div>
     )}
+
+    {/* Floating Tooltip */}
+    {selectionRange && (
+      <div 
+        className="fixed z-[999] -translate-x-1/2 flex items-center bg-stone-900 text-amber-100 text-xs px-3 py-2 rounded-xl shadow-lg border border-amber-500/30 cursor-pointer select-none font-sans font-bold hover:bg-stone-800 transition-colors animate-in fade-in zoom-in-95 duration-100"
+        style={{ top: `${selectionRange.y}px`, left: `${selectionRange.x}px` }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedText(selectionRange.text);
+          setCorrectedText(selectionRange.text);
+          setShowCorrectionModal(true);
+        }}
+      >
+        <svg className="w-3.5 h-3.5 mr-1.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        </svg>
+        {isVi ? 'Sửa & Ghi nhớ' : 'Correct & Remember'}
+      </div>
+    )}
+
+    {/* Correction Modal */}
+    {createPortal(
+      <AnimatePresence>
+        {showCorrectionModal && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-950/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#faf6eb] w-full max-w-lg rounded-3xl border border-amber-900/15 shadow-2xl p-6 relative overflow-hidden font-sans"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Decorative paper border */}
+              <div className="absolute inset-0 paper-texture-only pointer-events-none opacity-40" />
+
+              <div className="relative z-10">
+                <h2 className="text-xl font-bold text-amber-950 italic border-b border-amber-900/10 pb-3 mb-4">
+                  {isVi ? 'Cá Nhân Hóa Tri Thức' : 'Personalize Knowledge'}
+                </h2>
+
+                <form onSubmit={handleSaveSelection} className="space-y-4 font-sans text-sm">
+                  {/* Selected Text Reference */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-stone-400 tracking-wider mb-1 block">
+                      {isVi ? 'ĐOẠN TRÍCH GỐC' : 'SELECTED TEXT REFERENCE'}
+                    </label>
+                    <p className="text-xs text-red-900 bg-red-50/50 p-3 rounded-xl border border-red-100/50 font-sans italic max-h-24 overflow-y-auto">
+                      "{selectedText}"
+                    </p>
+                  </div>
+
+                  {/* Note Type selection */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-stone-400 tracking-wider mb-2 block">
+                      {isVi ? 'LOẠI TRI THỨC' : 'KNOWLEDGE TYPE'}
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNoteType('correction')}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          noteType === 'correction'
+                            ? 'bg-amber-950 text-amber-100 border-amber-950'
+                            : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                        }`}
+                      >
+                        {isVi ? 'Đoạn đính chính' : 'Correction'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNoteType('manual_note')}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          noteType === 'manual_note'
+                            ? 'bg-amber-950 text-amber-100 border-amber-950'
+                            : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                        }`}
+                      >
+                        {isVi ? 'Ghi chú tự do' : 'Free Note'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Corrected Text area */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-stone-400 tracking-wider mb-2 block">
+                      {isVi ? 'NỘI DUNG CHỈNH SỬA / GHI NHỚ' : 'YOUR MEMORIZATION / CORRECTION'}
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={correctedText}
+                      onChange={e => setCorrectedText(e.target.value)}
+                      placeholder={
+                        noteType === 'correction'
+                          ? (isVi ? 'Nhập nội dung đã đính chính chính xác để chatbot ghi nhớ...' : 'Enter the corrected facts for chatbot to remember...')
+                          : (isVi ? 'Nhập quan điểm, giả thuyết hoặc phản hồi của bạn...' : 'Enter your perspective or notes...')
+                      }
+                      className="w-full bg-white border border-stone-200 p-3 rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 font-sans leading-relaxed text-stone-850"
+                    />
+                  </div>
+
+                  {/* Form Actions */}
+                  <div className="flex gap-2 border-t border-amber-900/10 pt-4 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCorrectionModal(false);
+                        setSelectedText('');
+                        setCorrectedText('');
+                      }}
+                      className="flex-1 bg-white hover:bg-stone-50 text-stone-600 py-3 rounded-xl font-bold border border-stone-200 shadow-sm cursor-pointer transition-colors"
+                    >
+                      {isVi ? 'Hủy' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingSelection}
+                      className="flex-1 bg-gradient-to-r from-red-950 to-red-900 text-amber-100 hover:from-red-900 hover:to-red-800 py-3 rounded-xl font-bold border border-amber-500/30 shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
+                    >
+                      {savingSelection ? (
+                        <div className="w-4 h-4 border-2 border-amber-100 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        isVi ? 'Lưu & Ghi nhớ' : 'Save & Remember'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+
   </>);
 };
 

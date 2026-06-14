@@ -8,9 +8,9 @@ from langchain_community.document_loaders import (
     Docx2txtLoader,
     UnstructuredFileLoader,
 )
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 
 class FileLoader:

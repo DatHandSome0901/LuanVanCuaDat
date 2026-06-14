@@ -96,7 +96,6 @@ class WebCrawler:
             "dangcongsan.vn",
             "nhandan.vn",
             "vietnamplus.vn",
-            "wikipedia.org",
         ]
         self.allow_non_government_fallback = _env_bool("WEB_ALLOW_NON_GOV_FALLBACK", True)
         self.max_results = _env_int("WEB_MAX_RESULTS", 5)
@@ -206,37 +205,8 @@ class WebCrawler:
         return [" ".join(important[:min(6, len(important))])]
 
     def _direct_wikipedia_results(self, query: str) -> list[dict]:
-        results = []
-        
-        # [FIX] Tránh tạo link Wikipedia bừa bãi và gây lỗi 404 cho các câu hỏi dài.
-        # Chỉ tạo link trực tiếp nếu truy vấn là một từ khóa ngắn (<= 6 từ).
-        if len(query.split()) > 6:
-            return results
-            
-        seen = set()
-
-        for phrase in self._important_query_phrases(query):
-            title_candidate = _title_case_words(phrase)
-            y_variant = title_candidate.replace("M\u1ecb", "M\u1ef5").replace("m\u1ecb", "M\u1ef5")
-            candidates = [y_variant] if y_variant != title_candidate else [title_candidate]
-
-            for title in candidates:
-                if not title:
-                    continue
-                url = "https://vi.wikipedia.org/wiki/" + quote(title.replace(" ", "_"))
-                if url in seen:
-                    continue
-                seen.add(url)
-                results.append({
-                    "url": url,
-                    "title": title,
-                    "body": "",
-                    "_direct": True,
-                })
-                if len(results) >= 3:
-                    return results
-
-        return results
+        # Tránh đụng vào Wikipedia theo yêu cầu của người dùng
+        return []
 
     def _score_chunk(self, content: str, query_terms: list[str]) -> int:
         if not query_terms:
@@ -312,72 +282,58 @@ class WebCrawler:
         include_direct: bool = True,
     ) -> list[dict]:
         max_results = max_results or self.max_results
-        gov_query = " OR ".join([
-            "site:.gov.vn",
-            "site:chinhphu.vn",
-            "site:baochinhphu.vn",
-            "site:quochoi.vn",
-            "site:dangcongsan.vn",
-        ])
-        state_query = " OR ".join([
-            "site:vietnam.vn",
-            "site:baotanglichsu.vn",
-            "site:qdnd.vn",
-            "site:nhandan.vn",
-            "site:vietnamplus.vn",
-        ])
-        trusted_query = " OR ".join([f"site:{domain}" for domain in self.trusted_domains])
-        search_queries = [
-            f"{query} {gov_query}",
-            f"{query} {state_query}",
-        ]
-
-        if self.allow_non_government_fallback:
-            search_queries.extend([
-                f"{query} {trusted_query}",
-                f"{query} site:.vn",
-                query,
-            ])
-        
         results_out = []
         seen_urls = set()
 
+        # Parse out any explicit site constraint to apply it after fetching
+        explicit_site = None
+        site_match = re.search(r"\bsite:(\S+)", query.lower())
+        if site_match:
+            explicit_site = site_match.group(1)
+
+        # Build clean search query
+        search_query = query
         try:
             with DDGS() as ddgs:
-                for search_query in search_queries:
-                    if len(results_out) >= max_results:
-                        break
-
-                    try:
-                        # Thêm tham số region='vn-vi' để tối ưu kết quả tiếng Việt/Việt Nam
-                        results = ddgs.text(search_query, region='vn-vi', max_results=max_results)
-                    except Exception:
-                        continue
-
-                    for r in results:
+                raw_results = ddgs.text(search_query, region='vn-vi', max_results=20)
+                if raw_results:
+                    ranked = []
+                    for r in raw_results:
                         href = r.get("href")
-                        if href and href not in seen_urls:
-                            seen_urls.add(href)
-                            results_out.append({
-                                "url": href,
-                                "title": r.get("title") or "",
-                                "body": r.get("body") or r.get("snippet") or "",
-                            })
-                            if len(results_out) >= max_results:
-                                break
+                        if not href or href in seen_urls:
+                            continue
+
+                        # Block wikipedia
+                        host = _url_host(href)
+                        if "wikipedia.org" in host or "wiki/" in href:
+                            continue
+
+                        # Respect explicit site constraint if provided
+                        if explicit_site and not _host_matches(host, explicit_site):
+                            continue
+
+                        priority = self._source_priority_score(href)
+                        ranked.append((priority, r))
+
+                    # Sort by priority score desc, preserving original rank for equal priority
+                    ranked.sort(key=lambda x: x[0], reverse=True)
+
+                    for priority, r in ranked:
+                        href = r.get("href")
+                        seen_urls.add(href)
+                        results_out.append({
+                            "url": href,
+                            "title": r.get("title") or "",
+                            "body": r.get("body") or r.get("snippet") or "",
+                        })
+                        if len(results_out) >= max_results:
+                            break
         except Exception as e:
             print(f"DDGS Error: {e}")
 
-        if include_direct and self.allow_non_government_fallback and len(results_out) < max_results:
-            for result in self._direct_wikipedia_results(query):
-                href = result.get("url")
-                if href and href not in seen_urls:
-                    seen_urls.add(href)
-                    results_out.append(result)
-                    if len(results_out) >= max_results:
-                        break
-            
+        # Wikipedia is completely disabled here as well
         return results_out
+
 
     def search_trusted_domains(self, query: str, max_results: int | None = None) -> list[str]:
         return [result["url"] for result in self.search_trusted_results(query, max_results)]

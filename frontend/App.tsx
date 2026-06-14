@@ -10,6 +10,7 @@ import ProfileView from './components/ProfileView';
 import AdminView from './components/AdminView';
 import HistoryView from './components/HistoryView';
 import QAView from './components/QAView';
+import PersonalRagView from './components/PersonalRagView';
 import LandingPage from './components/LandingPage';
 import LandingPageMobile from './mobile/LandingPageMobile';
 import LanguageSelector from './components/LanguageSelector';
@@ -469,6 +470,12 @@ const AppInner: React.FC = () => {
                   isSidebarOpen={isSidebarOpen}
                   onViewChange={setCurrentView}
                   onRequestReport={() => setShowReportForm(true)}
+                />
+              )}
+              {currentView === 'personal-rag' && user && (
+                <PersonalRagView
+                  user={user}
+                  isSidebarOpen={isSidebarOpen}
                 />
               )}
             </>

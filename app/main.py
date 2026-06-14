@@ -18,7 +18,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from app.routers import auth, file_upload, payment, chatbot, admin, qa, support
+from app.routers import auth, file_upload, payment, chatbot, admin, qa, support, user_rag
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from time import perf_counter
@@ -52,6 +52,7 @@ app.include_router(chatbot.router, prefix=api_prefix)
 app.include_router(admin.router, prefix=api_prefix)
 app.include_router(qa.router, prefix=api_prefix)
 app.include_router(support.router, prefix=api_prefix)
+app.include_router(user_rag.router, prefix=api_prefix)
 
 
 @app.get(f"{api_prefix}/")

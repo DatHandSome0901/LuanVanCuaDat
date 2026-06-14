@@ -201,9 +201,13 @@ const ChatView: React.FC<ChatViewProps> = ({
       const messages = data.map((m: any) => ({
         id: m.id,
         role: m.role,
-        content: m.content,
+        content: (m.content || '').normalize('NFC'),
         timestamp: new Date(m.created_at),
-        sources: m.sources || [],
+        sources: (m.sources || []).map((s: any) => ({
+          ...s,
+          filename: (s.filename || '').normalize('NFC'),
+          content: (s.content || '').normalize('NFC'),
+        })),
         rating: m.rating || 0,
       }));
 
@@ -463,6 +467,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                 ? {
                     ...m,
                     id: finalMsgId,
+                    content: meta.answer !== undefined ? meta.answer : m.content,
                     tokens_charged: meta.tokens_charged,
                     sources: meta.sources || [],
                     related_questions: meta.related_questions || [],
@@ -640,7 +645,7 @@ const ChatView: React.FC<ChatViewProps> = ({
       {/* HEADER */}
       {/* HEADER - COMPACT FOR MOBILE */}
       {isNative ? (
-        <header className="h-12 md:h-16 flex items-center justify-between px-4 md:px-6 glass-nav border-b border-white/20 sticky top-0 z-50">
+        <header className="h-12 md:hidden flex items-center justify-between px-4 md:px-6 glass-nav border-b border-white/20 sticky top-0 z-50">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 md:w-8 md:h-8 bg-red-800 rounded-lg flex items-center justify-center text-white font-serif text-base md:text-lg shadow-lg shadow-red-900/20 italic shrink-0">
                {siteConfig?.site_title?.charAt(0) || '史'}
@@ -709,7 +714,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             />
           )}
 
-          {history.map((msg) => (
+          {history.map((msg, index) => (
             <ChatMessageItem
               key={msg.id}
               msg={msg}
@@ -731,6 +736,7 @@ const ChatView: React.FC<ChatViewProps> = ({
               onTypingFrame={scrollToBottom}
               isSpeaking={currentlySpeakingId === String(msg.id)}
               onSpeakToggle={speakText}
+              previousMessageContent={index > 0 ? history[index - 1].content : undefined}
             />
           ))}
 

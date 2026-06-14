@@ -559,47 +559,298 @@ def _generate_fast_related_questions(question: str) -> list[str]:
 
     templates = [
         "Bối cảnh lịch sử của {subject} là gì?",
-        "Diễn biến chính liên quan đến {subject} ra sao?",
-        "{subject} có ý nghĩa lịch sử như thế nào?",
     ]
     return [template.format(subject=subject) for template in templates]
+
+
+def _to_academic_web_title(url: str, title: str) -> str:
+    import re
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    netloc = parsed.netloc.lower()
+    
+    # Strip www.
+    if netloc.startswith("www."):
+        netloc = netloc[4:]
+        
+    # Clean title
+    clean_title = (title or "").strip()
+    # Strip some noise prefixes from title
+    clean_title = re.sub(r"^(Cổng thông tin điện tử|Trang thông tin điện tử|Báo điện tử|Kiến Thức:|Kiến thức:)\s*", "", clean_title, flags=re.IGNORECASE).strip()
+    
+    # Check if clean_title is just the netloc or similar
+    if clean_title.lower() == netloc or clean_title.lower() == f"www.{netloc}" or clean_title.startswith("http"):
+        clean_title = ""
+        
+    # Map domain to publisher names
+    publisher = ""
+    if "baotanglichsu.vn" in netloc or "baotanglichsuquocgia.vn" in netloc:
+        publisher = "Bảo tàng Lịch sử Quốc gia"
+    elif "viensuhoc.vass.gov.vn" in netloc:
+        publisher = "Viện Sử học Việt Nam"
+    elif "vass.gov.vn" in netloc:
+        publisher = "Viện Hàn lâm Khoa học xã hội Việt Nam"
+    elif "btlsqsvn.mod.gov.vn" in netloc:
+        publisher = "Bảo tàng Lịch sử Quân sự Việt Nam"
+    elif "tulieuvankien.dangcongsan.vn" in netloc or "dangcongsan.vn" in netloc:
+        publisher = "Báo điện tử Đảng Cộng sản Việt Nam"
+    elif "hochiminh.vn" in netloc:
+        publisher = "Trang tin điện tử Hồ Chí Minh"
+    elif "vietnamtourism.gov.vn" in netloc:
+        publisher = "Tổng cục Du lịch Việt Nam"
+    elif "chinhphu.vn" in netloc or "baochinhphu.vn" in netloc:
+        publisher = "Cổng Thông tin Điện tử Chính phủ"
+    elif "moet.gov.vn" in netloc:
+        publisher = "Bộ Giáo dục và Đào tạo Việt Nam"
+    elif "bvhttdl.gov.vn" in netloc:
+        publisher = "Bộ Văn hóa, Thể thao và Du lịch"
+    elif netloc.endswith(".gov.vn"):
+        publisher = "Cổng thông tin điện tử Nhà nước"
+    else:
+        # Format domain name nicely, e.g. vnexpress.net -> Vnexpress.net
+        publisher = f"Trang điện tử {netloc.capitalize()}"
+
+    if publisher and clean_title:
+        norm_pub = re.sub(r"\s+", "", publisher.lower())
+        norm_title = re.sub(r"\s+", "", clean_title.lower())
+        if norm_pub in norm_title or norm_title in norm_pub:
+            return publisher if len(publisher) > len(clean_title) else clean_title
+        return f"{publisher} - {clean_title}"
+    return clean_title or publisher or url
+
+
+def _to_academic_title(fname: str) -> str:
+    import unicodedata
+    import re
+
+    # 1. Normalize unicode to NFC
+    fname = unicodedata.normalize("NFC", fname)
+    
+    # Intercept specific known names / patterns
+    fname_lower = fname.lower()
+    if fname_lower.startswith("kiến thức:") or fname_lower.startswith("kiến thức hệ thống"):
+        if fname_lower == "kiến thức hệ thống đã duyệt":
+            return fname
+        q_part = fname.split(":", 1)[-1].strip() if ":" in fname else fname
+        if q_part.lower().startswith("kiến thức hệ thống -"):
+            q_part = re.sub(r"(?i)^kiến thức hệ thống\s*-\s*", "", q_part).strip()
+        return f"Kiến thức hệ thống - {q_part}"
+
+    if fname_lower == "unknown" or fname_lower == "tài liệu lưu trữ hệ thống":
+        return "Tài liệu lưu trữ hệ thống"
+
+    if fname_lower == "global history" or fname_lower == "tư liệu lịch sử hệ thống":
+        return "Tư liệu lịch sử hệ thống"
+
+    if fname_lower == "ghi chú cá nhân":
+        return "Ghi chú cá nhân"
+    
+    # 2. Strip extensions
+    name, ext = os.path.splitext(fname)
+    name = name.strip()
+    
+    # 3. Strip trailing junk suffixes (case-insensitive)
+    junk_patterns = [
+        r"\b_text\b", r"\btext\b", r"\b_ocred\b", r"\bocred\b",
+        r"\b-da-nen\b", r"\bda-nen\b", r"\b_da_nen\b", r"\bda_nen\b",
+        r"\(\d+\)", r"\b\d+-\d+-da-nen\b"
+    ]
+    for pat in junk_patterns:
+        name = re.sub(pat, "", name, flags=re.IGNORECASE)
+    
+    # Check page ranges FIRST (before replacing hyphens with spaces)
+    name_stripped = name.strip()
+    m_range = re.match(r"^(\d+)-(\d+)$", name_stripped)
+    if m_range:
+        start_p, end_p = m_range.group(1), m_range.group(2)
+        return f"Tài liệu Chuyên khảo Lịch sử (Trang {int(start_p)}-{int(end_p)})"
+        
+    # Replace hyphens and underscores with spaces for clean parsing
+    name = name.replace("_", " ").replace("-", " ")
+    name = re.sub(r"\s+", " ", name).strip()
+    name_lower = name.lower()
+
+    # Pre-checks for specific files first (to prevent general rules matching them wrong)
+    if "vie1bb87tse1bbad" in name_lower or "vietsutoanthu" in name_lower:
+        return "Việt Sử Toàn Thư (Phạm Văn Sơn)"
+    if "viet su tan bien" in name_lower or "việt sử tân biên" in name_lower:
+        return "Việt Sử Tân Biên (Phạm Văn Sơn)"
+    if "toan tap" in name_lower or "toàn tập" in name_lower:
+        if "dai cuong" in name_lower or "đại cương" in name_lower:
+            return "Đại cương Lịch sử Việt Nam toàn tập (Khởi thủy - 2000)"
+        return "Lịch sử Việt Nam toàn tập"
+
+    # Check "Đại cương Lịch sử Việt Nam"
+    if "dai cuong" in name_lower or "đại cương" in name_lower:
+        m = re.search(r"tập\s*(\d+)", name_lower)
+        if not m:
+            m = re.search(r"tap\s*(\d+)", name_lower)
+        if not m:
+            m = re.search(r"-\s*(\d+)", name_lower)
+        if m:
+            return f"Đại cương Lịch sử Việt Nam (Tập {m.group(1)})"
+        return "Đại cương Lịch sử Việt Nam"
+
+    # Check "Lịch sử Việt Nam tập ..."
+    m = re.search(r"Lịch sử Việt Nam tập (\d+)\s*(.*)", name, re.IGNORECASE)
+    if m:
+        tap = int(m.group(1))
+        details = m.group(2).strip(" -_")
+        # Strip author and year like "-Cao Duy Mến-2013" or "-2017"
+        details = re.sub(r"\b[A-Za-zÀ-ỹ\s]+ \d{4}$", "", details)
+        details = re.sub(r"\b\d{4}$", "", details)
+        details = details.strip(" -_")
+        if details:
+            return f"Lịch sử Việt Nam (Tập {tap} - {details})"
+        else:
+            return f"Lịch sử Việt Nam (Tập {tap})"
+            
+    # Check "Lich-su-Viet-Nam-tap-..."
+    m = re.search(r"Lich\s*su\s*Viet\s*Nam\s*tap\s*(\d+)", name, re.IGNORECASE)
+    if m:
+        tap = int(m.group(1))
+        # Map known period boundaries if it's a known volume
+        periods = {
+            1: "Từ khởi thủy đến thế kỷ X",
+            2: "Từ thế kỷ X đến thế kỷ XIV",
+            3: "Từ thế kỷ XV đến thế kỷ XVI",
+            4: "Từ thế kỷ XVII đến thế kỷ XVIII",
+            5: "Từ năm 1802 đến năm 1858",
+            6: "Từ năm 1858 đến năm 1896",
+            7: "Từ năm 1897 đến năm 1918",
+            8: "Từ năm 1919 đến năm 1930",
+            9: "Từ năm 1930 đến năm 1945",
+            10: "Từ năm 1945 đến năm 1950",
+            11: "Từ năm 1951 đến năm 1954",
+            12: "Từ năm 1954 đến năm 1965",
+            13: "Từ năm 1965 đến năm 1975",
+            14: "Từ năm 1975 đến năm 1986",
+            15: "Từ năm 1986 đến năm 2000",
+        }
+        period = periods.get(tap)
+        if period:
+            return f"Lịch sử Việt Nam (Tập {tap} - {period})"
+        return f"Lịch sử Việt Nam (Tập {tap})"
+        
+    # Check other specific patterns
+    if "10trandanhnoitieng" in name_lower or "10 trận đánh" in name_lower:
+        return "10 trận đánh nổi tiếng trong lịch sử Việt Nam (Đặng Việt Thủy)"
+        
+    if "lythuongkiet" in name_lower or "lý thường kiệt" in name_lower:
+        if "hoangxuanhan" in name_lower or "hoàng xuân hãn" in name_lower:
+            return "Lý Thường Kiệt (GS. Hoàng Xuân Hãn, 1950)"
+        return "Lý Thường Kiệt - Lịch sử ngoại giao thời Lý"
+        
+    if "viet nam su luoc" in name_lower or "việt nam sử lược" in name_lower:
+        return "Việt Nam Sử Lược (Trần Trọng Kim)"
+
+    if "vietnam thoi phap do ho" in name_lower or "việt nam thời pháp đô hộ" in name_lower:
+        return "Việt Nam thời Pháp đô hộ (Nguyễn Thế Anh)"
+
+    if "dai viet su ky tt" in name_lower or "đại việt sử ký" in name_lower:
+        m = re.search(r"p(\d+)", name, re.IGNORECASE)
+        if m:
+            part = m.group(1)
+            return f"Đại Việt Sử Ký Toàn Thư (Phần {part})"
+        return "Đại Việt Sử Ký Toàn Thư"
+
+    if "sukydainamviet" in name_lower or "sự ký đại nam việt" in name_lower:
+        return "Sự ký Đại Nam Việt (Bản dịch)"
+
+    if "giao trinh lich su dang" in name_lower or "giáo trình lịch sử đảng" in name_lower:
+        return "Giáo trình Lịch sử Đảng Cộng sản Việt Nam"
+    if "gt-lich-su-dang" in name_lower or "gt lich su dang" in name_lower:
+        return "Giáo trình Lịch sử Đảng Cộng sản Việt Nam (Ban Tuyên giáo TW)"
+
+    if "ha noi nhu toi hieu" in name_lower or "hà nội như tôi hiểu" in name_lower:
+        return "Hà Nội như tôi hiểu (GS. Trần Quốc Vượng)"
+
+    if "quandannamky" in name_lower or "quân dân nam kỳ" in name_lower:
+        return "Quân dân Nam Kỳ kháng Pháp (Nguyen Duy Oanh)"
+
+    if "nam tien cua dan toc" in name_lower or "nam tiến của dân tộc" in name_lower:
+        return "Lịch sử Nam tiến của dân tộc ta"
+
+    if "tho+va+su+viet" in name_lower or "thơ và sử việt" in name_lower:
+        return "Thơ và Sử Việt - Nhà Lý"
+    if "cac-trieu-dai" in name_lower or "các triều đại" in name_lower:
+        return "Các triều đại Việt Nam"
+    if "nuoc-viet-bang-tranh" in name_lower or "nước việt bằng tranh" in name_lower:
+        return "Nước Việt bằng tranh"
+    if "tom-luoc-lich-su" in name_lower or "tóm lược lịch sử" in name_lower:
+        return "Tóm lược Lịch sử Việt Nam qua các thời đại"
+    if "ls co dai vn" in name_lower or "lịch sử cổ đại việt nam" in name_lower:
+        return "Lịch sử cổ đại Việt Nam"
+    if "ctv141" in name_lower:
+        return "Tài liệu Chuyên đề Lịch sử (CTv141)"
+    if "cvv250" in name_lower:
+        return "Tài liệu Chuyên đề Lịch sử (CVv250)"
+
+    # Specific long text mappings
+    if "lịch sử việt nam từ nguồn gốc" in name_lower:
+        return "Lịch sử Việt Nam (Từ nguồn gốc đến thế kỷ X - PGS.TS Nguyễn Cảnh Minh)"
+    if "lịch sử việt nam (1858 - 1945)" in name_lower or "lịch sử việt nam (1858-1945)" in name_lower:
+        return "Lịch sử Việt Nam (1858 - 1945 - PGS.TS Nguyễn Đình Lễ)"
+
+    # Default fallback: Clean and capitalize words
+    if "." in name and not any(ch.isspace() for ch in name):
+        return name
+    return name.title()
 
 
 def _build_sources(documents: list) -> list[SourceInfo]:
     temp_sources = []
     print(f"DEBUG: Processing {len(documents)} documents for sources")
     for doc in documents:
-        source = doc.metadata.get("file_name") or doc.metadata.get("source") or doc.metadata.get("filename")
-        page = doc.metadata.get("page") if doc.metadata.get("page") is not None else doc.metadata.get("page_number")
+        # Determine if it's a web page
+        url = doc.metadata.get("url")
+        source_val = doc.metadata.get("source") or ""
+        file_name_val = doc.metadata.get("file_name") or ""
+        
         is_web = doc.metadata.get("is_web", False)
+        if str(source_val).startswith("http://") or str(source_val).startswith("https://"):
+            is_web = True
+            url = url or str(source_val)
+        if str(url).startswith("http://") or str(url).startswith("https://"):
+            is_web = True
+            
+        page = doc.metadata.get("page") if doc.metadata.get("page") is not None else doc.metadata.get("page_number")
 
-        if source:
-            s_str = str(source)
+        if is_web:
+            fname = file_name_val or source_val or url
+        else:
+            fname = file_name_val or source_val or doc.metadata.get("filename") or ""
+            
+        if not fname:
+            fname = "Tài liệu lưu trữ hệ thống"
 
-            if s_str == "history":
-                approved_q = doc.metadata.get("question")
-                if approved_q:
-                    fname = f"Kiến thức: {approved_q}"
-                    if len(fname) > 60:
-                        fname = fname[:57] + "..."
-                else:
-                    fname = "Kiến thức hệ thống đã duyệt"
+        s_str = str(url) if is_web else str(source_val or fname)
+
+        if not is_web and s_str == "history":
+            approved_q = doc.metadata.get("question")
+            if approved_q:
+                fname = f"Kiến thức: {approved_q}"
+                if len(fname) > 60:
+                    fname = fname[:57] + "..."
             else:
-                fname = os.path.basename(s_str.rstrip("/"))
-                from urllib.parse import unquote
-                fname = unquote(fname).replace("_", " ")
-                if not fname or fname.startswith("http"):
-                    from urllib.parse import urlparse
-                    fname = urlparse(s_str).netloc or s_str
+                fname = "Kiến thức hệ thống đã duyệt"
+        elif is_web:
+            if fname.startswith("http://") or fname.startswith("https://"):
+                from urllib.parse import urlparse
+                fname = urlparse(fname).netloc or fname
+        else:
+            fname = os.path.basename(fname.rstrip("/"))
+            from urllib.parse import unquote
+            fname = unquote(fname).replace("_", " ")
 
-            temp_sources.append({
-                "fname": fname,
-                "content": doc.page_content,
-                "page": page,
-                "is_pdf": fname.lower().endswith(".pdf") or page is not None,
-                "is_web": is_web,
-                "url": s_str if is_web else None,
-            })
+        temp_sources.append({
+            "fname": fname,
+            "content": doc.page_content,
+            "page": page,
+            "is_pdf": not is_web and (fname.lower().endswith(".pdf") or page is not None),
+            "is_web": is_web,
+            "url": url if is_web else None,
+        })
 
     final_source_dict = {}
     for item in temp_sources:
@@ -612,15 +863,22 @@ def _build_sources(documents: list) -> list[SourceInfo]:
     sources = []
     for item in final_source_dict.values():
         fname = item["fname"]
+        is_web = item.get("is_web", False)
+        if is_web:
+            academic_name = _to_academic_web_title(item.get("url") or "", fname)
+        else:
+            academic_name = _to_academic_title(fname)
+            
         page_info = f" (Trang {int(item['page']) + 1})" if item["page"] is not None else ""
         sources.append(SourceInfo(
-            filename=fname,
-            content=f"### Tài liệu: {fname}\n\n**[Đoạn trích]{page_info}**\n{item['content']}",
+            filename=academic_name,
+            content=f"### Tài liệu: {academic_name}\n\n**[Đoạn trích]{page_info}**\n{item['content']}",
             page=item["page"],
-            is_web=item.get("is_web", False),
+            is_web=is_web,
             url=item.get("url"),
         ))
     return sources
+
 
 
 def _generate_related_questions(llm, question: str, answer: str = "") -> list[str]:
@@ -647,41 +905,45 @@ def _generate_related_questions(llm, question: str, answer: str = "") -> list[st
             clean_answer = clean_answer[:1000] + "..."
 
         if clean_answer:
-            rq_prompt = f"""Dựa trên câu hỏi của người dùng và câu trả lời đã được hệ thống cung cấp dưới đây, hãy đề xuất đúng 3 câu hỏi gợi ý tiếp theo (follow-up questions) ngắn gọn, tự nhiên và liên quan trực tiếp đến thông tin trong câu trả lời.
-
+            rq_prompt = f"""Dựa trên câu hỏi của người dùng và câu trả lời đã được hệ thống cung cấp dưới đây, hãy đề xuất 3 câu hỏi gợi ý tiếp theo (follow-up questions) ngắn gọn, tự nhiên và liên quan trực tiếp đến các chi tiết trong câu trả lời.
+            
 Câu hỏi của người dùng:
 "{question}"
 
 Câu trả lời của hệ thống:
 "{clean_answer}"
 
-Yêu cầu đối với 3 câu hỏi gợi ý:
+Yêu cầu đối với các câu hỏi gợi ý:
 1. Phải khai thác sâu hơn hoặc mở rộng các chi tiết, nhân vật, sự kiện cụ thể có trong câu trả lời.
-2. Mỗi câu hỏi phải tự đủ nghĩa (độc lập), nhắc lại rõ tên nhân vật/sự kiện/địa danh. Tuyệt đối không dùng các đại từ mơ hồ như "ông", "bà", "người đó", "sự kiện đó", "ở đây".
-3. CHỈ trả về đúng 3 câu hỏi gợi ý, mỗi câu một dòng, không đánh số thứ tự, không kèm ký tự đặc biệt hay giải thích gì thêm."""
+2. Các câu hỏi phải tự đủ nghĩa (độc lập), nhắc lại rõ tên nhân vật/sự kiện/địa danh. Tuyệt đối không dùng các đại từ mơ hồ như "ông ấy", "bà ấy", "người đó", "sự kiện đó", "ở đây".
+3. Trả về đúng 3 câu hỏi gợi ý khác nhau, mỗi câu một dòng, không đánh số thứ tự, không kèm ký tự đặc biệt hay giải thích gì thêm."""
         else:
             rq_prompt = f"""Dựa vào câu hỏi "{question}" về lịch sử Việt Nam, hãy đưa ra đúng 3 câu hỏi liên quan ngắn gọn mà người dùng có thể muốn hỏi tiếp theo.
-Mỗi câu phải tự đủ nghĩa, nhắc lại rõ tên nhân vật/sự kiện nếu có. Không dùng đại từ mơ hồ như "ông", "bà", "người đó", "sự kiện đó".
-CHỈ trả về 3 câu hỏi, mỗi câu một dòng, không đánh số, không giải thích thêm."""
+Mỗi câu phải tự đủ nghĩa, nhắc lại rõ tên nhân vật/sự kiện nếu có. Không dùng đại từ mơ hồ như "ông ấy", "bà ấy", "người đó", "sự kiện đó".
+Trả về đúng 3 câu hỏi, mỗi câu một dòng, không đánh số, không giải thích thêm."""
+
         rq_response = llm.invoke(rq_prompt)
         rq_content = rq_response.content if hasattr(rq_response, "content") else str(rq_response)
-        import re as _re
         rq_content = _re.sub(r"<think>.*?</think>", "", rq_content, flags=_re.DOTALL).strip()
-        questions = [q.strip().lstrip("- ").strip() for q in rq_content.split("\n") if q.strip()]
+        lines = [line.strip() for line in rq_content.split("\n") if line.strip()]
+        
         valid_questions = []
-        for q in questions[:3]:
-            q = q.strip('"\'*-\t ')
-            if q and len(q) > 5 and not q.endswith('?'):
-                q += '?'
-            if q:
-                valid_questions.append(q)
-                
-        if len(valid_questions) >= 3:
+        for line in lines:
+            # Clean list markers
+            line = _re.sub(r"^[0-9]+[\.\-\s\)]+", "", line).strip()
+            line = line.strip('"\'*-\t ')
+            if line and len(line) > 5:
+                if not line.endswith('?'):
+                    line += '?'
+                valid_questions.append(line)
+
+        if valid_questions:
             return valid_questions[:3]
-        raise Exception("LLM generated fewer than 3 valid questions")
+        raise Exception("LLM generated no valid questions")
     except Exception as e:
         print(f"Related questions LLM generation error: {e}")
         return _generate_fast_related_questions(question)
+
 
 
 def _apply_vietnam_history_language_policy(question: str, answer: str) -> str:
@@ -930,6 +1192,13 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
             print(f"[TRANSLATION] Translated web fallback: '{generation[:60]}...'")
 
         sources = _build_sources(documents)
+        
+        # Lọc các nguồn không liên quan đến entity chính trước khi lưu và trả về
+        from chatbot.utils.entity_detector import detect_main_entity, filter_sources_by_entity
+        entity_key, _ = detect_main_entity(question)
+        if entity_key:
+            sources = filter_sources_by_entity(sources, entity_key)
+
         if is_english:
             sources = translation_agent.translate_sources_to_en(sources)
         ai_msg_id = user_db.save_message(
@@ -1169,6 +1438,7 @@ def _process_chat_request(
             "chat_history": chat_history,
             "defer_web_fallback": defer_web_fallback,
             "user_name": user_name,
+            "user_id": current_user["id"],
         })
 
         generation = result.get("generation", "_null_")
@@ -1197,11 +1467,22 @@ def _process_chat_request(
 
         generation = _apply_vietnam_history_language_policy(retrieval_question, generation)
         generation = strip_inline_source_references(generation)
+        # Detect entity_key for off-topic citation filtering
+        entity_key = result.get("main_entity")
+        if not entity_key:
+            from chatbot.utils.entity_detector import detect_main_entity
+            entity_key, _ = detect_main_entity(retrieval_question)
+
+        from chatbot.utils.answer_sanitizer import remap_citations
+        generation = remap_citations(generation, documents, entity_key=entity_key)
         
         # Save copies of the original Vietnamese generation and sources for caching
         vietnamese_generation = generation
-        sources = _build_sources(documents)
+        from chatbot.utils.entity_detector import filter_docs_by_entity_strict
+        filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
+        sources = _build_sources(filtered_docs)
         vietnamese_sources = sources
+
         
         # Translate live generated answer and sources to English if required
         if is_english and generation != "_null_":
@@ -1749,6 +2030,7 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 "sources": [s.model_dump() for s in sources],
                 "related_questions": related_questions,
                 "conversation_id": conversation_id,
+                "answer": cached_answer,
             })
             yield f"data: [DONE] {done_payload}\n\n"
             return
@@ -1767,6 +2049,7 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 "chat_history": chat_history,
                 "defer_web_fallback": True,
                 "user_name": user_name,
+                "user_id": current_user["id"],
             })
 
         result = await loop.run_in_executor(_executor, _run_rag_pipeline)
@@ -1802,6 +2085,14 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             generation_text = _re2.sub(r"<think>.*?</think>", "", raw_generation, flags=_re2.DOTALL).strip()
             generation_text = _apply_vietnam_history_language_policy(retrieval_question, generation_text)
             generation_text = strip_inline_source_references(generation_text)
+            # Detect entity_key for off-topic citation filtering
+            entity_key = result.get("main_entity")
+            if not entity_key:
+                from chatbot.utils.entity_detector import detect_main_entity
+                entity_key, _ = detect_main_entity(retrieval_question)
+
+            from chatbot.utils.answer_sanitizer import remap_citations
+            generation_text = remap_citations(generation_text, documents, entity_key=entity_key)
 
             # Translate pre-generated stream response to English if required
             if is_english:
@@ -1814,7 +2105,10 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 yield f"data: {_json.dumps(token)}\n\n"
                 await asyncio.sleep(0.012)
 
-            sources = _build_sources(documents)
+            from chatbot.utils.entity_detector import filter_docs_by_entity_strict
+            filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
+            sources = _build_sources(filtered_docs)
+
             if is_english:
                 sources = translation_agent.translate_sources_to_en(sources)
             ai_msg_id = user_db.save_message(
@@ -1850,6 +2144,7 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 "sources": [s.model_dump() for s in sources],
                 "related_questions": related_questions,
                 "conversation_id": conversation_id,
+                "answer": generation_text,
             })
             yield f"data: [DONE] {done_payload}\n\n"
             return
@@ -1862,14 +2157,21 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         formatted_history = answer_gen.format_history(chat_history)
 
         context_list = []
-        for doc in documents:
+        for idx, doc in enumerate(documents, start=1):
             source_name = doc.metadata.get("file_name") or doc.metadata.get("source") or "Unknown"
             page_num = doc.metadata.get("page")
             page_str = f" (Page {page_num})" if page_num is not None else ""
+            
             content = doc.metadata.get("answer") if "answer" in doc.metadata else doc.page_content
             if len(content) > 3000:
                 content = content[:3000] + "..."
-            context_list.append(f"[{source_name}{page_str}]: {content}")
+            
+            if doc.metadata.get("is_user_rag"):
+                context_list.append(f"Tài liệu [{idx}] - [TRI THỨC RIÊNG CỦA NGƯỜI DÙNG]: {content}")
+            elif doc.metadata.get("is_global_history"):
+                context_list.append(f"Tài liệu [{idx}] - [TƯ LIỆU LỊCH SỬ CHÍNH THỐNG] ({source_name}): {content}")
+            else:
+                context_list.append(f"Tài liệu [{idx}] - [TÀI LIỆU HỆ THỐNG] ({source_name}{page_str}): {content}")
         context = "\n\n".join(context_list)
 
         full_generation = ""
@@ -1910,10 +2212,20 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         full_generation = _re3.sub(r"<think>.*?</think>", "", full_generation, flags=_re3.DOTALL).strip()
         full_generation = _apply_vietnam_history_language_policy(retrieval_question, full_generation)
         full_generation = strip_inline_source_references(full_generation)
+        # Detect entity_key for off-topic citation filtering
+        entity_key = result.get("main_entity")
+        if not entity_key:
+            from chatbot.utils.entity_detector import detect_main_entity
+            entity_key, _ = detect_main_entity(retrieval_question)
+
+        from chatbot.utils.answer_sanitizer import remap_citations
+        full_generation = remap_citations(full_generation, documents, entity_key=entity_key)
 
         # Save copies of the original Vietnamese generation and sources for caching
         vietnamese_generation = full_generation
-        sources = _build_sources(documents)
+        from chatbot.utils.entity_detector import filter_docs_by_entity_strict
+        filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
+        sources = _build_sources(filtered_docs)
         vietnamese_sources = sources
 
         # Translate to English if required
@@ -1989,6 +2301,7 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             "sources": [s.model_dump() for s in sources],
             "related_questions": related_questions,
             "conversation_id": conversation_id,
+            "answer": full_generation,
         })
         yield f"data: [DONE] {done_payload}\n\n"
 

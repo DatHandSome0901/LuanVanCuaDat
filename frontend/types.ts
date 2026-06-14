@@ -150,7 +150,7 @@ export interface QAAnswerResponse {
   new_balance: number;
 }
 
-export type View = 'chat' | 'payment' | 'admin' | 'profile' | 'new_chat' | 'landing' | 'history' | 'qa';
+export type View = 'chat' | 'payment' | 'admin' | 'profile' | 'new_chat' | 'landing' | 'history' | 'qa' | 'personal-rag';
  
 export interface SiteConfig {
   logo_url: string;
@@ -187,3 +187,21 @@ export interface SiteConfig {
   app_landing_badge?: string;
   app_landing_motto?: string;
 }
+
+export interface UserRagItem {
+  id: number;
+  user_id: number;
+  conversation_id?: number;
+  message_id?: number;
+  original_question?: string;
+  assistant_answer?: string;
+  selected_text?: string;
+  corrected_text?: string;
+  content: string;
+  content_type: string; // 'manual_note' | 'correction' | 'personal_context' | etc.
+  tags?: string;
+  metadata_json?: string;
+  created_at: string;
+  updated_at: string;
+}
+

@@ -131,6 +131,7 @@ export interface Translations {
 
   // Sidebar & Navigation
   sidebar_home: string;
+  sidebar_personal_rag: string;
   sidebar_chat: string;
   sidebar_history: string;
   sidebar_new_chat: string;
@@ -577,6 +578,7 @@ const VI: Translations = {
   llm_language_instruction: 'Hãy trả lời hoàn toàn bằng tiếng Việt. Không dùng từ tiếng Anh.',
 
   sidebar_home: 'Trang chủ',
+  sidebar_personal_rag: 'Kho tri thức',
   sidebar_chat: 'Sử Việt',
   sidebar_history: 'Lịch sử',
   sidebar_new_chat: 'Đoạn chat mới',
@@ -1017,6 +1019,7 @@ const EN: Translations = {
   llm_language_instruction: 'Please respond entirely in English. Do not use any Vietnamese words.',
 
   sidebar_home: 'Home',
+  sidebar_personal_rag: 'Personal RAG',
   sidebar_chat: 'Viet History',
   sidebar_history: 'History',
   sidebar_new_chat: 'New Chat',

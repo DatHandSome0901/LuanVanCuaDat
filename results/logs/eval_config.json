@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-06-11 02:18:13",
+  "llm_name": "vertex",
+  "llm_model": "gemini-2.5-flash",
+  "embedding_name": "vertex",
+  "temperature": 0.0,
+  "vector_store_path": "utils/data_vector_new"
+}

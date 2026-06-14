@@ -12,7 +12,8 @@ import {
   QAStatus,
   QAQuestionsResponse,
   QACheckinResponse,
-  QAAnswerResponse
+  QAAnswerResponse,
+  UserRagItem
 } from './types';
 
 const isNative = Capacitor.isNativePlatform();
@@ -792,6 +793,108 @@ export const updateConversation = async (id: number, data: {title?: string, note
   });
   return res.json();
 };
+
+// ===============================
+// USER RAG API
+// ===============================
+
+export const saveSelectionRag = async (data: {
+  conversationId?: number;
+  messageId?: number;
+  originalQuestion?: string;
+  assistantAnswer?: string;
+  selectedText: string;
+  correctedText: string;
+  noteType: string;
+}) => {
+  const token = localStorage.getItem("access_token");
+  const res = await fetch(`${API_ROOT}/api/v1/user-rag/save-selection`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Lưu tri thức thất bại");
+  }
+  return res.json();
+};
+
+export const saveManualRag = async (data: {
+  content: string;
+  noteType: string;
+}) => {
+  const token = localStorage.getItem("access_token");
+  const res = await fetch(`${API_ROOT}/api/v1/user-rag/save-manual`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Lưu tri thức thất bại");
+  }
+  return res.json();
+};
+
+export const updateRagItem = async (itemId: number, data: {
+  content: string;
+  noteType: string;
+}) => {
+  const token = localStorage.getItem("access_token");
+  const res = await fetch(`${API_ROOT}/api/v1/user-rag/item/${itemId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Cập nhật thất bại");
+  }
+  return res.json();
+};
+
+export const deleteRagItem = async (itemId: number) => {
+  const token = localStorage.getItem("access_token");
+  const res = await fetch(`${API_ROOT}/api/v1/user-rag/item/${itemId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Xóa tri thức thất bại");
+  }
+  return res.json();
+};
+
+export const getRagItems = async (): Promise<{ items: UserRagItem[] }> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) return { items: [] };
+  const res = await fetch(`${API_ROOT}/api/v1/user-rag/items`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true'
+    }
+  });
+  if (!res.ok) return { items: [] };
+  return res.json();
+};
+
 
 
  

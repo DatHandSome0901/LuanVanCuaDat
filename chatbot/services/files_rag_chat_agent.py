@@ -6,9 +6,18 @@ from chatbot.utils.answer_sanitizer import strip_inline_source_references
 from ingestion.retriever import Retriever
 from chatbot.utils.document_grader import DocumentGrader
 from chatbot.utils.answer_generator import AnswerGenerator
-# ── Adaptive RAG imports (thêm mới) ───────────────────────
+# ── Adaptive RAG imports ───────────────────────────────────
 from chatbot.services.query_classifier import classify_query
 from chatbot.services.adaptive_retriever import AdaptiveRetriever
+# ── Entity-aware imports ────────────────────────────────────
+from chatbot.utils.entity_detector import (
+    detect_main_entity,
+    detect_detailed_intent,
+    is_followup_request,
+    rewrite_followup_with_entity,
+    filter_docs_by_entity,
+    extract_last_entity_from_history,
+)
 
 from langgraph.graph import END, StateGraph, START
 from chatbot.utils.graph_state import GraphState
@@ -73,6 +82,67 @@ def _log_rag_timing(event: str, started_at: float, **fields) -> None:
         if value is not None:
             parts.append(f"{key}={value}")
     print(" ".join(parts))
+
+
+def _classify_history_query_type(q: str, chat_history: list = None, llm=None) -> str:
+    normalized = q.lower().strip()
+    
+    def _has_phrase(text: str, phrase: str) -> bool:
+        pattern = rf"(?:^|\s|[.,!?;]){re.escape(phrase)}(?:$|\s|[.,!?;])"
+        return re.search(pattern, text) is not None
+        
+    # 1. user_challenge keywords
+    user_challenge_keywords = [
+        "theo tôi", "theo toi", "tôi thấy", "toi thay", "mình thấy", "minh thay",
+        "bạn sai", "ban sai", "không đúng", "khong dung", "chưa đúng", "chua dung",
+        "ý tôi là", "y toi la", "nhưng", "nhung", "nếu vậy", "neu vay", "vậy nếu", "vay neu",
+        "phản bác", "phan bac", "tranh luận", "tranh luan", "có thể là", "co the la",
+        "theo hướng này", "theo huong nay", "tôi nghĩ", "toi nghi", "chưa chắc", "chua chac",
+        "không hẳn", "khong han"
+    ]
+    
+    # 2. hypothetical_history keywords
+    hypothetical_keywords = [
+        "nếu", "neu", "giả sử", "gia su", "nếu như", "neu nhu",
+        "trong trường hợp", "trong truong hop", "giả định rằng", "gia dinh rang",
+        "điều gì xảy ra nếu", "dieu gi xay ra neu", "what if", "theo bạn nghĩ nếu", "theo ban nghi neu",
+        "thì sao", "thi sao", "kịch bản", "kich ban", "giả thuyết", "gia thuyet", "giả định", "gia dinh"
+    ]
+    
+    # 3. false_historical_claim keywords
+    false_claim_keywords = [
+        "không tồn tại", "khong ton tai", "chưa từng", "chua tung", "không hề", "khong he",
+        "không có thật", "khong co that", "bịa", "bia", "không xảy ra", "khong xay ra",
+        "không phải là", "khong phai la"
+    ]
+    
+    # 4. opinion_analysis keywords
+    opinion_keywords = [
+        "quan trọng nhất", "quan trong nhat", "lớn nhất", "lon nhat", "sai lầm", "sai lam",
+        "vai trò", "vai tro", "ảnh hưởng", "anh huong", "tốt nhất", "tot nhat", "tệ nhất", "te nhat",
+        "đánh giá", "danh gia", "nhận định", "nhan dinh", "so sánh", "so sanh", "so với", "so voi",
+        "theo bạn", "theo ban", "theo nghĩ", "theo nghi", "nghĩ sao", "nghi sao",
+        "nghĩ thế nào", "nghi the nao"
+    ]
+
+    # 1. user_challenge (if follow-up)
+    if chat_history and len(chat_history) > 0:
+        if any(_has_phrase(normalized, kw) for kw in user_challenge_keywords):
+            return "user_challenge"
+            
+    # 2. hypothetical_history
+    if any(_has_phrase(normalized, kw) for kw in hypothetical_keywords):
+        return "hypothetical_history"
+        
+    # 3. false_historical_claim
+    if any(_has_phrase(normalized, kw) for kw in false_claim_keywords):
+        return "false_historical_claim"
+        
+    # 4. opinion_analysis
+    if any(_has_phrase(normalized, kw) for kw in opinion_keywords):
+        return "opinion_analysis"
+        
+    return "factual_history"
 
 
 class FilesChatAgent:
@@ -261,8 +331,10 @@ Sử Gia Lạc Việt trả lời:"""
         # )
 
         context_list = []
+        has_user_rag = any(doc.metadata.get("is_user_rag") for doc in documents)
+        has_global_history = any(doc.metadata.get("is_global_history") for doc in documents)
 
-        for doc in documents:
+        for idx, doc in enumerate(documents, start=1):
             source_name = doc.metadata.get("file_name") or doc.metadata.get("source") or "Unknown Source"
             page_num = doc.metadata.get("page")
             page_str = f" (Page {page_num})" if page_num is not None else ""
@@ -270,9 +342,94 @@ Sử Gia Lạc Việt trả lời:"""
             content = doc.metadata.get("answer") if "answer" in doc.metadata else doc.page_content
             if len(content) > 3000:
                 content = content[:3000] + "..."
-            context_list.append(f"[{source_name}{page_str}]: {content}")
+            
+            if doc.metadata.get("is_user_rag"):
+                context_list.append(f"Tài liệu [{idx}] - [TRI THỨC/GHI CHÚ RIÊNG CỦA NGƯỜI DÙNG]: {content}")
+            elif doc.metadata.get("is_global_history"):
+                context_list.append(f"Tài liệu [{idx}] - [TƯ LIỆU LỊCH SỬ CHÍNH THỐNG] ({source_name}): {content}")
+            else:
+                context_list.append(f"Tài liệu [{idx}] - [TÀI LIỆU HỆ THỐNG] ({source_name}{page_str}): {content}")
         
         context = "\n\n".join(context_list)
+
+        # Phân loại câu hỏi sử dụng classifier tối ưu hóa
+        chat_history_raw = state.get("chat_history", [])
+        q_type = _classify_history_query_type(state["question"], chat_history_raw, self.llm)
+        print(f"[HISTORICAL CLASS] {q_type} for question: {state['question'][:60]!r}")
+
+        instructions = ""
+        # If user RAG is present, append comparison instruction to user question
+        if has_user_rag:
+            instructions += (
+                "\n\n*(LƯU Ý QUAN TRỌNG: Bạn hãy đối chiếu và ưu tiên các thông tin trong [TRI THỨC/GHI CHÚ RIÊNG CỦA NGƯỜI DÙNG] "
+                "để trả lời theo đúng bối cảnh cá nhân của người dùng. Khi có sự khác biệt giữa quan điểm riêng này "
+                "và tư liệu lịch sử chính thống, hãy so sánh một cách mềm mại và tế nhị, ví dụ: 'Theo lịch sử chính thống thì..., "
+                "còn trong giả thuyết/bối cảnh bạn đã lưu thì...').*"
+            )
+            
+        if q_type == "factual_history":
+            instructions += (
+                "\n\n*YÊU CẦU TRẢ LỜI CÂU HỎI SỰ THẬT LỊCH SỬ (FACTUAL HISTORY):\n"
+                "1. Trả lời chính xác sự thật lịch sử trực tiếp, rõ ràng, dựa trên các tài liệu RAG chính thống.\n"
+                "2. Bắt buộc trích dẫn nguồn (inline citation [i]) cho các thông tin thực tế được nêu ra.\n"
+                "3. Ưu tiên cao nhất sự chính xác về mặt lịch sử và tránh suy diễn, dài dòng không cần thiết.*"
+            )
+        elif q_type == "hypothetical_history":
+            instructions += (
+                "\n\n*YÊU CẦU TRẢ LỜI CÂU HỎI GIẢ THUYẾT/GIẢ ĐỊNH (HYPOTHETICAL/COUNTERFACTUAL HISTORY):\n"
+                "1. Tuyệt đối KHÔNG bác bỏ hay từ chối câu hỏi. Không nói câu hỏi là sai lịch sử hay vô lý. Hãy cùng phân tích các giả định một cách cởi mở, logic và tôn trọng người dùng.\n"
+                "2. Bạn BẮT BUỘC phải tuyên bố rõ ràng ở phần đầu câu trả lời rằng đây là một giả thuyết lịch sử, không phải sự kiện được sử liệu xác nhận (ví dụ: 'Đây là một giả thuyết lịch sử, không phải sự kiện được sử liệu xác nhận.').\n"
+                "3. Trình bày câu trả lời theo cấu trúc sau:\n"
+                "   - Bước 1: Nêu tuyên bố đây là giả thuyết lịch sử.\n"
+                "   - Bước 2: Tóm tắt ngắn gọn sự thật lịch sử thực tế về nhân vật/sự kiện được đề cập.\n"
+                "   - Bước 3: Đưa ra thông báo: \"Phần giả thuyết dưới đây là suy luận dựa trên bối cảnh lịch sử hiện có.\"\n"
+                "   - Bước 4: Phân tích 2 đến 4 khả năng (kịch bản) có thể xảy ra một cách logic và hợp lý dựa trên bối cảnh lịch sử lúc đó.\n"
+                "   - Bước 5: Nêu các điểm chưa chắc chắn, rủi ro, và đưa ra kết luận khách quan, cân bằng.\n"
+                "4. Sử dụng giọng điệu suy luận khách quan: \"Có thể...\", \"Một khả năng là...\", \"Khó khẳng định chắc chắn...\", \"Dựa trên bối cảnh lúc đó...\", \"Phần này là suy luận dựa trên bối cảnh, không phải kết luận chắc chắn từ sử liệu.\".\n"
+                "5. Tuyệt đối KHÔNG sử dụng các từ bác bỏ thô bạo như: \"không phù hợp với lịch sử chính thống\", \"không có cơ sở trong lịch sử\", \"điều này không đúng với lịch sử dân tộc\" (trừ khi người dùng đang phủ nhận thực tế đã được công nhận).\n"
+                "6. CHỈ trích dẫn nguồn khi nói về phần sự thật lịch sử đã ghi nhận ở Bước 2. Phần suy luận giả thuyết không trích dẫn tùy tiện nếu tài liệu không nói về giả thuyết đó. Nếu không có nguồn trực tiếp đủ liên quan, ghi rõ: 'Hiện không có nguồn trực tiếp đủ liên quan trong dữ liệu được truy xuất; phần phân tích dưới đây là suy luận dựa trên bối cảnh lịch sử.'*"
+            )
+        elif q_type == "user_challenge":
+            instructions += (
+                "\n\n*YÊU CẦU TRẢ LỜI CÂU HỎI KHI NGƯỜI DÙNG PHẢN BÁC/TRANH LUẬN (USER CHALLENGE):\n"
+                "1. Tuyệt đối KHÔNG tỏ thái độ tự vệ, phòng thủ hay chỉ lặp lại câu trả lời cũ. Không dùng nguồn tài liệu để ép buộc người dùng phải nghe theo.\n"
+                "2. Thừa nhận và tôn trọng luận điểm của người dùng. Hãy tiếp nối phân tích dựa trên hướng suy luận của người dùng như một bài tập tư duy lịch sử.\n"
+                "3. Trình bày câu trả lời theo cấu trúc sau:\n"
+                "   - Bước 1: Ghi nhận ý kiến người dùng bằng cách mở đầu lịch sự, ví dụ: 'Bạn nói có lý ở góc độ...' hoặc 'Mình hiểu hướng bạn đang đặt ra là...'\n"
+                "   - Bước 2: Định hình lại vấn đề: 'Nếu đi theo hướng đó, vấn đề không chỉ là sử liệu ghi gì, mà là giả thuyết đó có khả thi không.'\n"
+                "   - Bước 3: Phân tích 2 đến 4 điểm ủng hộ hoặc làm rõ tính hợp lý trong lập luận của người dùng (ví dụ: 'Nếu giả sử điều bạn nói đúng, thì...', 'Theo hướng bạn đang đặt ra...', 'Ta thử xét kịch bản này...').\n"
+                "   - Bước 4: Nêu rõ 1 đến 3 điểm hạn chế, rủi ro hoặc phản điểm từ góc độ lịch sử thực tế lúc đó.\n"
+                "   - Bước 5: Đưa ra kết luận khách quan, đa chiều và cởi mở, không mang tính phân định thắng thua.\n"
+                "4. Phân định rõ ràng giữa: Sự thật lịch sử đã được chứng minh, diễn giải lịch sử hợp lý, và suy diễn chưa chắc chắn.*"
+            )
+        elif q_type == "false_historical_claim":
+            instructions += (
+                "\n\n*YÊU CẦU ĐỐI VỚI KHẲNG ĐỊNH SAI LỆCH SỰ THẬT LỊCH SỬ (FALSE HISTORICAL CLAIM):\n"
+                "1. Bạn phải đính chính một cách lịch sự, ôn hòa và tôn trọng người dùng. Tuyệt đối không tấn công hay chỉ trích người dùng.\n"
+                "2. Sử dụng chứng cứ từ các nguồn tư liệu lịch sử chính thống có trong Ngữ cảnh (RAG) để giải thích rõ sự thật lịch sử được ghi chép lại là gì.\n"
+                "3. Giọng điệu khách quan, mang tính chia sẻ kiến thức giáo dục khoa học, giải thích rõ ràng những gì sử liệu chỉ ra.*"
+            )
+        elif q_type == "opinion_analysis":
+            instructions += (
+                "\n\n*YÊU CẦU TRẢ LỜI CÂU HỎI NHẬN ĐỊNH, ĐÁNH GIÁ (OPINION ANALYSIS):\n"
+                "1. Tuyên bố rõ đây là một câu hỏi mang tính nhận định, diễn giải lịch sử và kết quả phụ thuộc vào tiêu chí đánh giá.\n"
+                "2. Trình bày nhiều quan điểm, cách giải thích hợp lý khác nhau từ các góc độ lịch sử.\n"
+                "3. Giải thích các tiêu chí so sánh/đánh giá một cách rõ ràng.\n"
+                "4. Sử dụng nguồn tài liệu trong ngữ cảnh làm thông tin nền hỗ trợ phân tích, không khẳng định một quan điểm chủ quan nào là chân lý duy nhất.*"
+            )
+
+        instructions += (
+            "\n\n*QUY TẮC CHUNG VỀ TRÍCH DẪN & CHẤT LƯỢNG NGUỒN:\n"
+            "- Chỉ trích dẫn các tài liệu thực sự liên quan trực tiếp đến nhân vật, sự kiện, triều đại hoặc bối cảnh lịch sử được đề cập trong câu hỏi.\n"
+            "- Tuyệt đối KHÔNG trích dẫn các nguồn tài liệu thuộc thời kỳ khác hoặc các cuộc kháng chiến không liên quan chỉ để tăng số lượng trích dẫn (ví dụ: Trả lời về Hai Bà Trưng thì không được trích dẫn tư liệu về Chiến tranh chống Mỹ hay Điện Biên Phủ).*"
+        )
+
+        instructions += (
+            "\n\n*YÊU CẦU TRÌNH BÀY CHUNG:\n"
+            "1. Luôn trả lời ngắn gọn, trực diện, bám sát câu hỏi và intent của người dùng.\n"
+            "2. Tránh kể lan man dài dòng không cần thiết.*"
+        )
+        question = question + instructions
 
         # 🔥 3. GỌI LLM (với Conversation Memory)
         chat_history_raw = state.get("chat_history", [])
@@ -294,7 +451,9 @@ Sử Gia Lạc Việt trả lời:"""
             "không có dữ liệu", "khong co du lieu", "khong_co_du_lieu",
             "chưa đủ dữ liệu đáng tin cậy", "không tìm thấy câu trả lời",
             "không có thông tin", "không tìm thấy", "không được đề cập",
-            "không thể trả lời", "tôi là chatbot lịch sử việt nam, tôi chỉ hỗ trợ các câu hỏi liên quan đến lịch sử việt nam"
+            "không thể trả lời", "tôi là chatbot lịch sử việt nam, tôi chỉ hỗ trợ các câu hỏi liên quan đến lịch sử việt nam",
+            "không được tìm thấy", "chưa tìm thấy", "chưa được tìm thấy",
+            "không thấy", "chưa được đề cập", "chưa đề cập", "không có trong các tài liệu"
         ]
         
         if any(x in clean_gen for x in refusal_keywords):
@@ -415,7 +574,15 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             print(f"✅ Knowledge already approved — letting FAISS retrieve instead.")
 
         # 2. PHÂN LOẠI CÂU HỎI (INTENT)
-        intent = classify_query(raw_question, self.llm)
+        q_mode = _classify_history_query_type(raw_question, chat_history, self.llm)
+        is_followup = is_followup_request(raw_question)
+        
+        if q_mode in ("user_challenge", "hypothetical_history", "false_historical_claim", "opinion_analysis") or is_followup:
+            intent = "factual"
+            print(f"[INTENT OVERRIDE] {q_mode} (followup: {is_followup}) → intent forced to 'factual' to prevent early exit")
+        else:
+            intent = classify_query(raw_question, self.llm)
+            
         print(f"[INTENT] {intent} → query: {raw_question[:60]!r}")
 
         if intent == "chitchat":
@@ -438,8 +605,40 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             _log_rag_timing("retrieve_completed", started_at, docs=0, intent=intent)
             return result
 
+        # 3. ENTITY DETECTION + FOLLOW-UP REWRITE
+        # ─────────────────────────────────────────
+        from chatbot.utils.viet_history_entities import detect_entity_from_text, VIET_HISTORY_ENTITIES
+        entity_key, entity_info = detect_entity_from_text(raw_question)
+
+        # Nếu không detect được entity trực tiếp → lấy từ history hoặc state
+        last_entity_key_hist, last_entity_display_hist = extract_last_entity_from_history(chat_history)
+        if not entity_key:
+            entity_key = state.get("last_main_entity") or last_entity_key_hist or None
+
+        entity_display = None
+        if entity_info:
+            entity_display = entity_info["display"]
+        elif entity_key and entity_key in VIET_HISTORY_ENTITIES:
+            entity_display = VIET_HISTORY_ENTITIES[entity_key]["display"]
+        elif state.get("last_main_entity_display"):
+            entity_display = state.get("last_main_entity_display")
+        else:
+            entity_display = last_entity_display_hist
+
+        # Rewrite follow-up nếu cần (không có entity mới, câu ngắn)
+        if is_followup_request(raw_question) and entity_display:
+            raw_question = rewrite_followup_with_entity(raw_question, entity_display)
+            print(f"[FOLLOWUP REWRITTEN] new question: {raw_question!r}")
+        elif entity_key:
+            print(f"[ENTITY] Detected: {entity_key} | Display: {entity_display}")
+
+        # Detailed intent
+        detailed_intent = detect_detailed_intent(raw_question)
+        print(f"[DETAILED INTENT] {detailed_intent}")
+
         # Chuẩn hóa câu hỏi để ném vào FAISS tìm kiếm
         question = normalize_question(raw_question)
+
 
         # ===== YEAR FILTER (giữ nguyên từ pipeline cũ) =====
         years = re.findall(r"\b(1[0-9]{3}|20[0-9]{2})\b", question)
@@ -498,6 +697,53 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
         # ===== LOAD MULTI-RETRIEVER (HYBRID BRAIN) =====
         import os
         all_pool = []
+
+        # 0. SEARCH USER RAG FAISS (similarity search top-k=5)
+        user_id = state.get("user_id")
+        if user_id:
+            user_rag_path = os.path.join("utils", "data_vector_new", f"user_rag_{user_id}", self.embedding_model_name)
+            if os.path.exists(user_rag_path) and os.path.exists(os.path.join(user_rag_path, "index.faiss")):
+                try:
+                    user_retriever = Retriever(embedding_model_name=self.embedding_model_name)
+                    user_faiss = user_retriever._load_faiss(user_rag_path)
+                    raw_user_docs = user_faiss.similarity_search(question, k=5)
+                    user_docs = []
+                    for idx, doc in enumerate(raw_user_docs):
+                        doc.metadata["is_user_rag"] = True
+                        doc.metadata["source"] = "Ghi chú cá nhân"
+                        doc.metadata["original_rank"] = idx
+                        user_docs.append(doc)
+                    if user_docs:
+                        print(f"--- [USER RAG] Found {len(user_docs)} docs for user_id={user_id}")
+                        all_pool.extend(user_docs)
+                except Exception as e:
+                    print(f"⚠️ [USER RAG] Search error for user_id={user_id}: {e}")
+
+        # 0.5. SEARCH GLOBAL HISTORY FAISS (similarity search top-k=8)
+        base_path = self.path_vector_store
+        if base_path.endswith("vertex") or base_path.endswith("openai"):
+            base_path = os.path.dirname(base_path)
+            
+        global_hist_path = os.path.join(base_path, "global_history", self.embedding_model_name)
+        if os.path.exists(global_hist_path) and os.path.exists(os.path.join(global_hist_path, "index.faiss")):
+            try:
+                global_hist_retriever = Retriever(embedding_model_name=self.embedding_model_name)
+                global_hist_faiss = global_hist_retriever._load_faiss(global_hist_path)
+                raw_global_docs = global_hist_faiss.similarity_search(question, k=8)
+                global_docs = []
+                for idx, doc in enumerate(raw_global_docs):
+                    doc.metadata["is_global_history"] = True
+                    if "source" not in doc.metadata:
+                        doc.metadata["source"] = doc.metadata.get("file_name") or "Global History"
+                    doc.metadata["original_rank"] = idx
+                    global_docs.append(doc)
+                if global_docs:
+                    print(f"--- [GLOBAL HISTORY RAG] Found {len(global_docs)} docs")
+                    all_pool.extend(global_docs)
+            except Exception as e:
+                print(f"⚠️ [GLOBAL HISTORY RAG] Search warning: {e}")
+        else:
+            print(f"⚠️ [GLOBAL HISTORY RAG] Index not found at {global_hist_path}. Skipping.")
         
         # Xử lý đường dẫn linh hoạt: lấy folder cha nếu đang ở trong folder con (vertex/openai)
         base_path = self.path_vector_store
@@ -517,6 +763,8 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
                         retriever_e = Retriever(embedding_model_name=self.embedding_model_name).set_retriever(path_vector_store=e_path)
                         docs_e = retriever_e.get_documents(query=question, num_doc=self.approved_docs_k)
                         if docs_e:
+                            for idx, doc in enumerate(docs_e):
+                                doc.metadata["original_rank"] = idx
                             print(f"--- [BRAIN APPROVED] Found {len(docs_e)} docs from {e_path}")
                             all_pool.extend(docs_e)
                     except Exception as e:
@@ -528,6 +776,8 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             try:
                 retriever_v = Retriever(embedding_model_name="vertex").set_retriever(path_vector_store=path_vertex)
                 docs_v = retriever_v.get_documents(query=question, num_doc=self.vector_docs_k)
+                for idx, doc in enumerate(docs_v):
+                    doc.metadata["original_rank"] = idx
                 all_pool.extend(docs_v)
             except Exception as e:
                 print(f"⚠️ Vertex search error: {e}")
@@ -538,6 +788,8 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             try:
                 retriever_o = Retriever(embedding_model_name="openai").set_retriever(path_vector_store=path_openai)
                 docs_o = retriever_o.get_documents(query=question, num_doc=self.vector_docs_k)
+                for idx, doc in enumerate(docs_o):
+                    doc.metadata["original_rank"] = idx
                 all_pool.extend(docs_o)
             except Exception as e:
                 print(f"⚠️ OpenAI search error: {e}")
@@ -559,39 +811,58 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             _log_rag_timing("retrieve_completed", started_at, docs=0, intent=intent)
             return result
 
-        # ===== ADAPTIVE RE-RANKING =====
-        # Gọi AdaptiveRetriever để tái xếp hạng theo (semantic + temporal + causal)
+        # ===== ADAPTIVE RE-RANKING (with entity-aware scoring) =====
         ar = AdaptiveRetriever()
         reranked_docs, score_summary = ar.rerank(
             query=question,
             docs=pool,
             intent=intent,
+            entity_key=entity_key,   # ← entity-aware bonus/penalty
         )
 
-        # ===== UU TIEN PDF (PDF Priority) =====
-        # Sap xep lai: Day cac document tu PDF (co metadata 'page' hoac duoi .pdf) len tren cung
-        def is_pdf(doc):
+        # ===== PRIORITY SORTING: User RAG > Global History RAG > Base/PDF RAG =====
+        def get_priority_score(doc):
+            if doc.metadata.get("is_user_rag"):
+                return 0
+            if doc.metadata.get("is_global_history"):
+                return 1
             source = doc.metadata.get("file_name") or doc.metadata.get("source") or ""
             has_page = doc.metadata.get("page") is not None or doc.metadata.get("page_number") is not None
-            return source.lower().endswith('.pdf') or has_page
+            if source.lower().endswith('.pdf') or has_page:
+                return 2
+            return 3
 
-        reranked_docs.sort(key=lambda d: 0 if is_pdf(d) else 1)
+        reranked_docs.sort(key=get_priority_score)
+
+        # ===== ENTITY-AWARE DOC FILTER =====
+        # Soft filter: nếu có entity rõ ràng, đẩy doc lạc chủ đề xuống cuối
+        if entity_key:
+            reranked_docs = filter_docs_by_entity(reranked_docs, entity_key, strict=False)
 
         # ===== DEBUG LOG =====
-        print("===== FINAL DOCUMENTS AFTER RERANK (PDF PRIORITIZED) =====")
+        print("===== FINAL DOCUMENTS AFTER RERANK (PRIORITY ORDER) =====")
         print("Total:", len(reranked_docs))
         for d in reranked_docs[:5]:
             source = d.metadata.get("file_name") or d.metadata.get("source") or "unknown"
-            print(f"- {source} (is_pdf: {is_pdf(d)})")
-        
+            is_user = d.metadata.get("is_user_rag", False)
+            is_global = d.metadata.get("is_global_history", False)
+            print(f"- {source} (user: {is_user}, global: {is_global})")
+
         result = {
             "documents": reranked_docs,
             "question":  raw_question,
             "intent":    intent,
             "scores":    score_summary,
+            # Entity tracking — propagate qua generate + handle_no_answer
+            "main_entity":              entity_key or "",
+            "main_entity_display":      entity_display or "",
+            "detailed_intent":          detailed_intent,
+            "last_main_entity":         entity_key or state.get("last_main_entity", ""),
+            "last_main_entity_display": entity_display or state.get("last_main_entity_display", ""),
         }
         _log_rag_timing("retrieve_completed", started_at, docs=len(reranked_docs), pool=len(pool), intent=intent)
         return result
+
 
     # =================================
     # DECISION
@@ -640,6 +911,8 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             required_overlap = min(2, len(q_tokens), len(learned_tokens))
             return len(overlap) >= required_overlap
 
+        entity_key = state.get("main_entity")
+
         def fast_doc_matches(query: str, doc) -> bool:
             if doc.metadata.get("is_pending"):
                 return True
@@ -663,8 +936,33 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
 
             return False
 
+        def doc_matches_either(query: str, doc, ent_key: str | None) -> bool:
+            if fast_doc_matches(query, doc):
+                return True
+            if ent_key:
+                try:
+                    from chatbot.utils.viet_history_entities import entity_score_for_doc
+                    content = doc.metadata.get("answer") if "answer" in doc.metadata else doc.page_content
+                    meta_text = (
+                        str(doc.metadata.get("file_name", "")) + " " +
+                        str(doc.metadata.get("source", ""))
+                    )
+                    score = entity_score_for_doc(meta_text + " " + str(content), ent_key)
+                    if score > 0:
+                        print(f"   [ENTITY KEEP] Kept '{doc.metadata.get('file_name') or doc.metadata.get('source')}' because relevant to entity '{ent_key}' (score={score})")
+                        return True
+                except Exception as ex:
+                    print(f"⚠️ Error checking entity relevance in grading: {ex}")
+            return False
+
         if not self.use_llm_document_grader:
             for doc in documents:
+                if doc.metadata.get("is_user_rag"):
+                    if doc_matches_either(question, doc, entity_key):
+                        relevant_docs.append(doc)
+                    else:
+                        print(f"   [FAST FILTERED] Off-topic user note: {doc.metadata.get('source')}")
+                    continue
                 doc_source = doc.metadata.get("source", "")
                 doc_type = doc.metadata.get("type", "")
                 
@@ -680,7 +978,7 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
                         print(f"   [FAST FILTERED] Topic mismatch {label} knowledge: {learned_q or 'unknown'}")
                     continue
 
-                if fast_doc_matches(question, doc):
+                if doc_matches_either(question, doc, entity_key):
                     relevant_docs.append(doc)
                 else:
                     source = doc.metadata.get("file_name") or doc.metadata.get("source") or "unknown"
@@ -732,6 +1030,25 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             # Nếu grade trả về "yes" (hoặc chứa "yes") thì giữ lại
             if "yes" in str(grade).lower():
                 relevant_docs.append(doc)
+            elif entity_key:
+                try:
+                    from chatbot.utils.viet_history_entities import entity_score_for_doc
+                    content = doc.metadata.get("answer") if "answer" in doc.metadata else doc.page_content
+                    meta_text = (
+                        str(doc.metadata.get("file_name", "")) + " " +
+                        str(doc.metadata.get("source", ""))
+                    )
+                    score = entity_score_for_doc(meta_text + " " + str(content), entity_key)
+                    if score > 0:
+                        print(f"   [ENTITY KEEP (LLM)] Kept '{doc.metadata.get('file_name') or doc.metadata.get('source')}' because relevant to entity '{entity_key}' (score={score})")
+                        relevant_docs.append(doc)
+                    else:
+                        source = doc.metadata.get("file_name") or doc.metadata.get("source") or "unknown"
+                        print(f"   [FILTERED] Irrelevant source: {source}")
+                except Exception as ex:
+                    print(f"⚠️ Error checking entity relevance in LLM grading: {ex}")
+                    source = doc.metadata.get("file_name") or doc.metadata.get("source") or "unknown"
+                    print(f"   [FILTERED] Irrelevant source: {source}")
             else:
                 source = doc.metadata.get("file_name") or doc.metadata.get("source") or "unknown"
                 print(f"   [FILTERED] Irrelevant source: {source}")

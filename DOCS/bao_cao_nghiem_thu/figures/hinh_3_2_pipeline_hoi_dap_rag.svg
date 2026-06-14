@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="980" viewBox="0 0 1700 980">
+  <defs>
+    <style>
+      .title { font: 700 32px Arial, sans-serif; fill: #1f2937; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #475569; }
+      .step-title { font: 700 19px Arial, sans-serif; fill: #111827; }
+      .step-text { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 14px Arial, sans-serif; fill: #475569; }
+      .arrow { stroke: #475569; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .branch { stroke: #b45309; stroke-width: 3; fill: none; marker-end: url(#arrowhead2); stroke-dasharray: 8 6; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+      <path d="M 0 0 L 12 4 L 0 8 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowhead2" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+      <path d="M 0 0 L 12 4 L 0 8 z" fill="#b45309"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect width="1700" height="980" fill="#ffffff"/>
+  <text x="850" y="54" text-anchor="middle" class="title">Hình 3.2. Pipeline hỏi đáp Chatbot RAG</text>
+  <text x="850" y="86" text-anchor="middle" class="subtitle">Luồng xử lý từ câu hỏi người dùng đến câu trả lời có nguồn tham khảo</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="150" width="210" height="125" rx="16" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="175" y="185" text-anchor="middle" class="step-title">1. Nhập câu hỏi</text>
+    <text x="175" y="217" text-anchor="middle" class="step-text">ChatView gửi request</text>
+    <text x="175" y="242" text-anchor="middle" class="step-text">đến /api/v1/chat</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="345" y="150" width="220" height="125" rx="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="455" y="185" text-anchor="middle" class="step-title">2. Kiểm tra</text>
+    <text x="455" y="217" text-anchor="middle" class="step-text">JWT, user hiện tại</text>
+    <text x="455" y="242" text-anchor="middle" class="step-text">và số dư token</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="635" y="150" width="220" height="125" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="745" y="185" text-anchor="middle" class="step-title">3. Lấy ngữ cảnh</text>
+    <text x="745" y="217" text-anchor="middle" class="step-text">Tải hội thoại gần nhất</text>
+    <text x="745" y="242" text-anchor="middle" class="step-text">từ bảng messages</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="925" y="150" width="220" height="125" rx="16" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="1035" y="185" text-anchor="middle" class="step-title">4. Chuẩn hóa</text>
+    <text x="1035" y="217" text-anchor="middle" class="step-text">Normalize câu hỏi</text>
+    <text x="1035" y="242" text-anchor="middle" class="step-text">và xử lý tiếng Việt</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1215" y="150" width="220" height="125" rx="16" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text x="1325" y="185" text-anchor="middle" class="step-title">5. Phân loại</text>
+    <text x="1325" y="217" text-anchor="middle" class="step-text">Factual, temporal</text>
+    <text x="1325" y="242" text-anchor="middle" class="step-text">causal, comparison</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1320" y="380" width="230" height="125" rx="16" fill="#ecfccb" stroke="#65a30d" stroke-width="2"/>
+    <text x="1435" y="415" text-anchor="middle" class="step-title">6. Truy xuất FAISS</text>
+    <text x="1435" y="447" text-anchor="middle" class="step-text">Tìm đoạn tài liệu</text>
+    <text x="1435" y="472" text-anchor="middle" class="step-text">gần nghĩa câu hỏi</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1025" y="380" width="230" height="125" rx="16" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+    <text x="1140" y="415" text-anchor="middle" class="step-title">7. Xếp hạng lại</text>
+    <text x="1140" y="447" text-anchor="middle" class="step-text">Semantic, temporal</text>
+    <text x="1140" y="472" text-anchor="middle" class="step-text">và causal score</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="730" y="380" width="230" height="125" rx="16" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="2"/>
+    <text x="845" y="415" text-anchor="middle" class="step-title">8. Lọc tài liệu</text>
+    <text x="845" y="447" text-anchor="middle" class="step-text">DocumentGrader</text>
+    <text x="845" y="472" text-anchor="middle" class="step-text">loại nội dung lệch</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="435" y="380" width="230" height="125" rx="16" fill="#fdf2f8" stroke="#db2777" stroke-width="2"/>
+    <text x="550" y="415" text-anchor="middle" class="step-title">9. Sinh trả lời</text>
+    <text x="550" y="447" text-anchor="middle" class="step-text">Context injection</text>
+    <text x="550" y="472" text-anchor="middle" class="step-text">vào prompt LLM</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="140" y="380" width="230" height="125" rx="16" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+    <text x="255" y="415" text-anchor="middle" class="step-title">10. Kiểm tra</text>
+    <text x="255" y="447" text-anchor="middle" class="step-text">Làm sạch kết quả</text>
+    <text x="255" y="472" text-anchor="middle" class="step-text">và chống ảo giác</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="140" y="650" width="260" height="135" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="270" y="685" text-anchor="middle" class="step-title">11. Lưu và trả về</text>
+    <text x="270" y="717" text-anchor="middle" class="step-text">Lưu messages, chat_logs</text>
+    <text x="270" y="742" text-anchor="middle" class="step-text">trừ token và hiển thị</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="520" y="650" width="270" height="135" rx="16" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+    <text x="655" y="685" text-anchor="middle" class="step-title">Nhánh thiếu dữ liệu</text>
+    <text x="655" y="717" text-anchor="middle" class="step-text">Web fallback</text>
+    <text x="655" y="742" text-anchor="middle" class="step-text">lưu pending_knowledge</text>
+  </g>
+
+  <path d="M 280 212 C 305 212, 320 212, 345 212" class="arrow"/>
+  <path d="M 565 212 C 590 212, 610 212, 635 212" class="arrow"/>
+  <path d="M 855 212 C 880 212, 900 212, 925 212" class="arrow"/>
+  <path d="M 1145 212 C 1170 212, 1190 212, 1215 212" class="arrow"/>
+  <path d="M 1325 275 C 1325 325, 1435 325, 1435 380" class="arrow"/>
+  <path d="M 1320 442 C 1290 442, 1285 442, 1255 442" class="arrow"/>
+  <path d="M 1025 442 C 995 442, 990 442, 960 442" class="arrow"/>
+  <path d="M 730 442 C 700 442, 695 442, 665 442" class="arrow"/>
+  <path d="M 435 442 C 405 442, 400 442, 370 442" class="arrow"/>
+  <path d="M 255 505 C 255 565, 270 585, 270 650" class="arrow"/>
+  <path d="M 550 505 C 550 570, 655 585, 655 650" class="branch"/>
+
+  <text x="602" y="610" text-anchor="middle" class="small">Khi không có tài liệu phù hợp hoặc câu trả lời chưa đủ tin cậy</text>
+</svg>

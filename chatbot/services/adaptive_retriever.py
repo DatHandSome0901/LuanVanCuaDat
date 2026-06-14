@@ -84,14 +84,16 @@ class AdaptiveRetriever:
         query: str,
         docs: list,
         intent: str,
+        entity_key: str | None = None,
     ) -> tuple[list, dict]:
         """
-        Tái xếp hạng tài liệu theo công thức multi-score.
+        Tái xếp hạng tài liệu theo công thức multi-score + entity-aware bonus/penalty.
 
         Args:
-            query  (str):   Câu hỏi đã normalize.
-            docs   (list):  Tài liệu thô từ FAISS (thứ tự giảm dần theo similarity).
-            intent (str):   Kết quả từ classify_query().
+            query      (str):   Câu hỏi đã normalize.
+            docs       (list):  Tài liệu thô từ FAISS (thứ tự giảm dần theo similarity).
+            intent     (str):   Kết quả từ classify_query().
+            entity_key (str):   Entity key từ viet_history_entities (None = bỏ qua).
 
         Returns:
             tuple:
@@ -111,12 +113,33 @@ class AdaptiveRetriever:
                     intent, alpha, beta, gamma, top_k)
         print(f"[INTENT] {intent} | α={alpha} β={beta} γ={gamma} top_k={top_k}")
 
+        # Load entity scorer nếu có entity
+        entity_scorer = None
+        if entity_key:
+            try:
+                from chatbot.utils.viet_history_entities import entity_score_for_doc
+                entity_scorer = entity_score_for_doc
+                print(f"[ENTITY RERANK] Using entity-aware scoring for: {entity_key}")
+            except ImportError:
+                pass
+
         scored: list[ScoredDoc] = []
+
+        # Tìm max_rank để chuẩn hóa
+        max_rank = 1
+        for d in docs:
+            if hasattr(d, "metadata") and d.metadata and "original_rank" in d.metadata:
+                max_rank = max(max_rank, d.metadata["original_rank"])
 
         for rank, doc in enumerate(docs):
             # Ước tính semantic score từ vị trí FAISS (rank 0 = cao nhất)
-            # Công thức: decay tuyến tính từ 1.0 → 0.5 theo thứ tự
-            sem = max(1.0 - rank * (0.5 / max(len(docs) - 1, 1)), 0.5)
+            orig_rank = rank
+            denom = max(len(docs) - 1, 1)
+            if hasattr(doc, "metadata") and doc.metadata and "original_rank" in doc.metadata:
+                orig_rank = doc.metadata["original_rank"]
+                denom = max_rank
+            
+            sem = max(1.0 - orig_rank * (0.5 / denom), 0.5)
 
             text = self._get_doc_text(doc)
 
@@ -124,8 +147,20 @@ class AdaptiveRetriever:
             c_score = causal_score(query, text)
 
             final = (alpha * sem) + (beta * t_score) + (gamma * c_score)
-            
-            final = round(min(final, 1.0), 4)
+
+            # Entity-aware delta: bonus nếu doc chứa entity, penalty nếu lạc đề
+            if entity_scorer and not doc.metadata.get("is_user_rag"):
+                # Kết hợp title + content để score
+                doc_meta_text = (
+                    str(doc.metadata.get("file_name", "")) + " " +
+                    str(doc.metadata.get("source", ""))
+                )
+                entity_delta = entity_scorer(doc_meta_text + " " + text, entity_key)
+                final = final + entity_delta
+                if entity_delta != 0.0:
+                    print(f"   [ENTITY DELTA] doc[{rank}] entity_delta={entity_delta:+.2f}")
+
+            final = round(min(max(final, 0.0), 1.0), 4)
 
             sd = ScoredDoc(
                 doc=doc,
@@ -156,6 +191,7 @@ class AdaptiveRetriever:
         summary = self._build_summary(top[:3])
 
         return [sd.doc for sd in top], summary
+
 
     @staticmethod
     def _get_doc_text(doc: Any) -> str:

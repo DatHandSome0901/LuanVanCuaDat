@@ -311,7 +311,7 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
                   )}
                 </div>
 
-                <div className="relative pl-1">
+                <div className="relative pl-1 max-h-[520px] overflow-y-auto pr-3 scrollbar-thin">
                   
                   {/* Step 1: User Query */}
                   <TimelineItem 

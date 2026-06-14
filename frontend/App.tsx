@@ -484,7 +484,7 @@ const AppInner: React.FC = () => {
       </main>
       <Toaster position="top-right" />
       {/* Floating language switcher button */}
-      <LangSwitcherBtn />
+      {currentView !== 'admin' && <LangSwitcherBtn />}
       {/* Floating report button (bottom-left) */}
       {user && !user.is_admin && (
         <ReportFloatBtn

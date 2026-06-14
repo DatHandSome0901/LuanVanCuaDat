@@ -23,6 +23,7 @@ const localized = {
 interface ChatLogDetailModalProps {
   chat: any;
   onClose: () => void;
+  onOpenTestPage?: (question: string) => void;
 }
 
 const TimelineItem: React.FC<{
@@ -74,7 +75,7 @@ const TimelineItem: React.FC<{
   );
 };
 
-const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }) => {
+const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose, onOpenTestPage }) => {
   const { language } = useLanguage();
   const tLocal = localized[language] || localized.vi;
   const [isTraceOpen, setIsTraceOpen] = React.useState(false);
@@ -114,11 +115,21 @@ const ChatLogDetailModal: React.FC<ChatLogDetailModalProps> = ({ chat, onClose }
                     <p className="text-xs text-stone-400">ID: #{chat.id} • {chat.username}</p>
                 </div>
             </div>
-            <button onClick={onClose} className="text-white hover:rotate-90 transition-transform p-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+            <div className="flex items-center">
+                {onOpenTestPage && (
+                  <button 
+                    onClick={() => onOpenTestPage(chat.question)}
+                    className="px-4 py-2 bg-gradient-to-r from-amber-600 to-red-800 hover:from-amber-500 hover:to-red-750 text-white rounded-xl text-xs font-bold hover:scale-105 transition-all shadow-sm shrink-0 mr-4 cursor-pointer"
+                  >
+                    {language === 'vi' ? '🧪 Thử nghiệm RAG' : '🧪 Test RAG'}
+                  </button>
+                )}
+                <button onClick={onClose} className="text-white hover:rotate-90 transition-transform p-2 cursor-pointer">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
          </div>
          
          <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">

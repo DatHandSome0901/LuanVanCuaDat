@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
   Users as UsersIcon, Box, History as HistoryIcon, FileText, MessageSquare,
   Settings as SettingsIcon, LogIn, BarChart3, BookOpen, LayoutDashboard,
-  ShieldCheck, ArrowLeft, LogOut, ThumbsDown, MessageCircle
+  ShieldCheck, ArrowLeft, LogOut, ThumbsDown, MessageCircle, Terminal
 } from 'lucide-react';
 import { confirmDestructive, promptInput, confirmAction, promptTokenAdjustment } from '../utils/swal';
 import { motion } from 'framer-motion';
@@ -25,8 +25,10 @@ import KnowledgeTab from './admin/KnowledgeTab';
 import FeedbackTab from './admin/FeedbackTab';
 import DashboardTab from './admin/DashboardTab';
 import SupportTab from './admin/SupportTab';
+import RagPlaygroundTab from './admin/RagPlaygroundTab';
 
-type AdminTab = 'dashboard' | 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback' | 'support';
+type AdminTab = 'dashboard' | 'users' | 'packages' | 'history' | 'payments' | 'chatlogs' | 'settings' | 'logins' | 'reports' | 'knowledge' | 'feedback' | 'support' | 'rag_playground';
+
 
 interface AdminViewProps {
   user?: any;
@@ -69,6 +71,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
   const [isLoading, setIsLoading] = useState(false);
   const [selectedChat, setSelectedChat] = useState<any | null>(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
+  const [preseedPlaygroundQuestion, setPreseedPlaygroundQuestion] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -402,6 +405,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
     { id: 'history' as AdminTab, label: t.admin_nav_history, icon: HistoryIcon },
     { id: 'payments' as AdminTab, label: t.admin_nav_payments, icon: FileText },
     { id: 'chatlogs' as AdminTab, label: t.admin_nav_chatlogs, icon: MessageSquare },
+    { id: 'rag_playground' as AdminTab, label: isVi ? 'Thử nghiệm RAG' : 'RAG Playground', icon: Terminal },
     { id: 'settings' as AdminTab, label: t.admin_nav_settings, icon: SettingsIcon },
     { id: 'logins' as AdminTab, label: t.admin_nav_logins, icon: LogIn },
     { id: 'reports' as AdminTab, label: t.admin_nav_reports, icon: BarChart3 },
@@ -409,6 +413,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
     { id: 'feedback' as AdminTab, label: t.admin_nav_feedback, icon: ThumbsDown },
     { id: 'support' as AdminTab, label: isVi ? 'Hỗ trợ trực tuyến' : 'Live Support', icon: MessageCircle },
   ];
+
 
   return (
     <div className="flex-1 flex h-full bg-[#f4f1ea] overflow-hidden relative">
@@ -687,14 +692,26 @@ const AdminView: React.FC<AdminViewProps> = ({ user, onUpdateUser, onLogout, isS
           {activeTab === 'support' && (
             <SupportTab siteConfig={siteConfig} />
           )}
+          {activeTab === 'rag_playground' && (
+            <RagPlaygroundTab 
+              initialQuestion={preseedPlaygroundQuestion} 
+              onQuestionConsumed={() => setPreseedPlaygroundQuestion('')} 
+            />
+          )}
         </div>
       </div>
+
 
       {/* Modals */}
       {selectedChat && (
         <ChatLogDetailModal
           chat={selectedChat}
           onClose={() => setSelectedChat(null)}
+          onOpenTestPage={(question) => {
+            setSelectedChat(null);
+            setPreseedPlaygroundQuestion(question);
+            setActiveTab('rag_playground');
+          }}
         />
       )}
 

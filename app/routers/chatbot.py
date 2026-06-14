@@ -72,6 +72,7 @@ class ChatResponse(BaseModel):
     # ── Debug fields (None khi debug=False) ─────────────────────────
     intent: str | None = None
     scores: dict | None = None
+    trace_log: dict | None = None
 
 
 class ChatJobStatus(BaseModel):
@@ -1284,6 +1285,7 @@ def _process_web_fallback_job(request: ChatRequest, current_user: dict) -> ChatR
             related_questions=related_questions,
             conversation_id=conversation_id,
             status="completed",
+            trace_log=trace_log,
         )
     finally:
         if user_db:
@@ -1464,7 +1466,8 @@ def _process_chat_request(
                 conversation_id=conversation_id,
                 status="completed",
                 intent="factual",
-                scores={"semantic_cache_hit": cached_hit["similarity"]} if request.debug else None
+                scores={"semantic_cache_hit": cached_hit["similarity"]} if request.debug else None,
+                trace_log=trace_log,
             )
 
         user_name = None
@@ -1648,6 +1651,7 @@ def _process_chat_request(
             status="completed",
             intent=rag_intent if request.debug else None,
             scores=rag_scores if request.debug else None,
+            trace_log=trace_log,
         )
     finally:
         if user_db:

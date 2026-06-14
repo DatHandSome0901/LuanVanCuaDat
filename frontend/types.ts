@@ -49,6 +49,7 @@ export interface ChatResponse {
   status?: 'completed' | 'queued' | 'running' | 'failed';
   job_id?: string;
   progress?: number;
+  trace_log?: any;
 }
 
 export interface ChatJobStatus {

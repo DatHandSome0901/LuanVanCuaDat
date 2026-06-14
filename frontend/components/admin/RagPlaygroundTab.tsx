@@ -59,6 +59,16 @@ const TimelineItem: React.FC<{
   );
 };
 
+interface MessageItem {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: any[];
+  trace_log?: any;
+  tokens_charged?: number;
+  user_token_balance?: number;
+}
+
 const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '', onQuestionConsumed }) => {
   const { language } = useLanguage();
   const [question, setQuestion] = useState(initialQuestion);
@@ -66,29 +76,65 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
   const [response, setResponse] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'timeline' | 'json'>('timeline');
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  
+  const chatEndRef = React.useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isLoading]);
 
   useEffect(() => {
     if (initialQuestion) {
       setQuestion(initialQuestion);
-      // Auto run if seeded
-      handleTest(initialQuestion);
+      // Auto run if seeded with a clean restart
+      handleTest(initialQuestion, true);
       if (onQuestionConsumed) onQuestionConsumed();
     }
   }, [initialQuestion]);
 
-  const handleTest = async (testQuery: string) => {
+  const handleTest = async (testQuery: string, forceRestart = false) => {
     const q = testQuery || question;
     if (!q.trim()) return;
 
     setIsLoading(true);
     setError(null);
-    setResponse(null);
+    setQuestion('');
+
+    const userMsgId = 'user_' + Date.now();
+    const newUserMsg: MessageItem = {
+      id: userMsgId,
+      role: 'user',
+      content: q
+    };
+
+    if (forceRestart) {
+      setMessages([newUserMsg]);
+    } else {
+      setMessages(prev => [...prev, newUserMsg]);
+    }
 
     try {
       // Send message using the REST API to get direct trace_log
       const res = await api.sendMessage(q);
       setResponse(res);
+
+      const assistantMsgId = 'assistant_' + Date.now();
+      const newAssistantMsg: MessageItem = {
+        id: assistantMsgId,
+        role: 'assistant',
+        content: res.answer || '',
+        sources: res.sources || [],
+        trace_log: res.trace_log,
+        tokens_charged: res.tokens_charged,
+        user_token_balance: res.user_token_balance
+      };
+
+      setMessages(prev => [...prev, newAssistantMsg]);
+      setSelectedMessageId(assistantMsgId);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Có lỗi xảy ra khi chạy RAG Pipeline.');
@@ -97,7 +143,8 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
     }
   };
 
-  const trace = response?.trace_log;
+  const selectedMessage = messages.find(m => m.id === selectedMessageId);
+  const trace = selectedMessage?.trace_log || response?.trace_log;
 
   // Document counter helper
   const documentSourcesCount = React.useMemo(() => {
@@ -176,70 +223,111 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
       )}
 
       {/* Results Workspace */}
-      {(isLoading || response) && (
+      {/* Results Workspace */}
+      {(isLoading || messages.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           
-          {/* Left Column: Response Output */}
+          {/* Left Column: Chat Conversation */}
           <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-6 space-y-6">
             <h3 className="text-sm font-black uppercase tracking-wider text-stone-500 border-b border-stone-100 pb-3 flex items-center justify-between">
-              <span>{language === 'vi' ? 'Lời giải đáp kết quả' : 'Answer response'}</span>
-              {response && (
+              <span>{language === 'vi' ? 'Hội thoại thử nghiệm' : 'Test Chat Conversation'}</span>
+              {selectedMessage?.user_token_balance !== undefined && (
                 <span className="text-[10px] font-mono text-stone-400 lowercase">
-                  charged: {response.tokens_charged} credits • balance: {response.user_token_balance} credits
+                  balance: {selectedMessage.user_token_balance} credits
                 </span>
               )}
             </h3>
 
-            {isLoading ? (
-              <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                <div className="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs text-stone-400 italic">Đang chạy qua các tác vụ RAG...</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="p-6 bg-stone-50 rounded-2xl text-stone-850 leading-relaxed text-sm shadow-inner markdown-body">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      p: ({children}) => <p className="mb-3 text-xs leading-relaxed">{children}</p>,
-                      strong: ({children}) => <strong className="font-bold text-stone-900">{children}</strong>,
-                      em: ({children}) => <em className="italic text-stone-700">{children}</em>,
-                      ul: ({children}) => <ul className="list-disc list-inside mb-3 space-y-1 text-xs">{children}</ul>,
-                      ol: ({children}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-xs">{children}</ol>,
-                      blockquote: ({children}) => <blockquote className="border-l-4 border-amber-400 pl-4 italic text-stone-600 my-3 bg-amber-50 py-2 rounded-r-lg">{children}</blockquote>,
-                    }}
+            <div className="space-y-4 max-h-[550px] overflow-y-auto pr-2 scrollbar-thin flex flex-col">
+              {messages.map((msg) => {
+                const isUser = msg.role === 'user';
+                const isSelected = selectedMessageId === msg.id;
+                
+                return (
+                  <div 
+                    key={msg.id} 
+                    className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1 my-1 w-full`}
                   >
-                    {response.answer || ''}
-                  </ReactMarkdown>
-                </div>
+                    <div className="flex items-center gap-1.5 text-[9px] text-stone-400 font-sans px-1">
+                      <span className="font-bold">{isUser ? (language === 'vi' ? 'Bạn' : 'You') : 'Sử Việt AI'}</span>
+                      {!isUser && msg.tokens_charged !== undefined && (
+                        <span className="bg-stone-100 px-1 py-0.5 rounded font-mono">-{msg.tokens_charged} credits</span>
+                      )}
+                    </div>
+                    
+                    <div 
+                      onClick={() => {
+                        if (!isUser) {
+                          setSelectedMessageId(msg.id);
+                        }
+                      }}
+                      className={`p-4 rounded-2xl max-w-[85%] text-xs leading-relaxed cursor-pointer transition-all ${
+                        isUser 
+                          ? 'bg-gradient-to-r from-amber-700 to-red-800 text-white shadow-sm rounded-tr-none' 
+                          : `bg-stone-50 text-stone-850 rounded-tl-none border-2 ${
+                              isSelected ? 'border-amber-500 shadow-md ring-2 ring-amber-500/20' : 'border-stone-150 hover:border-amber-300'
+                            }`
+                      }`}
+                    >
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({children}) => <p className="mb-2 last:mb-0 text-[11px] leading-relaxed">{children}</p>,
+                          strong: ({children}) => <strong className="font-bold text-current">{children}</strong>,
+                          em: ({children}) => <em className="italic text-current">{children}</em>,
+                          ul: ({children}) => <ul className="list-disc list-inside mb-2 last:mb-0 space-y-1 text-[11px]">{children}</ul>,
+                          ol: ({children}) => <ol className="list-decimal list-inside mb-2 last:mb-0 space-y-1 text-[11px]">{children}</ol>,
+                          blockquote: ({children}) => <blockquote className="border-l-4 border-amber-400 pl-3 italic text-stone-600 my-2 bg-amber-50/50 py-1 rounded-r-lg">{children}</blockquote>,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
 
-                {/* Sources list */}
-                {response.sources && response.sources.length > 0 && (
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-stone-400">
-                      {language === 'vi' ? 'Nguồn dẫn chứng' : 'Cited Sources'}
-                    </label>
-                    <div className="space-y-2">
-                      {response.sources.map((src: any, index: number) => (
-                        <div key={index} className="p-3 bg-stone-50 border border-stone-150 rounded-xl text-xs flex justify-between items-center gap-4">
-                          <div className="truncate">
-                            <span className="font-bold text-amber-800">[{index + 1}]</span>{' '}
-                            <span className="font-bold text-stone-700">{src.filename}</span>
-                            {src.page && <span className="text-stone-400 ml-1">(Trang {src.page})</span>}
-                            <p className="text-[10px] text-stone-400 truncate italic mt-0.5">"{src.content}"</p>
-                          </div>
-                          {src.is_web && src.url && (
-                            <a href={src.url} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline shrink-0 font-bold text-[10px] uppercase">
-                              link
-                            </a>
+                      {!isUser && (
+                        <div className="mt-3 pt-2 border-t border-stone-200/60 flex flex-col gap-2">
+                          {/* Sources inline */}
+                          {msg.sources && msg.sources.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {msg.sources.map((src: any, idx: number) => (
+                                <span 
+                                  key={idx} 
+                                  title={src.content} 
+                                  className="px-1.5 py-0.5 bg-stone-200/70 text-stone-600 rounded text-[8px] font-mono cursor-help"
+                                >
+                                  [{idx + 1}] {src.filename}
+                                </span>
+                              ))}
+                            </div>
                           )}
+                          
+                          <div className="flex justify-between items-center text-[8px] font-bold text-stone-400 uppercase tracking-wider">
+                            <span>
+                              {isSelected 
+                                ? (language === 'vi' ? '● Đang xem hạn vết' : '● Viewing active trace')
+                                : (language === 'vi' ? '○ Bấm để xem hạn vết' : '○ Click to view trace')
+                              }
+                            </span>
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                );
+              })}
+              
+              {isLoading && (
+                <div className="flex flex-col items-start space-y-1 animate-pulse my-2">
+                  <div className="text-[9px] text-stone-400 font-sans font-bold">Sử Việt AI</div>
+                  <div className="p-4 bg-stone-50 border border-stone-150 rounded-2xl rounded-tl-none text-xs text-stone-400 italic flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-amber-600 rounded-full animate-bounce" />
+                    <div className="w-1.5 h-1.5 bg-amber-600 rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <div className="w-1.5 h-1.5 bg-amber-600 rounded-full animate-bounce [animation-delay:0.4s]" />
+                    <span className="text-[10px]">{language === 'vi' ? 'Đang truy vấn sử liệu...' : 'Querying history documents...'}</span>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
           </div>
 
           {/* Right Column: Execution Trace Timeline */}
@@ -333,7 +421,7 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
                     active={true}
                   >
                     <div><span className="font-semibold text-stone-700">JWT Token:</span> <span className="text-emerald-700 font-bold">✓ Valid (Ủy quyền thành công)</span></div>
-                    <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Trừ phí đàm đạo' : 'Deducted credit'}:</span> <span className="text-amber-600 font-bold">-{response.tokens_charged} Tệ</span></div>
+                    <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Trừ phí đàm đạo' : 'Deducted credit'}:</span> <span className="text-amber-600 font-bold">-{selectedMessage?.tokens_charged !== undefined ? selectedMessage.tokens_charged : (response?.tokens_charged || 0)} Tệ</span></div>
                     <div><span className="font-semibold text-stone-700">History Context:</span> Fetched last 6 messages from SQLite</div>
                   </TimelineItem>
 

@@ -382,8 +382,64 @@ async def get_all_settings(admin: dict = Depends(get_current_admin)):
     landing_footer_address = db.get_setting("landing_footer_address", "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ")
     landing_footer_phone = db.get_setting("landing_footer_phone", "0916 416 409")
     landing_footer_about_us = db.get_setting("landing_footer_about_us", "Sử Việt AI được xây dựng và phát triển bởi CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động.")
-    landing_footer_terms = db.get_setting("landing_footer_terms", "1. Chấp nhận điều khoản\nBằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.\n\n2. Quyền và trách nhiệm người dùng\nBạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.\n\n3. Giới hạn trách nhiệm\nMặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.\n\n4. Bản quyền\nToàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức.")
-    landing_footer_privacy = db.get_setting("landing_footer_privacy", "1. Thu thập thông tin\nChúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.\n\n2. Bảo mật dữ liệu\nTất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.\n\n3. Quyền kiểm soát của người dùng\nBạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản.")
+    landing_footer_terms = db.get_setting("landing_footer_terms", """1. Chấp nhận các Điều khoản
+Bằng việc truy cập, đăng ký tài khoản hoặc sử dụng bất kỳ phần nào của ứng dụng Sử Việt AI, bạn đồng ý tuân thủ và chịu sự ràng buộc bởi các Điều khoản Sử dụng này. Nếu bạn không đồng ý với bất kỳ phần nào của điều khoản, vui lòng ngừng sử dụng dịch vụ ngay lập tức.
+
+2. Quyền và trách nhiệm tài khoản
+- Bạn phải tự bảo mật mật khẩu tài khoản cá nhân và tự chịu trách nhiệm về tất cả các hoạt động xảy ra dưới tài khoản của mình.
+- Bạn cam kết cung cấp thông tin chính xác (như email đăng ký) để được bảo vệ quyền lợi khi có tranh chấp hoặc sự cố nạp thẻ.
+- Chúng tôi có quyền tạm ngừng hoặc khóa vĩnh viễn tài khoản của bạn mà không cần thông báo trước nếu phát hiện hành vi vi phạm nghiêm trọng.
+
+3. CHÍNH SÁCH VÀ MIỄN TRỪ TRÁCH NHIỆM AI (AI Policy)
+Sử Việt AI là một chatbot học thuật ứng dụng Trí Tuệ Nhân Tạo (LLM kết hợp Retrieval-Augmented Generation - RAG) để tìm kiếm và trả lời thông tin lịch sử. Người dùng cần hiểu và đồng ý với các nguyên tắc hoạt động sau:
+- Nội dung không chính xác 100%: Mặc dù hệ thống luôn ưu tiên trích dẫn các tài liệu sử liệu chính thống, AI có thể gặp hiện tượng "ảo giác" (hallucination) hoặc diễn đạt không hoàn toàn chính xác do tính chất tự nhiên của các mô hình ngôn ngữ lớn.
+- Không thay thế chuyên môn: Nội dung phản hồi của chatbot chỉ mang tính chất tham khảo học thuật. Tuyệt đối không sử dụng thông tin từ chatbot để làm cơ sở pháp lý, chẩn đoán y tế, tư vấn tài chính hoặc bất kỳ mục đích chuyên môn đặc thù nào khác.
+- Trách nhiệm kiểm chứng: Người dùng hoàn toàn tự chịu trách nhiệm đối chiếu, xác minh thông tin từ chatbot với các tài liệu sử học chính thống trước khi sử dụng cho các mục đích nghiên cứu, học tập, xuất bản hoặc giảng dạy. Chúng tôi không chịu trách nhiệm đối với bất kỳ hậu quả nào phát sinh do việc tin cậy tuyệt đối vào nội dung do AI tạo ra.
+
+4. Các hành vi bị cấm
+Người dùng cam kết KHÔNG thực hiện các hành vi sau khi sử dụng ứng dụng:
+- Cố tình đưa ra các câu hỏi hoặc ép buộc AI tạo ra nội dung kích động bạo lực, thù hận, bôi nhọ anh hùng dân tộc, xuyên tạc lịch sử đất nước, hoặc vi phạm pháp luật nước Cộng hòa Xã hội Chủ nghĩa Việt Nam.
+- Sử dụng các công cụ quét tự động, gửi yêu cầu tấn công từ chối dịch vụ (DDoS) hoặc khai thác các lỗ hổng hệ thống API nhằm làm gián đoạn máy chủ.
+- Lợi dụng các lỗi bảo mật hoặc kẽ hở logic để hack/cheat token, gian lận trong các câu hỏi thi đấu Q&A để giành phần thưởng.
+
+5. Chấm dứt dịch vụ
+Chúng tôi có quyền chấm dứt hoặc đình chỉ tài khoản của bạn ngay lập tức, mà không cần thông báo trước hay chịu trách nhiệm pháp lý, vì bất kỳ lý do gì, bao gồm nhưng không giới hạn ở việc vi phạm các Điều khoản sử dụng này. Sau khi chấm dứt, quyền sử dụng ứng dụng của bạn sẽ bị hủy bỏ ngay lập tức.""")
+    landing_footer_privacy = db.get_setting("landing_footer_privacy", """1. Thông tin nhà phát triển & Đơn vị chủ quản
+- Tên pháp lý: CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG
+- Người đại diện: NGÔ HỒ ANH KHÔI
+- Mã số thuế: 1801526082
+- Địa chỉ văn phòng: P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ
+- Hotline: 0916 416 409
+- Email liên hệ: nguyenquocdat888888@gmail.com
+
+2. Dữ liệu chúng tôi thu thập
+Để cung cấp trải nghiệm tốt nhất và lưu trữ lịch sử cá nhân cho bạn, chúng tôi thu thập một số thông tin sau:
+- Thông tin tài khoản: Tên đăng nhập, Địa chỉ Email, và Mật khẩu được mã hóa băm một chiều khi đăng ký qua hệ thống của chúng tôi.
+- Thông tin từ nhà cung cấp thứ ba: Tên, địa chỉ email, ảnh đại diện khi bạn chọn đăng nhập thông qua Google Sign-In hoặc các phương thức OAuth khác.
+- Lịch sử hội thoại: Các câu hỏi và câu trả lời trao đổi giữa bạn và chatbot AI nhằm hiển thị lại lịch sử cuộc chat và hỗ trợ tối ưu hóa thuật toán phản hồi sử liệu.
+- Dữ liệu giao dịch nạp tiền: Lịch sử nạp token, số tiền nạp, mã hóa đơn phục vụ cho việc đối chiếu và nâng cấp tài khoản. Chúng tôi hoàn toàn KHÔNG thu thập và KHÔNG lưu giữ thông tin tài khoản ngân hàng hoặc thẻ tín dụng của bạn.
+
+3. Mục đích sử dụng thông tin
+- Xác thực danh tính và duy trì trạng thái đăng nhập bảo mật của bạn.
+- Cung cấp và duy trì lịch sử hội thoại cá nhân.
+- Xử lý và ghi nhận tự động các giao dịch nạp token thông qua hệ thống ngân hàng liên kết.
+- Cải thiện và nâng cao độ chính xác của chatbot AI dựa trên các phản hồi ẩn danh từ cộng đồng.
+- Hỗ trợ người dùng, giải quyết khiếu nại hoặc sự cố kỹ thuật.
+
+4. Chia sẻ thông tin với bên thứ ba
+Chúng tôi cam kết KHÔNG bán, trao đổi, cho thuê hoặc chia sẻ dữ liệu cá nhân của bạn cho bất kỳ doanh nghiệp hoặc bên thứ ba nào vì mục đích quảng cáo hoặc thương mại. Dữ liệu chỉ được chia sẻ trong các trường hợp cực kỳ hạn chế sau:
+- Theo yêu cầu chính thức từ các cơ quan pháp luật có thẩm quyền của Việt Nam phù hợp với quy định của pháp luật.
+- Để tích hợp các cổng thanh toán/đối chiếu tự động (như SePay) phục vụ cho việc xác nhận giao dịch của chính bạn.
+
+5. Cookies và các công nghệ theo dõi
+Chúng tôi sử dụng LocalStorage trên trình duyệt và các cookie kỹ thuật cần thiết để lưu trữ mã token truy cập (Access Token) và ngôn ngữ bạn đã chọn. Việc này giúp bạn không phải đăng nhập lại mỗi khi mở ứng dụng. Chúng tôi không sử dụng cookies theo dõi quảng cáo liên trang.
+
+6. Quyền của người dùng & Xóa dữ liệu (Data Deletion)
+Bạn sở hữu toàn bộ dữ liệu của mình và có các quyền sau:
+- Xem và chỉnh sửa trực tiếp thông tin tài khoản tại trang Hồ sơ.
+- Xóa từng cuộc hội thoại hoặc toàn bộ lịch sử trò chuyện trực tiếp tại giao diện chat.
+- Yêu cầu xóa tài khoản vĩnh viễn và toàn bộ thông tin liên quan bất cứ lúc nào thông qua chức năng tự xóa trong ứng dụng hoặc gửi email yêu cầu về nguyenquocdat888888@gmail.com.
+- Thời gian xử lý yêu cầu xóa thủ công qua email là tối đa 30 ngày.""")
     
     landing_hero_words = db.get_setting("landing_hero_words", "Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A")
     landing_process_json = db.get_setting("landing_process_json", "")
@@ -583,8 +639,64 @@ async def get_public_settings():
         "landing_footer_address": db.get_setting("landing_footer_address", "P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ"),
         "landing_footer_phone": db.get_setting("landing_footer_phone", "0916 416 409"),
         "landing_footer_about_us": db.get_setting("landing_footer_about_us", "Sử Việt AI được xây dựng và phát triển bởi CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động."),
-        "landing_footer_terms": db.get_setting("landing_footer_terms", "1. Chấp nhận điều khoản\nBằng việc truy cập và sử dụng Sử Việt AI, bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây. Nếu không đồng ý, vui lòng ngừng sử dụng dịch vụ.\n\n2. Quyền và trách nhiệm người dùng\nBạn cam kết sử dụng dịch vụ vào mục đích học tập, nghiên cứu hợp pháp. Không sử dụng AI để tạo ra, phát tán các nội dung xuyên tạc lịch sử, chống phá nhà nước hoặc vi phạm thuần phong mỹ tục Việt Nam.\n\n3. Giới hạn trách nhiệm\nMặc dù Sử Việt AI đã được huấn luyện bằng các nguồn sử liệu chính thống, nhưng vì bản chất của Trí tuệ nhân tạo, đôi khi hệ thống có thể cung cấp thông tin thiếu sót hoặc chưa hoàn toàn chính xác. Người dùng nên tham khảo và đối chiếu thông tin khi dùng cho các mục đích học thuật quan trọng.\n\n4. Bản quyền\nToàn bộ thiết kế, logo, mã nguồn và hệ thống thuộc bản quyền của CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG. Nghiêm cấm sao chép dưới mọi hình thức."),
-        "landing_footer_privacy": db.get_setting("landing_footer_privacy", "1. Thu thập thông tin\nChúng tôi chỉ thu thập các thông tin cơ bản khi bạn đăng nhập (Tên, Email) và nội dung các đoạn chat để phục vụ cho việc cải thiện chất lượng của AI cũng như lưu trữ lịch sử hội thoại cho cá nhân bạn.\n\n2. Bảo mật dữ liệu\nTất cả dữ liệu của bạn đều được mã hóa và lưu trữ an toàn trên máy chủ của chúng tôi. Chúng tôi cam kết không bán, không trao đổi hoặc chia sẻ thông tin cá nhân của bạn cho bất kỳ bên thứ ba nào vì mục đích thương mại.\n\n3. Quyền kiểm soát của người dùng\nBạn có toàn quyền xem lại, xóa lịch sử chat hoặc yêu cầu xóa toàn bộ tài khoản và dữ liệu cá nhân bất cứ lúc nào thông qua chức năng Quản lý tài khoản."),
+        "landing_footer_terms": db.get_setting("landing_footer_terms", """1. Chấp nhận các Điều khoản
+Bằng việc truy cập, đăng ký tài khoản hoặc sử dụng bất kỳ phần nào của ứng dụng Sử Việt AI, bạn đồng ý tuân thủ và chịu sự ràng buộc bởi các Điều khoản Sử dụng này. Nếu bạn không đồng ý với bất kỳ phần nào của điều khoản, vui lòng ngừng sử dụng dịch vụ ngay lập tức.
+
+2. Quyền và trách nhiệm tài khoản
+- Bạn phải tự bảo mật mật khẩu tài khoản cá nhân và tự chịu trách nhiệm về tất cả các hoạt động xảy ra dưới tài khoản của mình.
+- Bạn cam kết cung cấp thông tin chính xác (như email đăng ký) để được bảo vệ quyền lợi khi có tranh chấp hoặc sự cố nạp thẻ.
+- Chúng tôi có quyền tạm ngừng hoặc khóa vĩnh viễn tài khoản của bạn mà không cần thông báo trước nếu phát hiện hành vi vi phạm nghiêm trọng.
+
+3. CHÍNH SÁCH VÀ MIỄN TRỪ TRÁCH NHIỆM AI (AI Policy)
+Sử Việt AI là một chatbot học thuật ứng dụng Trí Tuệ Nhân Tạo (LLM kết hợp Retrieval-Augmented Generation - RAG) để tìm kiếm và trả lời thông tin lịch sử. Người dùng cần hiểu và đồng ý với các nguyên tắc hoạt động sau:
+- Nội dung không chính xác 100%: Mặc dù hệ thống luôn ưu tiên trích dẫn các tài liệu sử liệu chính thống, AI có thể gặp hiện tượng "ảo giác" (hallucination) hoặc diễn đạt không hoàn toàn chính xác do tính chất tự nhiên của các mô hình ngôn ngữ lớn.
+- Không thay thế chuyên môn: Nội dung phản hồi của chatbot chỉ mang tính chất tham khảo học thuật. Tuyệt đối không sử dụng thông tin từ chatbot để làm cơ sở pháp lý, chẩn đoán y tế, tư vấn tài chính hoặc bất kỳ mục đích chuyên môn đặc thù nào khác.
+- Trách nhiệm kiểm chứng: Người dùng hoàn toàn tự chịu trách nhiệm đối chiếu, xác minh thông tin từ chatbot với các tài liệu sử học chính thống trước khi sử dụng cho các mục đích nghiên cứu, học tập, xuất bản hoặc giảng dạy. Chúng tôi không chịu trách nhiệm đối với bất kỳ hậu quả nào phát sinh do việc tin cậy tuyệt đối vào nội dung do AI tạo ra.
+
+4. Các hành vi bị cấm
+Người dùng cam kết KHÔNG thực hiện các hành vi sau khi sử dụng ứng dụng:
+- Cố tình đưa ra các câu hỏi hoặc ép buộc AI tạo ra nội dung kích động bạo lực, thù hận, bôi nhọ anh hùng dân tộc, xuyên tạc lịch sử đất nước, hoặc vi phạm pháp luật nước Cộng hòa Xã hội Chủ nghĩa Việt Nam.
+- Sử dụng các công cụ quét tự động, gửi yêu cầu tấn công từ chối dịch vụ (DDoS) hoặc khai thác các lỗ hổng hệ thống API nhằm làm gián đoạn máy chủ.
+- Lợi dụng các lỗi bảo mật hoặc kẽ hở logic để hack/cheat token, gian lận trong các câu hỏi thi đấu Q&A để giành phần thưởng.
+
+5. Chấm dứt dịch vụ
+Chúng tôi có quyền chấm dứt hoặc đình chỉ tài khoản của bạn ngay lập tức, mà không cần thông báo trước hay chịu trách nhiệm pháp lý, vì bất kỳ lý do gì, bao gồm nhưng không giới hạn ở việc vi phạm các Điều khoản sử dụng này. Sau khi chấm dứt, quyền sử dụng ứng dụng của bạn sẽ bị hủy bỏ ngay lập tức."""),
+        "landing_footer_privacy": db.get_setting("landing_footer_privacy", """1. Thông tin nhà phát triển & Đơn vị chủ quản
+- Tên pháp lý: CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG
+- Người đại diện: NGÔ HỒ ANH KHÔI
+- Mã số thuế: 1801526082
+- Địa chỉ văn phòng: P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ
+- Hotline: 0916 416 409
+- Email liên hệ: nguyenquocdat888888@gmail.com
+
+2. Dữ liệu chúng tôi thu thập
+Để cung cấp trải nghiệm tốt nhất và lưu trữ lịch sử cá nhân cho bạn, chúng tôi thu thập một số thông tin sau:
+- Thông tin tài khoản: Tên đăng nhập, Địa chỉ Email, và Mật khẩu được mã hóa băm một chiều khi đăng ký qua hệ thống của chúng tôi.
+- Thông tin từ nhà cung cấp thứ ba: Tên, địa chỉ email, ảnh đại diện khi bạn chọn đăng nhập thông qua Google Sign-In hoặc các phương thức OAuth khác.
+- Lịch sử hội thoại: Các câu hỏi và câu trả lời trao đổi giữa bạn và chatbot AI nhằm hiển thị lại lịch sử cuộc chat và hỗ trợ tối ưu hóa thuật toán phản hồi sử liệu.
+- Dữ liệu giao dịch nạp tiền: Lịch sử nạp token, số tiền nạp, mã hóa đơn phục vụ cho việc đối chiếu và nâng cấp tài khoản. Chúng tôi hoàn toàn KHÔNG thu thập và KHÔNG lưu giữ thông tin tài khoản ngân hàng hoặc thẻ tín dụng của bạn.
+
+3. Mục đích sử dụng thông tin
+- Xác thực danh tính và duy trì trạng thái đăng nhập bảo mật của bạn.
+- Cung cấp và duy trì lịch sử hội thoại cá nhân.
+- Xử lý và ghi nhận tự động các giao dịch nạp token thông qua hệ thống ngân hàng liên kết.
+- Cải thiện và nâng cao độ chính xác của chatbot AI dựa trên các phản hồi ẩn danh từ cộng đồng.
+- Hỗ trợ người dùng, giải quyết khiếu nại hoặc sự cố kỹ thuật.
+
+4. Chia sẻ thông tin với bên thứ ba
+Chúng tôi cam kết KHÔNG bán, trao đổi, cho thuê hoặc chia sẻ dữ liệu cá nhân của bạn cho bất kỳ doanh nghiệp hoặc bên thứ ba nào vì mục đích quảng cáo hoặc thương mại. Dữ liệu chỉ được chia sẻ trong các trường hợp cực kỳ hạn chế sau:
+- Theo yêu cầu chính thức từ các cơ quan pháp luật có thẩm quyền của Việt Nam phù hợp với quy định của pháp luật.
+- Để tích hợp các cổng thanh toán/đối chiếu tự động (như SePay) phục vụ cho việc xác nhận giao dịch của chính bạn.
+
+5. Cookies và các công nghệ theo dõi
+Chúng tôi sử dụng LocalStorage trên trình duyệt và các cookie kỹ thuật cần thiết để lưu trữ mã token truy cập (Access Token) và ngôn ngữ bạn đã chọn. Việc này giúp bạn không phải đăng nhập lại mỗi khi mở ứng dụng. Chúng tôi không sử dụng cookies theo dõi quảng cáo liên trang.
+
+6. Quyền của người dùng & Xóa dữ liệu (Data Deletion)
+Bạn sở hữu toàn bộ dữ liệu của mình và có các quyền sau:
+- Xem và chỉnh sửa trực tiếp thông tin tài khoản tại trang Hồ sơ.
+- Xóa từng cuộc hội thoại hoặc toàn bộ lịch sử trò chuyện trực tiếp tại giao diện chat.
+- Yêu cầu xóa tài khoản vĩnh viễn và toàn bộ thông tin liên quan bất cứ lúc nào thông qua chức năng tự xóa trong ứng dụng hoặc gửi email yêu cầu về nguyenquocdat888888@gmail.com.
+- Thời gian xử lý yêu cầu xóa thủ công qua email là tối đa 30 ngày."""),
         "landing_hero_words": db.get_setting("landing_hero_words", "Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A"),
         "landing_process_json": db.get_setting("landing_process_json", ""),
         "landing_features_json": db.get_setting("landing_features_json", ""),

@@ -8,7 +8,7 @@ import SecureImage from './SecureImage';
 import { API_ROOT } from '../api';
 
 interface PolicyViewsProps {
-  page: 'privacy-policy' | 'terms-of-service' | 'data-deletion' | 'support';
+  page: 'privacy-policy' | 'terms-of-service' | 'data-deletion' | 'support' | 'about';
   siteConfig: any;
   onBack: () => void;
 }
@@ -41,6 +41,7 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
         case 'terms-of-service': return 'Điều Khoản Sử Dụng (Terms of Service)';
         case 'data-deletion': return 'Chính Sách Xóa Dữ Liệu (Data Deletion Policy)';
         case 'support': return 'Trang Hỗ Trợ & Liên Hệ (Support & Contact)';
+        case 'about': return 'Giới Thiệu Về Chúng Tôi (About Us)';
       }
     } else {
       switch (page) {
@@ -48,6 +49,7 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
         case 'terms-of-service': return 'Terms of Service';
         case 'data-deletion': return 'Data Deletion Policy';
         case 'support': return 'Support & Contact';
+        case 'about': return 'About Us';
       }
     }
   };
@@ -584,6 +586,69 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
                   <span className="font-bold text-stone-950 mb-1">Office Address</span>
                   <span className="text-stone-500 text-xs">{address}</span>
                 </div>
+              </div>
+            </section>
+          </div>
+        );
+      case 'about':
+        const aboutUsText = siteConfig?.landing_footer_about_us || "Sử Việt AI được xây dựng và phát triển bởi CÔNG TY TNHH MTV CÔNG NGHỆ KỸ THUẬT TIÊN PHONG với sứ mệnh số hóa và bảo tồn các giá trị lịch sử dân tộc. Nền tảng ứng dụng công nghệ Trí tuệ nhân tạo (AI) hiện đại để tạo ra một chuyên gia lịch sử ảo, giúp học sinh, sinh viên và những người yêu thích lịch sử tiếp cận kiến thức một cách dễ dàng và sinh động.";
+        return isVi ? (
+          <div className="space-y-8 text-stone-700 leading-relaxed font-serif text-lg">
+            <section className="text-center pb-6 border-b border-stone-200">
+              <div className="w-24 h-24 bg-red-800 text-amber-100 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg text-4xl font-historical-premium font-bold">史</div>
+              <h3 className="text-2xl font-bold font-historical-premium text-stone-900">{siteTitle}</h3>
+              <p className="text-stone-500 font-sans text-sm mt-1">Nền tảng tìm hiểu Lịch sử Việt Nam ứng dụng Trí tuệ nhân tạo</p>
+            </section>
+
+            <section className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/50">
+              <h3 className="text-xl font-bold font-historical text-stone-900 mb-3 flex items-center gap-2">
+                <Landmark className="text-red-800" size={22} />
+                Sứ mệnh của chúng tôi
+              </h3>
+              <p className="whitespace-pre-line text-stone-850">
+                {aboutUsText}
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-xl font-bold font-historical text-stone-900 mb-3">Thông tin pháp lý & Đơn vị chủ quản</h3>
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-3 font-sans text-sm">
+                <p><strong>Tên đơn vị chủ quản:</strong> {companyName}</p>
+                <p><strong>Người đại diện pháp luật:</strong> {representative}</p>
+                <p><strong>Mã số thuế doanh nghiệp:</strong> {taxCode}</p>
+                <p><strong>Địa chỉ trụ sở văn phòng:</strong> {address}</p>
+                <p><strong>Hotline hỗ trợ:</strong> <a href={formatPhoneUrl(phone)} className="text-red-800 font-semibold hover:underline">{phone}</a></p>
+                <p><strong>Địa chỉ Email liên hệ:</strong> <a href={`mailto:${email}`} className="text-red-800 font-semibold hover:underline">{email}</a></p>
+              </div>
+            </section>
+          </div>
+        ) : (
+          <div className="space-y-8 text-stone-700 leading-relaxed font-serif text-lg">
+            <section className="text-center pb-6 border-b border-stone-200">
+              <div className="w-24 h-24 bg-red-800 text-amber-100 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg text-4xl font-historical-premium font-bold">史</div>
+              <h3 className="text-2xl font-bold font-historical-premium text-stone-900">{siteTitle}</h3>
+              <p className="text-stone-500 font-sans text-sm mt-1">AI-powered Vietnamese History Chatbot Platform</p>
+            </section>
+
+            <section className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/50">
+              <h3 className="text-xl font-bold font-historical text-stone-900 mb-3 flex items-center gap-2">
+                <Landmark className="text-red-800" size={22} />
+                Our Mission
+              </h3>
+              <p className="whitespace-pre-line text-stone-850">
+                {siteConfig?.landing_footer_about_us_en || "Sử Việt AI is built and developed by TIEN PHONG TECHNOLOGY ENGINEERING COMPANY LIMITED with the mission of digitizing and preserving national historical values. The platform applies modern Artificial Intelligence (AI) technology to create a virtual history expert, helping students, researchers, and history enthusiasts access knowledge easily and vividly."}
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-xl font-bold font-historical text-stone-900 mb-3">Legal Information & Managing Entity</h3>
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-3 font-sans text-sm">
+                <p><strong>Legal Entity Name:</strong> {companyName}</p>
+                <p><strong>Legal Representative:</strong> {representative}</p>
+                <p><strong>Business Tax Code:</strong> {taxCode}</p>
+                <p><strong>Office Address:</strong> {address}</p>
+                <p><strong>Support Hotline:</strong> <a href={formatPhoneUrl(phone)} className="text-red-800 font-semibold hover:underline">{phone}</a></p>
+                <p><strong>Contact Email:</strong> <a href={`mailto:${email}`} className="text-red-800 font-semibold hover:underline">{email}</a></p>
               </div>
             </section>
           </div>

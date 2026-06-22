@@ -90,12 +90,13 @@ const AppInner: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showReportForm, setShowReportForm] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [policyPage, setPolicyPage] = useState<'privacy-policy' | 'terms-of-service' | 'data-deletion' | 'support' | null>(() => {
+  const [policyPage, setPolicyPage] = useState<'privacy-policy' | 'terms-of-service' | 'data-deletion' | 'support' | 'about' | null>(() => {
     const path = window.location.pathname.replace(/\/$/, '');
     if (path === '/privacy-policy') return 'privacy-policy';
     if (path === '/terms-of-service') return 'terms-of-service';
     if (path === '/data-deletion') return 'data-deletion';
     if (path === '/support') return 'support';
+    if (path === '/about' || path === '/about-us') return 'about';
     return null;
   });
 
@@ -106,6 +107,7 @@ const AppInner: React.FC = () => {
       else if (path === '/terms-of-service') setPolicyPage('terms-of-service');
       else if (path === '/data-deletion') setPolicyPage('data-deletion');
       else if (path === '/support') setPolicyPage('support');
+      else if (path === '/about' || path === '/about-us') setPolicyPage('about');
       else setPolicyPage(null);
     };
     window.addEventListener('popstate', handlePopState);

@@ -716,7 +716,19 @@ const Footer = ({ onOpenModal, siteConfig }: { onOpenModal: (type: 'about' | 'te
           <div className="md:col-span-3">
             <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">{t.footer_quick_links}</h4>
             <ul className="space-y-3 text-sm font-medium text-stone-500">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('about'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_about_link}</a></li>
+              <li>
+                <a 
+                  href="/about" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    window.history.pushState({}, '', '/about'); 
+                    window.dispatchEvent(new Event('popstate')); 
+                  }} 
+                  className="hover:text-red-700 transition-colors flex items-center gap-2"
+                >
+                  <ChevronRight size={14} /> {t.footer_about_link}
+                </a>
+              </li>
               <li>
                 <a 
                   href="/terms-of-service" 

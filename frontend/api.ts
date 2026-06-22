@@ -353,6 +353,18 @@ async getSiteConfig(): Promise<{
     return response.json();
   },
 
+  async deleteAccount(): Promise<{ message: string }> {
+    const response = await fetch(`${BASE_URL}/auth/delete-account`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Xóa tài khoản thất bại');
+    }
+    return response.json();
+  },
+
   async uploadAvatar(file: File): Promise<{ picture_url: string }> {
     const formData = new FormData();
     formData.append('file', file);

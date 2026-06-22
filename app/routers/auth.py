@@ -338,3 +338,21 @@ def check_login(user=Depends(get_current_user)):
         "message": "✅ Token hợp lệ, người dùng đang đăng nhập!",
         "user": safe_user,
     }
+
+
+@router.delete("/delete-account")
+def delete_account(user=Depends(get_current_user)):
+    user_db = UserDB()
+    db_user = user_db.get_by_email(user["email"])
+    if not db_user:
+        user_db.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    # Xóa tài khoản
+    user_db.delete_user(db_user["id"])
+    
+    # Đồng thời xóa sạch lịch sử chat của user này
+    user_db.delete_user_chat_logs(db_user["id"])
+    
+    user_db.close()
+    return {"message": "Tài khoản của bạn đã được xóa vĩnh viễn thành công."}

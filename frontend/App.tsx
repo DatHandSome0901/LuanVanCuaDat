@@ -21,6 +21,7 @@ import PaymentReportModal from './components/payment/PaymentReportModal';
 import { confirmAction } from './utils/swal';
 import SecureImage from './components/SecureImage';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { PolicyViews } from './components/PolicyViews';
 
 // Floating support ticket button (bottom-left)
 const ReportFloatBtn: React.FC<{
@@ -89,6 +90,27 @@ const AppInner: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showReportForm, setShowReportForm] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [policyPage, setPolicyPage] = useState<'privacy-policy' | 'terms-of-service' | 'data-deletion' | 'support' | null>(() => {
+    const path = window.location.pathname.replace(/\/$/, '');
+    if (path === '/privacy-policy') return 'privacy-policy';
+    if (path === '/terms-of-service') return 'terms-of-service';
+    if (path === '/data-deletion') return 'data-deletion';
+    if (path === '/support') return 'support';
+    return null;
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.replace(/\/$/, '');
+      if (path === '/privacy-policy') setPolicyPage('privacy-policy');
+      else if (path === '/terms-of-service') setPolicyPage('terms-of-service');
+      else if (path === '/data-deletion') setPolicyPage('data-deletion');
+      else if (path === '/support') setPolicyPage('support');
+      else setPolicyPage(null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -351,6 +373,19 @@ const AppInner: React.FC = () => {
       setUser({ ...user, token_balance: newBalance });
     }
   };
+
+  if (policyPage) {
+    return (
+      <PolicyViews 
+        page={policyPage} 
+        siteConfig={siteConfig} 
+        onBack={() => {
+          window.history.pushState({}, '', '/');
+          setPolicyPage(null);
+        }} 
+      />
+    );
+  }
 
   // ================= LOADING =================
   if (isAuthLoading) {

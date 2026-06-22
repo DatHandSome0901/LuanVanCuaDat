@@ -3,6 +3,7 @@ import { User } from '../../types';
 import { API_ROOT, api } from '../../api';
 import { useLanguage } from '../../contexts/LanguageContext';
 import toast from 'react-hot-toast';
+import { confirmAction } from '../../utils/swal';
 
 interface ProfileInfoCardProps {
   user: User;
@@ -73,6 +74,29 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
       toast.error(err.message || 'Cập nhật thất bại');
     } finally {
       setIsSavingName(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const isVi = language === 'vi';
+    const title = isVi ? 'Xác nhận xóa tài khoản?' : 'Confirm account deletion?';
+    const text = isVi 
+      ? 'Toàn bộ dữ liệu tài khoản, lịch sử chat và số dư token của bạn sẽ bị xóa vĩnh viễn và không thể khôi phục!'
+      : 'All your account data, chat history, and token balances will be permanently deleted and cannot be recovered!';
+    
+    const confirmed = await confirmAction(title, text);
+    if (!confirmed) return;
+    
+    try {
+      const res = await api.deleteAccount();
+      toast.success(res.message || (isVi ? 'Đã xóa tài khoản thành công!' : 'Account deleted successfully!'));
+      
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('conversation_id');
+      
+      window.location.href = '/';
+    } catch (err: any) {
+      toast.error(err.message || (isVi ? 'Xóa tài khoản thất bại' : 'Failed to delete account'));
     }
   };
 
@@ -230,6 +254,18 @@ const ProfileInfoCard: React.FC<ProfileInfoCardProps> = ({
             {language === 'vi' ? 'Góp ý hoặc báo cáo sự cố' : 'Feedback or report issues'}
           </InfoRow>
         )}
+
+        {/* Delete Account */}
+        <InfoRow label={language === 'vi' ? 'Quản lý tài khoản' : 'Account Management'} action={
+          <button 
+            onClick={handleDeleteAccount} 
+            className="text-[10px] font-bold text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors uppercase tracking-wider animate-pulse"
+          >
+            ❌ {language === 'vi' ? 'Xóa tài khoản' : 'Delete Account'}
+          </button>
+        }>
+          {language === 'vi' ? 'Xóa vĩnh viễn tài khoản & dữ liệu' : 'Permanently delete account & data'}
+        </InfoRow>
 
         {/* Token balance */}
         <div className="pt-2">

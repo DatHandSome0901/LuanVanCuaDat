@@ -717,8 +717,58 @@ const Footer = ({ onOpenModal, siteConfig }: { onOpenModal: (type: 'about' | 'te
             <h4 className="text-stone-900 font-bold mb-4 uppercase tracking-wider text-sm">{t.footer_quick_links}</h4>
             <ul className="space-y-3 text-sm font-medium text-stone-500">
               <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('about'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_about_link}</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('terms'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_terms_link}</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('privacy'); }} className="hover:text-red-700 transition-colors flex items-center gap-2"><ChevronRight size={14} /> {t.footer_privacy_link}</a></li>
+              <li>
+                <a 
+                  href="/terms-of-service" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    window.history.pushState({}, '', '/terms-of-service'); 
+                    window.dispatchEvent(new Event('popstate')); 
+                  }} 
+                  className="hover:text-red-700 transition-colors flex items-center gap-2"
+                >
+                  <ChevronRight size={14} /> {t.footer_terms_link}
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="/privacy-policy" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    window.history.pushState({}, '', '/privacy-policy'); 
+                    window.dispatchEvent(new Event('popstate')); 
+                  }} 
+                  className="hover:text-red-700 transition-colors flex items-center gap-2"
+                >
+                  <ChevronRight size={14} /> {t.footer_privacy_link}
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="/data-deletion" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    window.history.pushState({}, '', '/data-deletion'); 
+                    window.dispatchEvent(new Event('popstate')); 
+                  }} 
+                  className="hover:text-red-700 transition-colors flex items-center gap-2"
+                >
+                  <ChevronRight size={14} /> {language === 'vi' ? 'Chính sách xóa dữ liệu' : 'Data Deletion Policy'}
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="/support" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    window.history.pushState({}, '', '/support'); 
+                    window.dispatchEvent(new Event('popstate')); 
+                  }} 
+                  className="hover:text-red-700 transition-colors flex items-center gap-2"
+                >
+                  <ChevronRight size={14} /> {language === 'vi' ? 'Hỗ trợ & FAQ' : 'Support & FAQ'}
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -731,7 +781,15 @@ const Footer = ({ onOpenModal, siteConfig }: { onOpenModal: (type: 'about' | 'te
             <p className="text-stone-600 text-sm mb-6 flex items-center gap-2">
               <strong>{t.footer_hotline_label}</strong> <a href={`tel:${cleanPhone}`} className="text-red-700 font-bold hover:underline text-lg">{phone}</a>
             </p>
-            <a href="#" onClick={(e) => { e.preventDefault(); onOpenModal('contact'); }} className="inline-flex items-center gap-2 px-6 py-3 bg-stone-900 hover:bg-red-800 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg cursor-pointer">
+            <a 
+              href="/support" 
+              onClick={(e) => { 
+                e.preventDefault(); 
+                window.history.pushState({}, '', '/support'); 
+                window.dispatchEvent(new Event('popstate')); 
+              }} 
+              className="inline-flex items-center gap-2 px-6 py-3 bg-stone-900 hover:bg-red-800 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg cursor-pointer"
+            >
               <MessageCircle size={18} /> {t.footer_contact_btn}
             </a>
           </div>

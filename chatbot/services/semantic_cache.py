@@ -35,7 +35,8 @@ class SemanticCacheManager:
         embedding_model_name: str,
         tenant_id: str = "default",
         knowledge_base_id: str = "default",
-        user_id: int = None
+        user_id: int = None,
+        strict_user_id: bool = False
     ) -> dict | None:
         """
         Looks up a question in the scoped semantic cache.
@@ -48,7 +49,8 @@ class SemanticCacheManager:
                 embedding_model=embedding_model_name,
                 tenant_id=tenant_id,
                 knowledge_base_id=knowledge_base_id,
-                user_id=user_id
+                user_id=user_id,
+                strict_user_id=strict_user_id
             )
             db.close()
         except Exception as e:

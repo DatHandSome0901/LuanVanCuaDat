@@ -700,6 +700,7 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
 
         # 0. SEARCH USER RAG FAISS (similarity search top-k=5)
         user_id = state.get("user_id")
+        print(f"DEBUG: retrieve user_id from state = {user_id} (type={type(user_id)})")
         if user_id:
             user_rag_path = os.path.join("utils", "data_vector_new", f"user_rag_{user_id}", self.embedding_model_name)
             if os.path.exists(user_rag_path) and os.path.exists(os.path.join(user_rag_path, "index.faiss")):
@@ -958,10 +959,7 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
         if not self.use_llm_document_grader:
             for doc in documents:
                 if doc.metadata.get("is_user_rag"):
-                    if doc_matches_either(question, doc, entity_key):
-                        relevant_docs.append(doc)
-                    else:
-                        print(f"   [FAST FILTERED] Off-topic user note: {doc.metadata.get('source')}")
+                    relevant_docs.append(doc)
                     continue
                 doc_source = doc.metadata.get("source", "")
                 doc_type = doc.metadata.get("type", "")

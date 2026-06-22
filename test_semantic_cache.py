@@ -209,6 +209,73 @@ def run_tests():
     print("[OK] Test 5 Passed: Version invalidation successfully verified!")
     
     # ----------------------------------------------------
+    # TEST 5b: Strict User Cache Isolation
+    # ----------------------------------------------------
+    print("\n--- TEST 5b: Strict User Cache Isolation ---")
+    
+    # Let's save a global cache entry (user_id=None)
+    question_strict = "ai là tổng đốc thành hà nội năm 1882?"
+    answer_global = "Hoàng Diệu là tổng đốc thành Hà Nội năm 1882."
+    
+    cache_manager.save(
+        question=question_strict,
+        answer=answer_global,
+        sources=[],
+        embedding_model_name="mock_model",
+        tenant_id="default",
+        knowledge_base_id="default",
+        user_id=None
+    )
+    
+    # 1. Standard lookup (strict_user_id=False, user_id=42) should hit the global entry
+    hit_std = cache_manager.lookup(
+        question=question_strict,
+        embedding_model_name="mock_model",
+        tenant_id="default",
+        knowledge_base_id="default",
+        user_id=42,
+        strict_user_id=False
+    )
+    assert hit_std is not None, "Test 5b Failed: Standard lookup missed global cache."
+    assert hit_std["answer"] == answer_global, "Test 5b Failed: Mismatch in standard lookup answer."
+    
+    # 2. Strict lookup (strict_user_id=True, user_id=42) should MISS the global entry (isolation check)
+    hit_strict_miss = cache_manager.lookup(
+        question=question_strict,
+        embedding_model_name="mock_model",
+        tenant_id="default",
+        knowledge_base_id="default",
+        user_id=42,
+        strict_user_id=True
+    )
+    assert hit_strict_miss is None, "Test 5b Failed: Strict lookup leaked global cache to private scope."
+    
+    # 3. Save a private cache entry for user_id=42
+    answer_private = "Hoàng Diệu tuẫn tiết tại Võ Miếu."
+    cache_manager.save(
+        question=question_strict,
+        answer=answer_private,
+        sources=[],
+        embedding_model_name="mock_model",
+        tenant_id="default",
+        knowledge_base_id="default",
+        user_id=42
+    )
+    
+    # 4. Strict lookup for user_id=42 should now HIT the private entry
+    hit_strict_hit = cache_manager.lookup(
+        question=question_strict,
+        embedding_model_name="mock_model",
+        tenant_id="default",
+        knowledge_base_id="default",
+        user_id=42,
+        strict_user_id=True
+    )
+    assert hit_strict_hit is not None, "Test 5b Failed: Strict lookup missed private cache."
+    assert hit_strict_hit["answer"] == answer_private, f"Test 5b Failed: Expected private answer, got: {hit_strict_hit['answer']}"
+    print("[OK] Test 5b Passed: Strict user cache isolation verified!")
+
+    # ----------------------------------------------------
     # TEST 6: Helper Methods
     # ----------------------------------------------------
     print("\n--- TEST 6: Helper Management Methods ---")

@@ -574,16 +574,23 @@ class BaseDB:
     # ==========================================
     # SEMANTIC CACHE METHODS
     # ==========================================
-    def get_all_semantic_cache(self, embedding_model, tenant_id='default', knowledge_base_id='default', user_id=None):
-        query = """
+    def get_all_semantic_cache(self, embedding_model, tenant_id='default', knowledge_base_id='default', user_id=None, strict_user_id=False):
+        if strict_user_id and user_id is not None:
+            user_condition = "AND user_id = ?"
+            params = (embedding_model, tenant_id, knowledge_base_id, user_id)
+        else:
+            user_condition = "AND (user_id IS NULL OR user_id = ?)"
+            params = (embedding_model, tenant_id, knowledge_base_id, user_id)
+            
+        query = f"""
             SELECT question, answer, sources, embedding, tenant_id, user_id, knowledge_base_id, kb_version, expires_at 
             FROM semantic_cache 
             WHERE embedding_model = ? 
               AND tenant_id = ? 
               AND knowledge_base_id = ? 
-              AND (user_id IS NULL OR user_id = ?)
+              {user_condition}
         """
-        self.cursor.execute(query, (embedding_model, tenant_id, knowledge_base_id, user_id))
+        self.cursor.execute(query, params)
         return [dict(row) for row in self.cursor.fetchall()]
 
     def add_semantic_cache(self, question, answer, sources_json, embedding_json, embedding_model, tenant_id='default', user_id=None, knowledge_base_id='default', kb_version='1.0', expires_at=None):

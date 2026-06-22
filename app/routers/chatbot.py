@@ -1388,6 +1388,16 @@ def _process_chat_request(
         else:
             retrieval_question = _resolve_contextual_question(request.question, chat_history)
 
+        # ===== CHECK USER PERSONAL RAG =====
+        has_user_rag = False
+        user_id = current_user.get("id") or current_user.get("user_id")
+        if user_id:
+            try:
+                user_rag_items = user_db.get_user_rag_items(user_id)
+                has_user_rag = len(user_rag_items) > 0
+            except Exception as e:
+                print(f"⚠️ Error checking user RAG items: {e}")
+
         # ===== SEMANTIC CACHE LOOKUP =====
         from chatbot.services.semantic_cache import SemanticCacheManager
         cache_manager = SemanticCacheManager()
@@ -1395,12 +1405,18 @@ def _process_chat_request(
         tenant_id = os.environ.get("DEFAULT_TENANT_ID", "default")
         kb_id = os.environ.get("DEFAULT_KB_ID", "default")
         
+        # If the user has personal RAG items, we only look up in their private cache entries (strict_user_id=True)
+        # Otherwise, we look up in the shared cache (user_id=None, strict_user_id=False)
+        lookup_user_id = user_id if has_user_rag else None
+        strict_lookup = has_user_rag
+        
         cached_hit = cache_manager.lookup(
             question=retrieval_question,
             embedding_model_name=embedding_model_name,
             tenant_id=tenant_id,
             knowledge_base_id=kb_id,
-            user_id=None # None means search shared cache accessible by other users!
+            user_id=lookup_user_id,
+            strict_user_id=strict_lookup
         )
         
         if cached_hit:
@@ -1591,6 +1607,9 @@ def _process_chat_request(
         if is_rag_or_kb:
             try:
                 ttl_seconds = int(os.environ.get("SEMANTIC_CACHE_TTL", "0"))
+                # If this generation used any document from User RAG, save with user's ID so it remains private
+                has_user_rag_doc = any(doc.metadata.get("is_user_rag", False) for doc in documents)
+                save_user_id = user_id if has_user_rag_doc else None
                 cache_manager.save(
                     question=retrieval_question,
                     answer=vietnamese_generation,
@@ -1598,7 +1617,7 @@ def _process_chat_request(
                     embedding_model_name=embedding_model_name,
                     tenant_id=tenant_id,
                     knowledge_base_id=kb_id,
-                    user_id=None,
+                    user_id=save_user_id,
                     ttl_seconds=ttl_seconds if ttl_seconds > 0 else None
                 )
             except Exception as e:
@@ -2093,18 +2112,34 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         else:
             retrieval_question = _resolve_contextual_question(request.question, chat_history)
 
+        # ===== CHECK USER PERSONAL RAG =====
+        has_user_rag = False
+        user_id = current_user.get("id") or current_user.get("user_id")
+        if user_id:
+            try:
+                user_rag_items = user_db.get_user_rag_items(user_id)
+                has_user_rag = len(user_rag_items) > 0
+            except Exception as e:
+                print(f"⚠️ Error checking user RAG items: {e}")
+
         # ===== SEMANTIC CACHE CHECK =====
         from chatbot.services.semantic_cache import SemanticCacheManager
         cache_manager = SemanticCacheManager()
         tenant_id = os.environ.get("DEFAULT_TENANT_ID", "default")
         kb_id = os.environ.get("DEFAULT_KB_ID", "default")
 
+        # If the user has personal RAG items, we only look up in their private cache entries (strict_user_id=True)
+        # Otherwise, we look up in the shared cache (user_id=None, strict_user_id=False)
+        lookup_user_id = user_id if has_user_rag else None
+        strict_lookup = has_user_rag
+
         cached_hit = cache_manager.lookup(
             question=retrieval_question,
             embedding_model_name=embedding_model_name,
             tenant_id=tenant_id,
             knowledge_base_id=kb_id,
-            user_id=None,
+            user_id=lookup_user_id,
+            strict_user_id=strict_lookup
         )
 
         if cached_hit:
@@ -2463,6 +2498,9 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         if is_rag_or_kb:
             try:
                 ttl_seconds = int(os.environ.get("SEMANTIC_CACHE_TTL", "0"))
+                # If this generation used any document from User RAG, save with user's ID so it remains private
+                has_user_rag_doc = any(doc.metadata.get("is_user_rag", False) for doc in documents)
+                save_user_id = user_id if has_user_rag_doc else None
                 cache_manager.save(
                     question=retrieval_question,
                     answer=vietnamese_generation,
@@ -2470,7 +2508,7 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                     embedding_model_name=embedding_model_name,
                     tenant_id=tenant_id,
                     knowledge_base_id=kb_id,
-                    user_id=None,
+                    user_id=save_user_id,
                     ttl_seconds=ttl_seconds if ttl_seconds > 0 else None,
                 )
             except Exception as cache_e:

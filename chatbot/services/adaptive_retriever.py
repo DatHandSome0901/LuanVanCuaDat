@@ -146,19 +146,22 @@ class AdaptiveRetriever:
             t_score = temporal_score(query, text)
             c_score = causal_score(query, text)
 
-            final = (alpha * sem) + (beta * t_score) + (gamma * c_score)
+            if doc.metadata.get("is_user_rag"):
+                final = 1.0
+            else:
+                final = (alpha * sem) + (beta * t_score) + (gamma * c_score)
 
-            # Entity-aware delta: bonus nếu doc chứa entity, penalty nếu lạc đề
-            if entity_scorer and not doc.metadata.get("is_user_rag"):
-                # Kết hợp title + content để score
-                doc_meta_text = (
-                    str(doc.metadata.get("file_name", "")) + " " +
-                    str(doc.metadata.get("source", ""))
-                )
-                entity_delta = entity_scorer(doc_meta_text + " " + text, entity_key)
-                final = final + entity_delta
-                if entity_delta != 0.0:
-                    print(f"   [ENTITY DELTA] doc[{rank}] entity_delta={entity_delta:+.2f}")
+                # Entity-aware delta: bonus nếu doc chứa entity, penalty nếu lạc đề
+                if entity_scorer:
+                    # Kết hợp title + content để score
+                    doc_meta_text = (
+                        str(doc.metadata.get("file_name", "")) + " " +
+                        str(doc.metadata.get("source", ""))
+                    )
+                    entity_delta = entity_scorer(doc_meta_text + " " + text, entity_key)
+                    final = final + entity_delta
+                    if entity_delta != 0.0:
+                        print(f"   [ENTITY DELTA] doc[{rank}] entity_delta={entity_delta:+.2f}")
 
             final = round(min(max(final, 0.0), 1.0), 4)
 

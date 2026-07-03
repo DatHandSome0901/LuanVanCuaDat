@@ -186,7 +186,7 @@ def run_update():
     dev_server_url = f"http://{current_ip}:5173"
     print(f"[*] Vite dev server URL: {dev_server_url}")
     update_env_file(current_ip)
-    api_changed = update_api_ts("https://frontend-neon-gamma-98.vercel.app")
+    api_changed = True # Forced rebuild
     cap_changed = update_capacitor_config(dev_server_url)
     vercel_changed = update_vercel_json(native_api_url)
 

@@ -9,7 +9,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://railway-spearmint-badland.ngrok-free.dev/api/v1/:path*"
+      "destination": "https://perpetual-marina-discolor.ngrok-free.dev/api/v1/:path*"
     }
   ]
 }

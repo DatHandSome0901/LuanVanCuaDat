@@ -24,7 +24,7 @@ import atexit
 from update_mobile_ip import run_update
 
 # === CAU HINH ===
-NGROK_STATIC_DOMAIN = "railway-spearmint-badland.ngrok-free.dev"  # Static domain moi cua ban
+NGROK_STATIC_DOMAIN = "perpetual-marina-discolor.ngrok-free.dev"  # Static domain moi cua ban
 BACKEND_PORT = 2643
 FRONTEND_PORT = 5173
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")

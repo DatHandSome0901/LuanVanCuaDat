@@ -34,10 +34,12 @@ def get_llm():
     llm_name = LLM_NAME.lower()
     if llm_name == "vertex":
         from langchain_google_vertexai import ChatVertexAI
+        from chatbot.utils.vertex_helper import get_vertex_config
+        project_id, location = get_vertex_config()
         return ChatVertexAI(
             model_name=VERTEX_MODEL,
-            project=os.environ.get("PROJECT_ID"),
-            location=os.environ.get("LOCATION", "us-central1"),
+            project=project_id,
+            location=location,
             temperature=0.0,
         )
     elif llm_name == "openai":

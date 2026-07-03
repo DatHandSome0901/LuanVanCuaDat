@@ -153,6 +153,13 @@ async def google_callback(request: Request, code: str = Query(...), state: str =
 
     # 1. Trao đổi code lấy access_token từ Google
     async with httpx.AsyncClient() as client:
+        print("=== DEBUG GOOGLE TOKEN EXCHANGE ===")
+        print("Code:", code)
+        print("Client ID:", settings.GOOGLE_CLIENT_ID)
+        print("Client Secret:", settings.GOOGLE_CLIENT_SECRET)
+        print("Redirect URI:", redirect_uri)
+        print("====================================")
+        
         token_url = "https://oauth2.googleapis.com/token"
         data = {
             "code": code,
@@ -162,9 +169,12 @@ async def google_callback(request: Request, code: str = Query(...), state: str =
             "grant_type": "authorization_code",
         }
         resp = await client.post(token_url, data=data)
+        print("Google Response Status:", resp.status_code)
+        print("Google Response Body:", resp.text)
+        
         if resp.status_code != 200:
-            print("Google Token Error:", resp.text)
-            raise HTTPException(status_code=400, detail="Lỗi xác thực Google (Token Exchange)")
+            print("Google Token Error details:", resp.text)
+            raise HTTPException(status_code=400, detail=f"Lỗi xác thực Google (Token Exchange): {resp.text}")
         
         token_data = resp.json()
         access_token = token_data.get("access_token")

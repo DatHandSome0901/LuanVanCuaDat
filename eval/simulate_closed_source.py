@@ -89,12 +89,15 @@ def load_faiss_store():
 def get_llms():
     from langchain_google_vertexai import ChatVertexAI
     from langchain_openai import ChatOpenAI
+    from chatbot.utils.vertex_helper import get_vertex_config
     
+    project_id, location = get_vertex_config()
+
     # Vertex AI (Gemini 2.5 Flash) for Gemini Gems and NotebookLM
     vertex_llm = ChatVertexAI(
         model_name=os.environ.get("VERTEX_MODEL_NAME", "gemini-2.5-flash"),
-        project=os.environ.get("PROJECT_ID"),
-        location=os.environ.get("LOCATION", "us-central1"),
+        project=project_id,
+        location=location,
         temperature=0.0,
     )
     

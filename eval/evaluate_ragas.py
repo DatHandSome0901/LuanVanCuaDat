@@ -72,17 +72,20 @@ def get_ragas_llm_and_embeddings():
     from langchain_google_vertexai import ChatVertexAI, VertexAIEmbeddings
     from ragas.llms import LangchainLLMWrapper
     from ragas.embeddings import LangchainEmbeddingsWrapper
+    from chatbot.utils.vertex_helper import get_vertex_config
+
+    project_id, location = get_vertex_config()
 
     llm = LangchainLLMWrapper(ChatVertexAI(
         model_name=os.environ.get("VERTEX_MODEL_NAME", "gemini-2.5-flash"),
-        project=os.environ.get("PROJECT_ID"),
-        location=os.environ.get("LOCATION", "us-central1"),
+        project=project_id,
+        location=location,
         temperature=0.0,
     ))
     embeddings = LangchainEmbeddingsWrapper(VertexAIEmbeddings(
         model_name="text-embedding-004",
-        project=os.environ.get("PROJECT_ID"),
-        location=os.environ.get("LOCATION", "us-central1"),
+        project=project_id,
+        location=location,
     ))
     return llm, embeddings
 

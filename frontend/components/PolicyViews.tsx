@@ -58,8 +58,24 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
   const renderContent = () => {
     const isVi = language === 'vi';
 
+    const isPrivacyCustomized = siteConfig?.landing_footer_privacy && 
+      !siteConfig.landing_footer_privacy.trim().startsWith("1. Thông tin nhà phát triển");
+    const isTermsCustomized = siteConfig?.landing_footer_terms && 
+      !siteConfig.landing_footer_terms.trim().startsWith("1. Chấp nhận các Điều khoản");
+    const isDataDeletionCustomized = siteConfig?.landing_footer_data_deletion && 
+      !siteConfig.landing_footer_data_deletion.trim().startsWith("1. Quyền tự quyết");
+    const isSupportCustomized = siteConfig?.landing_footer_support && 
+      !siteConfig.landing_footer_support.trim().startsWith("1. Hướng dẫn sử dụng nhanh");
+
     switch (page) {
       case 'privacy-policy':
+        if (isVi && isPrivacyCustomized) {
+          return (
+            <div className="space-y-6 text-stone-700 leading-relaxed font-serif text-lg whitespace-pre-line bg-amber-50/10 p-6 rounded-2xl border border-amber-100/50">
+              {siteConfig.landing_footer_privacy}
+            </div>
+          );
+        }
         return isVi ? (
           <div className="space-y-8 text-stone-700 leading-relaxed font-serif text-lg">
             <section className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/50">
@@ -211,6 +227,13 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
         );
 
       case 'terms-of-service':
+        if (isVi && isTermsCustomized) {
+          return (
+            <div className="space-y-6 text-stone-700 leading-relaxed font-serif text-lg whitespace-pre-line bg-amber-50/10 p-6 rounded-2xl border border-amber-100/50">
+              {siteConfig.landing_footer_terms}
+            </div>
+          );
+        }
         return isVi ? (
           <div className="space-y-8 text-stone-700 leading-relaxed font-serif text-lg">
             <section className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/50">
@@ -320,6 +343,13 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
         );
 
       case 'data-deletion':
+        if (isVi && isDataDeletionCustomized) {
+          return (
+            <div className="space-y-6 text-stone-700 leading-relaxed font-serif text-lg whitespace-pre-line bg-amber-50/10 p-6 rounded-2xl border border-amber-100/50">
+              {siteConfig.landing_footer_data_deletion}
+            </div>
+          );
+        }
         return isVi ? (
           <div className="space-y-8 text-stone-700 leading-relaxed font-serif text-lg">
             <section className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/50">
@@ -437,6 +467,13 @@ export const PolicyViews: React.FC<PolicyViewsProps> = ({ page, siteConfig, onBa
         );
 
       case 'support':
+        if (isVi && isSupportCustomized) {
+          return (
+            <div className="space-y-6 text-stone-700 leading-relaxed font-serif text-lg whitespace-pre-line bg-amber-50/10 p-6 rounded-2xl border border-amber-100/50">
+              {siteConfig.landing_footer_support}
+            </div>
+          );
+        }
         return isVi ? (
           <div className="space-y-8 text-stone-700 leading-relaxed font-serif text-lg">
             <section className="bg-amber-50/50 p-6 rounded-2xl border border-amber-200/50 text-center py-8">

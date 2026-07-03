@@ -397,6 +397,20 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.292C4.254 14 3.379 13.125 3.5 12c.121-1.125 1.125-7 1.125-7s1.5-1.5 3.5-1.5h7.375c2 0 3 1 3 3v8c0 1-1 2-2 2h-1.5s-1 2.5-3 4c-1.125.844-2.5 1-3 1-1.125 0-2-.875-2-2v-4z" />
                   </svg>
                 </button>
+                <button 
+                  onClick={() => {
+                    setSelectedText(msg.content || '');
+                    setCorrectedText(msg.content || '');
+                    setNoteType('correction');
+                    setShowCorrectionModal(true);
+                  }}
+                  className="p-1.5 rounded-lg transition-colors hover:bg-stone-100 text-stone-400 hover:text-amber-800"
+                  title={isVi ? "Đính chính câu trả lời" : "Correct answer"}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
               </div>
             )}
             {msg.role === 'assistant' && (

@@ -440,7 +440,7 @@ const AppInner: React.FC = () => {
             ) : (
               <LandingPage siteConfig={siteConfig} onStart={() => setCurrentView(user?.is_admin ? 'admin' : 'chat')} user={user} />
             )
-          ) : !user && currentView !== 'chat' ? (
+          ) : !user ? (
             <div className="min-h-full w-full flex justify-center items-center py-12 px-4 relative overflow-hidden bg-[#faf6eb]">
               {/* 1. Custom Background if configured, else fallback historical background */}
               {siteConfig?.chat_bg ? (

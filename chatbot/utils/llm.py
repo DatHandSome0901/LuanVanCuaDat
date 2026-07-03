@@ -56,12 +56,14 @@ class LLM:
     # ================= VERTEX GEMINI =================
 
     def vertex(self):
+        from chatbot.utils.vertex_helper import get_vertex_config
+        project_id, location = get_vertex_config()
 
         llm = ChatGoogleGenerativeAI(
             model=os.environ["VERTEX_MODEL_NAME"],
             vertexai=True,
-            project=os.environ["PROJECT_ID"],
-            location=os.environ["LOCATION"],
+            project=project_id,
+            location=location,
             temperature=self.temperature,
         )
 

@@ -53,10 +53,13 @@ class ServiceManager:
         print(f"Using embedding model: {embedding_model_name}")
 
         cache_parts = [embedding_model_name]
+        project_id, location = "", ""
         if embedding_model_name == "vertex":
+            from chatbot.utils.vertex_helper import get_vertex_config
+            project_id, location = get_vertex_config()
             cache_parts.extend([
-                os.environ.get("PROJECT_ID", ""),
-                os.environ.get("LOCATION", ""),
+                project_id,
+                location,
                 "text-embedding-004",
             ])
         elif embedding_model_name == "openai":
@@ -84,10 +87,10 @@ class ServiceManager:
         elif embedding_model_name == "vertex":
 
             embeddings = VertexAIEmbeddings(
-            model_name="text-embedding-004",
-            project=os.environ["PROJECT_ID"],
-            location=os.environ["LOCATION"]
-    )
+                model_name="text-embedding-004",
+                project=project_id,
+                location=location
+            )
 
         # ================= LOCAL OLLAMA =================
         elif embedding_model_name == "local":

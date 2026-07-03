@@ -146,22 +146,25 @@ class AdaptiveRetriever:
             t_score = temporal_score(query, text)
             c_score = causal_score(query, text)
 
-            if doc.metadata.get("is_user_rag"):
-                final = 1.0
-            else:
-                final = (alpha * sem) + (beta * t_score) + (gamma * c_score)
+            final = (alpha * sem) + (beta * t_score) + (gamma * c_score)
 
-                # Entity-aware delta: bonus nếu doc chứa entity, penalty nếu lạc đề
-                if entity_scorer:
-                    # Kết hợp title + content để score
-                    doc_meta_text = (
-                        str(doc.metadata.get("file_name", "")) + " " +
-                        str(doc.metadata.get("source", ""))
-                    )
-                    entity_delta = entity_scorer(doc_meta_text + " " + text, entity_key)
-                    final = final + entity_delta
-                    if entity_delta != 0.0:
-                        print(f"   [ENTITY DELTA] doc[{rank}] entity_delta={entity_delta:+.2f}")
+            # Entity-aware delta: bonus nếu doc chứa entity, penalty nếu lạc đề
+            if entity_scorer:
+                # Kết hợp title + content để score
+                doc_meta_text = (
+                    str(doc.metadata.get("file_name", "")) + " " +
+                    str(doc.metadata.get("source", ""))
+                )
+                entity_delta = entity_scorer(doc_meta_text + " " + text, entity_key)
+                final = final + entity_delta
+                if entity_delta != 0.0:
+                    print(f"   [ENTITY DELTA] doc[{rank}] entity_delta={entity_delta:+.2f}")
+
+            # Priority boost for user RAG and global history (only boost if they have some baseline relevance)
+            if doc.metadata.get("is_user_rag"):
+                final += 0.25
+            elif doc.metadata.get("is_global_history"):
+                final += 0.12
 
             final = round(min(max(final, 0.0), 1.0), 4)
 
@@ -189,6 +192,13 @@ class AdaptiveRetriever:
         top = scored[:top_k]
 
         print(f"[SELECTED] {len(top)} docs after rerank")
+
+        # ── Ghi nhận điểm số vào metadata ──────────────────────
+        for sd in top:
+            sd.doc.metadata["rerank_score"] = sd.final_score
+            sd.doc.metadata["semantic_score"] = sd.semantic_score
+            sd.doc.metadata["temporal_score"] = sd.temporal
+            sd.doc.metadata["causal_score"] = sd.causal
 
         # ── Score summary: trung bình của top-3 để trả response ─
         summary = self._build_summary(top[:3])

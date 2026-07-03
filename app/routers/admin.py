@@ -60,6 +60,8 @@ class SettingsUpdate(BaseModel):
     landing_footer_about_us: Optional[str] = None
     landing_footer_terms: Optional[str] = None
     landing_footer_privacy: Optional[str] = None
+    landing_footer_data_deletion: Optional[str] = None
+    landing_footer_support: Optional[str] = None
     landing_hero_words: Optional[str] = None
     landing_process_json: Optional[str] = None
     landing_features_json: Optional[str] = None
@@ -441,6 +443,48 @@ Bạn sở hữu toàn bộ dữ liệu của mình và có các quyền sau:
 - Yêu cầu xóa tài khoản vĩnh viễn và toàn bộ thông tin liên quan bất cứ lúc nào thông qua chức năng tự xóa trong ứng dụng hoặc gửi email yêu cầu về nguyenquocdat888888@gmail.com.
 - Thời gian xử lý yêu cầu xóa thủ công qua email là tối đa 30 ngày.""")
     
+    landing_footer_data_deletion = db.get_setting("landing_footer_data_deletion", """1. Quyền tự quyết về Dữ liệu cá nhân
+Tuân thủ nghiêm ngặt các quy định về dữ liệu của Google Play Store và Apple App Store, Sử Việt AI cung cấp cho người dùng các cơ chế rõ ràng và minh bạch để xóa tài khoản và toàn bộ dữ liệu cá nhân liên quan.
+
+2. Cách 1: Xóa tài khoản trực tiếp trong ứng dụng (Khuyên dùng)
+Bạn có thể tự tay thực hiện thao tác xóa dữ liệu của mình ngay lập tức mà không cần thông qua quản trị viên:
+- Đăng nhập vào tài khoản của bạn trên ứng dụng Sử Việt AI.
+- Nhấp vào biểu tượng Hồ sơ (hoặc góc quản lý cá nhân).
+- Cuộn xuống dưới cùng của trang Hồ sơ.
+- Nhấp vào nút màu đỏ "Xóa tài khoản vĩnh viễn" (hoặc "Xóa tài khoản").
+- Xác nhận hộp thoại nhắc nhở của hệ thống.
+Lưu ý: Khi tự thực hiện trong app, tài khoản và lịch sử chat của bạn sẽ được xóa ngay lập tức khỏi máy chủ chính.
+
+3. Cách 2: Gửi yêu cầu xóa dữ liệu qua Email
+Nếu bạn không thể đăng nhập vào ứng dụng, hoặc gặp trục trặc kỹ thuật, bạn có thể gửi yêu cầu hỗ trợ thủ công:
+- Gửi một email tới địa chỉ hòm thư hỗ trợ: nguyenquocdat888888@gmail.com
+- Tiêu đề Email ghi rõ: "Yêu cầu xóa dữ liệu tài khoản Sử Việt AI".
+- Nội dung Email cần cung cấp: Tên tài khoản (username) hoặc Email đăng ký của tài khoản bạn muốn xóa để chúng tôi xác minh quyền sở hữu hợp pháp.
+
+4. Thời gian xử lý & Cam kết
+- Đối với các yêu cầu gửi qua Email, chúng tôi sẽ xử lý và phản hồi xác nhận cho bạn trong vòng tối đa 30 ngày kể từ khi nhận được email hợp lệ.
+- Khi tài khoản được xóa, toàn bộ các trường dữ liệu sau sẽ bị hủy vĩnh viễn: Thông tin hồ sơ (Họ tên, email đăng nhập, ảnh đại diện, mật khẩu băm), toàn bộ lịch sử tin nhắn trò chuyện với chatbot, lịch sử thi đấu Q&A và số dư token hiện tại.
+- Dữ liệu trong các bản sao lưu hệ thống (backups) cũng sẽ tự động bị xóa đè theo chu kỳ lưu trữ tối đa 30 ngày của hệ thống.""")
+
+    landing_footer_support = db.get_setting("landing_footer_support", """1. Hướng dẫn sử dụng nhanh
+- Đăng nhập/Đăng ký tài khoản bằng Email hoặc Google để lưu trữ lịch sử trò chuyện.
+- Nhập câu hỏi lịch sử vào khung chat để thảo luận với chuyên gia Sử Việt AI.
+- Sử dụng tính năng "Thử nghiệm RAG" để tải tài liệu PDF cá nhân lên và trò chuyện trên tài liệu đó.
+- Nạp thêm token trong phần "Gói nạp" khi số dư của bạn hết để tiếp tục cuộc trò chuyện.
+
+2. Các câu hỏi thường gặp (FAQ)
+- Q: Làm cách nào để nạp token?
+  A: Truy cập tab "Gói nạp", chọn gói token mong muốn và thực hiện chuyển khoản ngân hàng qua mã QR động hiển thị trên màn hình. Hệ thống sẽ tự động cộng số dư sau 10-30 giây.
+- Q: Hệ thống có hỗ trợ tải lên file PDF của riêng tôi không?
+  A: Có. Bạn có thể sử dụng tính năng "Thử nghiệm RAG" bên thanh menu trái để tải lên tài liệu cá nhân và đặt câu hỏi trực tiếp trên tài liệu đó.
+- Q: Tôi phải làm gì nếu nạp tiền thành công nhưng không nhận được token?
+  A: Giao dịch được xử lý hoàn toàn tự động. Trong trường hợp ngân hàng bị chậm trễ, vui lòng gửi phản ánh lỗi qua mục "Báo cáo sự cố nạp tiền" tại tab Gói nạp hoặc liên hệ email nguyenquocdat888888@gmail.com kèm ảnh chụp biên lai chuyển khoản. Chúng tôi sẽ duyệt thủ công trong vòng 1-4 giờ.
+
+3. Thông tin liên hệ trực tiếp
+- Hotline: 0916 416 409
+- Email: nguyenquocdat888888@gmail.com
+- Địa chỉ văn phòng: P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ""")
+
     landing_hero_words = db.get_setting("landing_hero_words", "Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A")
     landing_process_json = db.get_setting("landing_process_json", "")
     landing_features_json = db.get_setting("landing_features_json", "")
@@ -484,6 +528,8 @@ Bạn sở hữu toàn bộ dữ liệu của mình và có các quyền sau:
         "landing_footer_about_us": landing_footer_about_us,
         "landing_footer_terms": landing_footer_terms,
         "landing_footer_privacy": landing_footer_privacy,
+        "landing_footer_data_deletion": landing_footer_data_deletion,
+        "landing_footer_support": landing_footer_support,
         "landing_hero_words": landing_hero_words,
         "landing_process_json": landing_process_json,
         "landing_features_json": landing_features_json,
@@ -537,6 +583,8 @@ async def update_settings(
         ("landing_footer_about_us", data.landing_footer_about_us),
         ("landing_footer_terms", data.landing_footer_terms),
         ("landing_footer_privacy", data.landing_footer_privacy),
+        ("landing_footer_data_deletion", data.landing_footer_data_deletion),
+        ("landing_footer_support", data.landing_footer_support),
         ("landing_hero_words", data.landing_hero_words),
         ("landing_process_json", data.landing_process_json),
         ("landing_features_json", data.landing_features_json),
@@ -697,6 +745,46 @@ Bạn sở hữu toàn bộ dữ liệu của mình và có các quyền sau:
 - Xóa từng cuộc hội thoại hoặc toàn bộ lịch sử trò chuyện trực tiếp tại giao diện chat.
 - Yêu cầu xóa tài khoản vĩnh viễn và toàn bộ thông tin liên quan bất cứ lúc nào thông qua chức năng tự xóa trong ứng dụng hoặc gửi email yêu cầu về nguyenquocdat888888@gmail.com.
 - Thời gian xử lý yêu cầu xóa thủ công qua email là tối đa 30 ngày."""),
+        "landing_footer_data_deletion": db.get_setting("landing_footer_data_deletion", """1. Quyền tự quyết về Dữ liệu cá nhân
+Tuân thủ nghiêm ngặt các quy định về dữ liệu của Google Play Store và Apple App Store, Sử Việt AI cung cấp cho người dùng các cơ chế rõ ràng và minh bạch để xóa tài khoản và toàn bộ dữ liệu cá nhân liên quan.
+
+2. Cách 1: Xóa tài khoản trực tiếp trong ứng dụng (Khuyên dùng)
+Bạn có thể tự tay thực hiện thao tác xóa dữ liệu của mình ngay lập tức mà không cần thông qua quản trị viên:
+- Đăng nhập vào tài khoản của bạn trên ứng dụng Sử Việt AI.
+- Nhấp vào biểu tượng Hồ sơ (hoặc góc quản lý cá nhân).
+- Cuộn xuống dưới cùng của trang Hồ sơ.
+- Nhấp vào nút màu đỏ "Xóa tài khoản vĩnh viễn" (hoặc "Xóa tài khoản").
+- Xác nhận hộp thoại nhắc nhở của hệ thống.
+Lưu ý: Khi tự thực hiện trong app, tài khoản và lịch sử chat của bạn sẽ được xóa ngay lập tức khỏi máy chủ chính.
+
+3. Cách 2: Gửi yêu cầu xóa dữ liệu qua Email
+Nếu bạn không thể đăng nhập vào ứng dụng, hoặc gặp trục trặc kỹ thuật, bạn có thể gửi yêu cầu hỗ trợ thủ công:
+- Gửi một email tới địa chỉ hòm thư hỗ trợ: nguyenquocdat888888@gmail.com
+- Tiêu đề Email ghi rõ: "Yêu cầu xóa dữ liệu tài khoản Sử Việt AI".
+- Nội dung Email cần cung cấp: Tên tài khoản (username) hoặc Email đăng ký của tài khoản bạn muốn xóa để chúng tôi xác minh quyền sở hữu hợp pháp.
+
+4. Thời gian xử lý & Cam kết
+- Đối với các yêu cầu gửi qua Email, chúng tôi sẽ xử lý và phản hồi xác nhận cho bạn trong vòng tối đa 30 ngày kể từ khi nhận được email hợp lệ.
+- Khi tài khoản được xóa, toàn bộ các trường dữ liệu sau sẽ bị hủy vĩnh viễn: Thông tin hồ sơ (Họ tên, email đăng nhập, ảnh đại diện, mật khẩu băm), toàn bộ lịch sử tin nhắn trò chuyện với chatbot, lịch sử thi đấu Q&A và số dư token hiện tại.
+- Dữ liệu trong các bản sao lưu hệ thống (backups) cũng sẽ tự động bị xóa đè theo chu kỳ lưu trữ tối đa 30 ngày của hệ thống."""),
+        "landing_footer_support": db.get_setting("landing_footer_support", """1. Hướng dẫn sử dụng nhanh
+- Đăng nhập/Đăng ký tài khoản bằng Email hoặc Google để lưu trữ lịch sử trò chuyện.
+- Nhập câu hỏi lịch sử vào khung chat để thảo luận với chuyên gia Sử Việt AI.
+- Sử dụng tính năng "Thử nghiệm RAG" để tải tài liệu PDF cá nhân lên và trò chuyện trên tài liệu đó.
+- Nạp thêm token trong phần "Gói nạp" khi số dư của bạn hết để tiếp tục cuộc trò chuyện.
+
+2. Các câu hỏi thường gặp (FAQ)
+- Q: Làm cách nào để nạp token?
+  A: Truy cập tab "Gói nạp", chọn gói token mong muốn và thực hiện chuyển khoản ngân hàng qua mã QR động hiển thị trên màn hình. Hệ thống sẽ tự động cộng số dư sau 10-30 giây.
+- Q: Hệ thống có hỗ trợ tải lên file PDF của riêng tôi không?
+  A: Có. Bạn có thể sử dụng tính năng "Thử nghiệm RAG" bên thanh menu trái để tải lên tài liệu cá nhân và đặt câu hỏi trực tiếp trên tài liệu đó.
+- Q: Tôi phải làm gì nếu nạp tiền thành công nhưng không nhận được token?
+  A: Giao dịch được xử lý hoàn toàn tự động. Trong trường hợp ngân hàng bị chậm trễ, vui lòng gửi phản ánh lỗi qua mục "Báo cáo sự cố nạp tiền" tại tab Gói nạp hoặc liên hệ email nguyenquocdat888888@gmail.com kèm ảnh chụp biên lai chuyển khoản. Chúng tôi sẽ duyệt thủ công trong vòng 1-4 giờ.
+
+3. Thông tin liên hệ trực tiếp
+- Hotline: 0916 416 409
+- Email: nguyenquocdat888888@gmail.com
+- Địa chỉ văn phòng: P16, Đường số 8, KDC lô 49, Khu đô thị Nam Cần Thơ, Phường Cái Răng, TP. Cần Thơ"""),
         "landing_hero_words": db.get_setting("landing_hero_words", "Lịch Sử Việt Nam, Văn Hoá Dân Tộc, Trí Tuệ Cha Ông, Hào Khí Đông A"),
         "landing_process_json": db.get_setting("landing_process_json", ""),
         "landing_features_json": db.get_setting("landing_features_json", ""),

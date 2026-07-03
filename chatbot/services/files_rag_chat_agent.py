@@ -821,19 +821,8 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
             entity_key=entity_key,   # ← entity-aware bonus/penalty
         )
 
-        # ===== PRIORITY SORTING: User RAG > Global History RAG > Base/PDF RAG =====
-        def get_priority_score(doc):
-            if doc.metadata.get("is_user_rag"):
-                return 0
-            if doc.metadata.get("is_global_history"):
-                return 1
-            source = doc.metadata.get("file_name") or doc.metadata.get("source") or ""
-            has_page = doc.metadata.get("page") is not None or doc.metadata.get("page_number") is not None
-            if source.lower().endswith('.pdf') or has_page:
-                return 2
-            return 3
-
-        reranked_docs.sort(key=get_priority_score)
+        # ===== PRIORITY SORTING: Sort by combined final rerank score (descending) =====
+        reranked_docs.sort(key=lambda d: d.metadata.get("rerank_score", 0.0), reverse=True)
 
         # ===== ENTITY-AWARE DOC FILTER =====
         # Soft filter: nếu có entity rõ ràng, đẩy doc lạc chủ đề xuống cuối
@@ -959,7 +948,10 @@ LƯU Ý: CHỈ trả về câu hỏi đã được viết lại, KHÔNG giải t
         if not self.use_llm_document_grader:
             for doc in documents:
                 if doc.metadata.get("is_user_rag"):
-                    relevant_docs.append(doc)
+                    if doc_matches_either(question, doc, entity_key):
+                        relevant_docs.append(doc)
+                    else:
+                        print(f"   [FAST FILTERED] Irrelevant user RAG note: {doc.metadata.get('source')}")
                     continue
                 doc_source = doc.metadata.get("source", "")
                 doc_type = doc.metadata.get("type", "")

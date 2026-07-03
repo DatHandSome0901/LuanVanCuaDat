@@ -231,6 +231,8 @@ const localized = {
     footer_about: "Nội dung \"Về chúng tôi\" (Giới thiệu chung)",
     footer_terms: "Nội dung \"Điều khoản dịch vụ\"",
     footer_privacy: "Nội dung \"Chính sách bảo mật\"",
+    footer_data_deletion: "Nội dung \"Chính sách xóa dữ liệu\"",
+    footer_support: "Nội dung \"Hỗ trợ & FAQ\"",
     btn_save: "Lưu Thư Văn Cấu Hình",
     preview_realtime: "Xem Trước Realtime",
     preview_url: "http://localhost:5173/preview",
@@ -329,6 +331,8 @@ const localized = {
     footer_about: "\"About Us\" content (General Introduction)",
     footer_terms: "\"Terms of Service\" content",
     footer_privacy: "\"Privacy Policy\" content",
+    footer_data_deletion: "\"Data Deletion Policy\" content",
+    footer_support: "\"Support & FAQ\" content",
     btn_save: "Save System Settings",
     preview_realtime: "Real-time Preview",
     preview_url: "http://localhost:5173/preview",
@@ -630,6 +634,8 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
     landing_footer_about_us: data.landing_footer_about_us,
     landing_footer_terms: data.landing_footer_terms,
     landing_footer_privacy: data.landing_footer_privacy,
+    landing_footer_data_deletion: data.landing_footer_data_deletion,
+    landing_footer_support: data.landing_footer_support,
     landing_hero_words: data.landing_hero_words,
     landing_process_json: JSON.stringify(processSteps),
     landing_features_json: JSON.stringify(featuresTabs),
@@ -1555,6 +1561,32 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   onFocus={() => scrollToSection('landing-footer')}
                   className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs min-h-[100px]"
                   placeholder={language === 'en' ? 'Privacy policy content...' : 'Chính sách bảo mật dữ liệu...'}
+                />
+              </div>
+
+              {/* Data deletion policy content */}
+              <div>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_data_deletion}</label>
+                <textarea 
+                  name="landing_footer_data_deletion"
+                  value={data.landing_footer_data_deletion || ''}
+                  onChange={onChange}
+                  onFocus={() => scrollToSection('landing-footer')}
+                  className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs min-h-[100px]"
+                  placeholder={language === 'en' ? 'Data deletion policy content...' : 'Chính sách xóa dữ liệu...'}
+                />
+              </div>
+
+              {/* Support & FAQ content */}
+              <div>
+                <label className="text-[10px] font-historical font-black uppercase text-amber-900 tracking-wider mb-1 block">{tLocal.footer_support}</label>
+                <textarea 
+                  name="landing_footer_support"
+                  value={data.landing_footer_support || ''}
+                  onChange={onChange}
+                  onFocus={() => scrollToSection('landing-footer')}
+                  className="w-full bg-stone-50 border border-stone-200 p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 font-sans text-xs min-h-[100px]"
+                  placeholder={language === 'en' ? 'Support & FAQ content...' : 'Thông tin Hỗ trợ & FAQ...'}
                 />
               </div>
             </div>

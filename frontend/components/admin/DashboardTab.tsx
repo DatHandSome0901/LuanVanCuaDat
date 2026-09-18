@@ -48,7 +48,7 @@ const localized = {
     supervise: 'Giám sát',
     recent_treasury: 'Ngân Khố Mới Nhận (Thu Chi Gần Đây)',
     view_all: 'Xem tất cả',
-    no_transactions: 'Chưa có giao dịch nạp tệ nào...',
+    no_transactions: 'Chưa có giao dịch nạp Token nào...',
     feedback_box: 'Hòm Thư Tấu Góp Ý',
     handle_feedback: 'Xử lý sớ tấu',
     no_feedback: 'Khắp nơi thái bình thịnh trị. Chưa nhận được tấu chương phản hồi tiêu cực nào.',

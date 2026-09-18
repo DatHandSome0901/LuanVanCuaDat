@@ -10,7 +10,7 @@ const localized = {
     failed: 'Đã Bãi Bỏ',
     col_code: "Mã Công Văn",
     col_user: "Nhân Sĩ Công Đức",
-    col_amount: "Ngân Tệ Nạp (VNĐ)",
+    col_amount: "Số Tiền Nạp (VNĐ)",
     col_tokens: "Được Hưởng (Tokens)",
     col_status: "Trạng Thái",
     col_created: "Khởi Tạo",
@@ -18,7 +18,7 @@ const localized = {
     status_completed: "已納 Đã Nạp",
     status_pending: "侍閱 Chờ Duyệt",
     status_failed: "駁回 Bãi Bỏ",
-    tokens_unit: "Tệ"
+    tokens_unit: "Token"
   },
   en: {
     completed: 'Completed',

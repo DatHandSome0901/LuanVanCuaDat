@@ -515,16 +515,22 @@ def detect_entity_from_text(text: str) -> tuple[str, dict] | tuple[None, None]:
             if alias_norm in norm_text:
                 return entity_key, VIET_HISTORY_ENTITIES[entity_key]
 
-    # Pass 2: related_keywords match
+    # Pass 2: related_keywords match (find all matches and pick the one with the longest keyword)
+    matches = []
     for key, info in VIET_HISTORY_ENTITIES.items():
         for kw in info.get("related_keywords", []):
             norm_kw = _norm(kw)
             if len(norm_kw) < 4:
                 pattern = rf"\b{re.escape(norm_kw)}\b"
                 if re.search(pattern, norm_text):
-                    return key, info
+                    matches.append((key, info, len(norm_kw)))
             elif norm_kw in norm_text:
-                return key, info
+                matches.append((key, info, len(norm_kw)))
+
+    if matches:
+        # Sắp xếp các match theo độ dài keyword giảm dần
+        matches.sort(key=lambda x: x[2], reverse=True)
+        return matches[0][0], matches[0][1]
 
     return None, None
 

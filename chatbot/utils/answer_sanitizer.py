@@ -183,3 +183,84 @@ def remap_citations(text: str, documents: list, entity_key: str = None) -> str:
 
     return cleaned
 
+
+def filter_and_reindex_sources(text: str, sources: list) -> tuple:
+    """
+    Filters the sources list to only include those cited in the text,
+    and re-indexes the inline citations [i] in the text to be sequential (1, 2, ...).
+    """
+    if not text or not sources:
+        return text, sources
+
+    import re
+
+    # 1. Find all citation numbers currently in the text
+    all_citations = re.findall(r"\[\s*(\d+(?:\s*,\s*\d+)*)\s*\]", text)
+    cited_indices = set()
+    for citation in all_citations:
+        parts = re.split(r"\s*,\s*", citation)
+        for part in parts:
+            try:
+                cited_indices.add(int(part))
+            except ValueError:
+                pass
+
+    if not cited_indices:
+        # If there are no citations in the text, do not display any sources
+        return text, []
+
+    # 2. Filter sources and build mapping from old_index (1-based) -> new_index (1-based)
+    filtered_sources = []
+    old_to_new = {}
+    for idx, source in enumerate(sources):
+        old_idx = idx + 1
+        if old_idx in cited_indices:
+            filtered_sources.append(source)
+            new_idx = len(filtered_sources)
+            old_to_new[old_idx] = new_idx
+
+    # 3. Replace the citations in the text with the new indices
+    def replace_citation(match):
+        content = match.group(1)
+        parts = re.split(r"\s*,\s*", content)
+        new_parts = []
+        for part in parts:
+            try:
+                val = int(part)
+                if val in old_to_new:
+                    new_parts.append(str(old_to_new[val]))
+            except ValueError:
+                new_parts.append(part)
+        
+        # Deduplicate and sort
+        unique_new_parts = []
+        for p in new_parts:
+            if p not in unique_new_parts:
+                unique_new_parts.append(p)
+        try:
+            unique_new_parts.sort(key=int)
+        except ValueError:
+            pass
+            
+        if not unique_new_parts:
+            return ""
+        return f"[{', '.join(unique_new_parts)}]"
+
+    cleaned_text = re.sub(r"\[\s*(\d+(?:\s*,\s*\d+)*)\s*\]", replace_citation, text)
+    # Clean up empty brackets
+    cleaned_text = re.sub(r"\[\s*[,]*\s*\]", "", cleaned_text)
+    # Merge adjacent citations e.g. [1][2] -> [1, 2]
+    def merge_adjacent(match):
+        full_match = match.group(0)
+        numbers = re.findall(r"\d+", full_match)
+        unique_nums = sorted(list(set(int(n) for n in numbers)))
+        return f"[{', '.join(str(n) for n in unique_nums)}]"
+        
+    cleaned_text = re.sub(r"\[[\d,\s]+\](?:\s*\[[\d,\s]+\])+", merge_adjacent, cleaned_text)
+    # Clean spacing before punctuation
+    cleaned_text = re.sub(r"\s+([,.;:!?])", r"\1", cleaned_text)
+    cleaned_text = re.sub(r" {2,}", " ", cleaned_text)
+
+    return cleaned_text, filtered_sources
+
+

@@ -485,7 +485,7 @@ const RagPlaygroundTab: React.FC<RagPlaygroundTabProps> = ({ initialQuestion = '
                     active={true}
                   >
                     <div><span className="font-semibold text-stone-700">JWT Token:</span> <span className="text-emerald-700 font-bold">✓ Valid (Ủy quyền thành công)</span></div>
-                    <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Trừ phí đàm đạo' : 'Deducted credit'}:</span> <span className="text-amber-600 font-bold">-{selectedMessage?.tokens_charged !== undefined ? selectedMessage.tokens_charged : (response?.tokens_charged || 0)} Tệ</span></div>
+                    <div><span className="font-semibold text-stone-700">{language === 'vi' ? 'Trừ phí đàm đạo' : 'Deducted credit'}:</span> <span className="text-amber-600 font-bold">-{selectedMessage?.tokens_charged !== undefined ? selectedMessage.tokens_charged : (response?.tokens_charged || 0)} Token</span></div>
                     <div><span className="font-semibold text-stone-700">History Context:</span> Fetched last 6 messages from SQLite</div>
                   </TimelineItem>
 

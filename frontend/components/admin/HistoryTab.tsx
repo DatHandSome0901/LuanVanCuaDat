@@ -5,12 +5,12 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 const localized = {
   vi: {
-    title: "📜 Nhật Ký Lưu Chuyển Ngân Tệ",
-    subtitle: "Ghi nhận việc luân chuyển linh tệ trên triều đình",
+    title: "📜 Nhật Ký Lưu Chuyển Token",
+    subtitle: "Ghi nhận việc luân chuyển Token trên triều đình",
     col_time: "Điểm Thời Gian",
     col_user: "Nhân Sĩ Cực Lạc",
     col_type: "Hình Thức",
-    col_amount: "Số Lượng (Tệ)",
+    col_amount: "Số Lượng (Token)",
     col_reason: "Sự Tích (Lý Do)",
     empty_records: "Không tìm thấy ghi chép luân chuyển nào trong thư văn...",
     type_in: "納 Thu Vực",

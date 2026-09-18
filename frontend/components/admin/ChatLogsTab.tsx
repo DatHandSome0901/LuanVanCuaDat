@@ -15,7 +15,7 @@ const localized = {
     col_action: "Chi Tiết Thư Văn",
     empty_records: "Chưa có nhật ký đàm đạo nào được ghi chép trong sử thư...",
     anonymous: "Sĩ tử ẩn danh",
-    tokens_unit: "Tệ",
+    tokens_unit: "Token",
     btn_open: "Mở Sớ",
     live_monitoring: "Đang kết nối sa bàn (Giám sát Live)...",
     live_start: "Khởi Động Giám Sát",

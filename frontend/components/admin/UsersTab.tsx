@@ -42,7 +42,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
       rank_admin: 'Quan Lại',
       rank_user: 'Sĩ Tử',
       action_detail: 'Bản Sớ',
-      action_gift: 'Tặng Tệ',
+      action_gift: 'Tặng Token',
       action_demote: 'Hạ Chức',
       action_promote: 'Sắc Phong',
       action_ban: 'Bãi Bỏ'

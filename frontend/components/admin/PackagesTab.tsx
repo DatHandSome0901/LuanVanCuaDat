@@ -4,13 +4,13 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 const localized = {
   vi: {
-    title: "Ngân Bản Gói Nạp (Gói Tệ Công Đức)",
+    title: "Danh Sách Gói Nạp Token",
     subtitle: '"Sách ngọc khắc chữ vàng, nghìn năm còn lưu dấu tích." Điều chỉnh linh dược công đức cho sĩ tử.',
     new_package: "Thiết Lập Gói Nạp Mới",
-    no_packages: "Chưa có gói nạp tệ nào được thiết lập...",
+    no_packages: "Chưa có gói nạp Token nào được thiết lập...",
     edit_package: "Sửa sắc văn",
     delete_package: "Bãi bỏ gói",
-    tokens_unit: "Tệ",
+    tokens_unit: "Token",
     price_label: "Trị giá:"
   },
   en: {

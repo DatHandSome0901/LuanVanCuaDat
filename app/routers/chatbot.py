@@ -1584,6 +1584,12 @@ def _process_chat_request(
         from chatbot.utils.entity_detector import filter_docs_by_entity_strict
         filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
         sources = _build_sources(filtered_docs)
+        
+        # Filter and re-index to only keep actually cited sources
+        from chatbot.utils.answer_sanitizer import filter_and_reindex_sources
+        generation, sources = filter_and_reindex_sources(generation, sources)
+        
+        vietnamese_generation = generation
         vietnamese_sources = sources
 
         
@@ -2295,9 +2301,18 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
             from chatbot.utils.answer_sanitizer import remap_citations
             generation_text = remap_citations(generation_text, documents, entity_key=entity_key)
 
+            from chatbot.utils.entity_detector import filter_docs_by_entity_strict
+            filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
+            sources = _build_sources(filtered_docs)
+
+            # Filter and re-index to only keep actually cited sources
+            from chatbot.utils.answer_sanitizer import filter_and_reindex_sources
+            generation_text, sources = filter_and_reindex_sources(generation_text, sources)
+
             # Translate pre-generated stream response to English if required
             if is_english:
                 generation_text = translation_agent.translate_answer_to_en(generation_text)
+                sources = translation_agent.translate_sources_to_en(sources)
                 print(f"[TRANSLATION] Translated pre-generated stream response to English: '{generation_text[:60]}...'")
 
             CHUNK = 6
@@ -2306,12 +2321,6 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
                 yield f"data: {_json.dumps(token)}\n\n"
                 await asyncio.sleep(0.012)
 
-            from chatbot.utils.entity_detector import filter_docs_by_entity_strict
-            filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
-            sources = _build_sources(filtered_docs)
-
-            if is_english:
-                sources = translation_agent.translate_sources_to_en(sources)
             ai_msg_id = user_db.save_message(
                 conversation_id, "assistant", generation_text,
                 [s.model_dump() for s in sources],
@@ -2470,6 +2479,12 @@ async def _generate_chat_stream(request: ChatRequest, current_user: dict):
         from chatbot.utils.entity_detector import filter_docs_by_entity_strict
         filtered_docs = filter_docs_by_entity_strict(documents, entity_key)
         sources = _build_sources(filtered_docs)
+        
+        # Filter and re-index to only keep actually cited sources
+        from chatbot.utils.answer_sanitizer import filter_and_reindex_sources
+        full_generation, sources = filter_and_reindex_sources(full_generation, sources)
+        
+        vietnamese_generation = full_generation
         vietnamese_sources = sources
 
         # Translate to English if required

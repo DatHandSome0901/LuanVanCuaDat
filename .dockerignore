@@ -21,3 +21,9 @@ scratch/
 *.apk
 *.exe
 *.log
+*.docx
+*.pdf
+lam-son-phaser-game/
+baselines/
+DOCS/
+

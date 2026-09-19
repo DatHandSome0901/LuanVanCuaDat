@@ -9,10 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system build dependencies required for compiling packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies first to leverage Docker layer caching
@@ -32,3 +32,4 @@ USER appuser
 EXPOSE 8000
 
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+

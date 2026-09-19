@@ -11,7 +11,6 @@ Endpoint này sử dụng FilesChatAgent để:
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from transformers import generation
 from app.security.security import get_current_user
 from chatbot.services.files_rag_chat_agent import FilesChatAgent
 from chatbot.utils.llm import LLM

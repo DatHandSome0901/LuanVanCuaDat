@@ -9,8 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Minimal system runtime dependencies (libgomp1 is required by faiss-cpu)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
@@ -20,8 +20,17 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
-COPY . .
+# Copy only backend application code
+COPY app/ app/
+COPY chatbot/ chatbot/
+COPY ingestion/ ingestion/
+COPY vietnam_history_language_agent/ vietnam_history_language_agent/
+COPY data/ data/
+COPY output/ output/
+COPY database.db* ./
+COPY main.py .
+COPY run_api.py .
+COPY update_mobile_ip.py .
 
 # blitz.cloud requires non-root execution (UID 1000)
 RUN useradd -m -u 1000 appuser && \

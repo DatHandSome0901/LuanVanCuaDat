@@ -62,6 +62,7 @@ out/
 utils/data_vector_new/
 *.faiss
 *.pkl
+!output/**
 .vercel
 
 # Scratch space and testing artifacts

@@ -26,7 +26,7 @@ COPY chatbot/ chatbot/
 COPY ingestion/ ingestion/
 COPY vietnam_history_language_agent/ vietnam_history_language_agent/
 COPY data/ data/
-COPY output/ output/
+COPY output* ./output/
 COPY database.db* ./
 COPY main.py .
 COPY run_api.py .

@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/download/apk",
+      "destination": "/app-release.apk",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://luanvancuadat.onrender.com/api/v1/:path*"
+    }
+  ]
+}

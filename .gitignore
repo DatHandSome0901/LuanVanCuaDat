@@ -44,6 +44,7 @@ Thumbs.db
 # ================= DATABASE =================
 *.sqlite3
 *.db
+!database.db
 
 # ================= NODE (nếu có frontend React) =================
 node_modules/

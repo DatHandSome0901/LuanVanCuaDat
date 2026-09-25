@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: bloom-chatbot-backend
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: TITLE_APP
+        value: Bloom API
+      - key: VERSION_APP
+        value: v1
+      - key: ALLOW_ORIGINS
+        value: "*"
+      - key: EMBEDDING_MODEL_NAME
+        value: vertex
+      - key: PATH_VECTOR_STORE
+        value: output
+      - key: CHAT_PREWARM_FAISS
+        value: "0"

@@ -9,8 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Minimal system runtime dependencies (libgomp1 is required by faiss-cpu)
+# Install system build dependencies required for compiling packages
+# libgomp1 is strictly required by faiss-cpu on Debian/Ubuntu
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     curl \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
@@ -20,17 +22,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy only backend application code
-COPY app/ app/
-COPY chatbot/ chatbot/
-COPY ingestion/ ingestion/
-COPY vietnam_history_language_agent/ vietnam_history_language_agent/
-COPY data/ data/
-COPY output* ./output/
-COPY database.db* ./
-COPY main.py .
-COPY run_api.py .
-COPY update_mobile_ip.py .
+# Copy source code
+COPY . .
 
 # blitz.cloud requires non-root execution (UID 1000)
 RUN useradd -m -u 1000 appuser && \
@@ -40,5 +33,5 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python download_vector_store.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
 
